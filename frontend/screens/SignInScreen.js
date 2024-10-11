@@ -4,8 +4,7 @@ import {
     View,
     Image,
     StatusBar,
-    TouchableOpacity,
-    ImageBackground
+    TouchableOpacity
 } from "react-native";
 import {
     GoogleSignin,
@@ -15,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 import prviewImg from "../assets/preview.png";
-import bgImg from "../assets/background.jpg";
+
 import googleIconImg from "../assets/google-icon.png";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
@@ -100,11 +99,7 @@ const SignInScreen = () => {
     return (
         <View style={styles.wrapper}>
             <View style={styles.img_wrapper}>
-                <ImageBackground source={bgImg} style={styles.bg_image}>
-                    <View style={styles.img_container}>
-                        <Image source={prviewImg} style={styles.prview_img} />
-                    </View>
-                </ImageBackground>
+                <Image source={prviewImg} style={styles.prview_img} />
             </View>
 
             <View style={styles.welcome_paragraph_container}>
@@ -143,15 +138,9 @@ const styles = StyleSheet.create({
     },
     img_wrapper: {
         width: "100%",
-        height: "51%"
-    },
-    img_container: {
-        height: "100%",
-        width: "100%"
-    },
-    bg_image: {
-        borderBottomLeftRadius: normalizeVertical(80),
-        borderBottomRightRadius: normalizeVertical(80),
+        height: "51%",
+        borderBottomLeftRadius: normalizeVertical(75),
+        borderBottomRightRadius: normalizeVertical(75),
         overflow: "hidden",
         elevation: 2
     },
