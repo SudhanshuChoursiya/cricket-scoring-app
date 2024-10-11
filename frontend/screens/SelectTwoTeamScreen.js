@@ -1,0 +1,151 @@
+import {
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    StatusBar
+} from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
+import { normalize, normalizeVertical } from "../utils/responsive.js";
+const SelectTwoTeamScreen = ({ navigation, route }) => {
+    const [cakesDetails, setCakesDetails] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+    useEffect(() => {
+        setIsScreenFocused(true);
+    }, []);
+    useEffect(() => {
+        const getCategorizedCakes = async () => {
+            try {
+                const response = await fetch(
+                    `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-cakes`
+                );
+                const data = await response.json();
+
+                if (response.status === 200) {
+                    setCakesDetails(data.data.cakesDetails);
+                }
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        getCategorizedCakes();
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            navigation.getParent()?.setOptions({
+                tabBarStyle: { display: "none" }
+            });
+
+            return () => {
+                navigation.getParent()?.setOptions({
+                    tabBarStyle: { display: "flex" }
+                });
+            };
+        }, [isScreenFocused])
+    );
+
+    return (
+        <View style={styles.wrapper}>
+            <View style={styles.header}>
+                <TouchableOpacity
+                    style={styles.back_btn}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Icon
+                        name="arrow-back"
+                        size={normalize(26)}
+                        color="white"
+                    />
+                </TouchableOpacity>
+                <Text style={styles.label}>select playing teams</Text>
+            </View>
+
+            <View style={styles.select_team_wrapper}>
+                <TouchableOpacity
+                    style={styles.select_team}
+                    onPress={() => navigation.navigate("choose-team",{selectFor:"team a"})}
+                >
+                    <View style={styles.select_icon_wrapper}>
+                        <Icon name="add" size={normalize(26)} color="white" />
+                    </View>
+                    <Text style={styles.select_caption}>select team a</Text>
+                </TouchableOpacity>
+                <Text style={styles.versus_text}>Vs</Text>
+                <TouchableOpacity
+                    style={styles.select_team}
+                    onPress={() => navigation.navigate("choose-team",{selectFor:"team b"})}
+                >
+                    <View style={styles.select_icon_wrapper}>
+                        <Icon name="add" size={normalize(26)} color="white" />
+                    </View>
+                    <Text style={styles.select_caption}>select team b</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+        backgroundColor: "#FFFFFF",
+        width: "100%"
+    },
+    header: {
+        paddingTop: normalizeVertical(50),
+        paddingBottom: normalizeVertical(20),
+        backgroundColor: "#E21F26",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: normalize(45),
+        paddingHorizontal: normalize(20)
+    },
+
+    label: {
+        fontSize: normalize(20),
+        color: "white",
+        paddingHorizontal: normalize(13),
+        textTransform: "capitalize",
+        fontFamily: "robotoBold"
+    },
+    select_team_wrapper: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: normalizeVertical(30)
+    },
+    select_team: {
+        alignItems: "center",
+        justifyContent: "center",
+        gap: normalizeVertical(15)
+    },
+    select_icon_wrapper: {
+        height: normalize(100),
+        width: normalize(100),
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#282829",
+        borderRadius: normalize(50)
+    },
+    select_caption: {
+        backgroundColor: "#1A4DA1",
+        color: "white",
+        paddingHorizontal: normalize(15),
+        paddingVertical: normalizeVertical(10),
+        borderRadius: normalize(8),
+        textTransform: "capitalize"
+    },
+    versus_text: {
+        fontSize: normalize(20),
+        fontFamily: "robotoBold"
+    }
+});
+
+export default SelectTwoTeamScreen;
