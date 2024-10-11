@@ -26,13 +26,14 @@ import latoBold from "./assets/Lato-Bold.ttf";
 import * as SplashScreen from "expo-splash-screen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import ReduxProvider from "./redux/Provider.js";
 const Stack = createStackNavigator();
 
 const Tab = createBottomTabNavigator();
 
+const TopTab = createMaterialTopTabNavigator();
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 import HomeScreen from "./screens/HomeScreen.js";
@@ -40,7 +41,15 @@ import HomeScreen from "./screens/HomeScreen.js";
 import ProfileScreen from "./screens/ProfileScreen.js";
 
 import SignInScreen from "./screens/SignInScreen.js";
+import SelectTwoTeamScreen from "./screens/SelectTwoTeamScreen.js";
 
+import ChooseTeamScreen from "./screens/ChooseTeamsScreen.js";
+
+import AddTeamScreen from "./screens/AddTeamScreen.js";
+
+import TeamSquadScreen from "./screens/TeamSquadScreen.js";
+
+import AddNewPlayersScreen from "./screens/AddNewPlayersScreen.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -63,10 +72,53 @@ const CustomHeader = ({ title, navigation, route }) => {
     );
 };
 
+function TopTabNavigator() {
+    return (
+        <TopTab.Navigator
+            screenOptions={{
+                tabBarStyle: {
+                    backgroundColor: "#E21F26"
+                },
+                tabBarActiveTintColor: "white",
+                tabBarInactiveTintColor: "#d9b0ac",
+                tabBarIndicatorStyle: {
+                    backgroundColor: "#FFBC01",
+                    height: normalizeVertical(7)
+                },
+                tabBarLabelStyle: {
+                    fontSize: normalize(17),
+                    fontFamily: "ubuntuMedium"
+                }
+            }}
+        >
+            <TopTab.Screen name="my teams" component={ChooseTeamScreen} />
+            <TopTab.Screen name="add team" component={AddTeamScreen} />
+        </TopTab.Navigator>
+    );
+}
 function StackNavigator() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="home-screen" component={HomeScreen} />
+            <Stack.Screen name="select-teams" component={SelectTwoTeamScreen} />
+
+            <Stack.Screen
+                name="choose-team"
+                component={TopTabNavigator}
+                options={({ navigation, route }) => ({
+                    headerShown: true,
+                    header: () => (
+                        <CustomHeader
+                            title="Select"
+                            navigation={navigation}
+                            route={route}
+                        />
+                    )
+                })}
+            />
+
+            <Stack.Screen name="team-squad" component={TeamSquadScreen} />
+            <Stack.Screen name="add-players" component={AddNewPlayersScreen} />
         </Stack.Navigator>
     );
 }
