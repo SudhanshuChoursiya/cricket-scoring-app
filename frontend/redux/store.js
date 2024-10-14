@@ -4,10 +4,12 @@ import authReducer from "./authSlice.js";
 
 import alertReducer from "./alertSlice.js";
 
+import matchReducer from "./matchSlice.js";
 
 const rootReducer = combineReducers({
     auth: authReducer,
     alert: alertReducer,
+    match: matchReducer
 });
 
 const store = configureStore({
