@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 // Player Schema
 const PlayerSchema = new mongoose.Schema({
     name: String,
+    playerId: {
+        type: mongoose.Schema.Types.ObjectId
+    },
     runs: { type: Number, default: 0 },
     balls: { type: Number, default: 0 },
     fours: { type: Number, default: 0 },
@@ -22,7 +25,7 @@ const PlayerSchema = new mongoose.Schema({
 // Team Schema
 const TeamSchema = new mongoose.Schema({
     name: String,
-    players: [PlayerSchema]
+    playing11: [PlayerSchema]
 });
 
 // Inning Schema
@@ -45,12 +48,21 @@ const InningSchema = new mongoose.Schema({
 const MatchSchema = new mongoose.Schema({
     inning1: InningSchema,
     inning2: InningSchema,
-    currentInning: { type: Number, default: 1 }, // 1 for the first inning, 2 for the second
-    targetScore: { type: Number, default: 0 }, // Set after the first inning,
+    currentInning: { type: Number, default: 1 },
+    targetScore: { type: Number, default: 0 },
     status: {
         type: String,
-        default: "in progress"
-    }
+        default: "no toss"
+    },
+    tossWinner: {
+        type: String
+    },
+    tossDecision: {
+        type: String,
+        enum: ["bat", "bowl"]
+    },
+    teamA: TeamSchema,
+    teamB: TeamSchema
 });
 
 // Match Model

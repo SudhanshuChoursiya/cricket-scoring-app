@@ -22,16 +22,10 @@ const matchSlice = createSlice({
             state.teamB.name = action.payload;
         },
         setTeamAPlaying11: (state, action) => {
-            state.teamA.playing11 = [
-                ...state.teamA.playing11,
-                ...action.payload
-            ];
+            state.teamA.playing11 = action.payload;
         },
         setTeamBPlaying11: (state, action) => {
-            state.teamB.playing11 = [
-                ...state.teamB.playing11,
-                ...action.payload
-            ];
+            state.teamB.playing11 = action.payload;
         }
     }
 });

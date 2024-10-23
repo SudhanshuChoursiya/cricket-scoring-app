@@ -8,7 +8,9 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TeamSquadScreen = ({ navigation, route }) => {
@@ -16,6 +18,10 @@ const TeamSquadScreen = ({ navigation, route }) => {
     const [teamPlaying11, setTeamPlaying11] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+    const dispatch = useDispatch();
+    const selectedTeamDetails = useSelector(state => state.match);
+
+    console.log(JSON.stringify(selectedTeamDetails));
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -32,7 +38,6 @@ const TeamSquadScreen = ({ navigation, route }) => {
                     if (response.status === 200) {
                         setTeamDetails(data.data);
                     }
-                    setSquadCount(data.data.players.length);
                 } catch (error) {
                     console.log(error);
                 } finally {
@@ -73,6 +78,18 @@ const TeamSquadScreen = ({ navigation, route }) => {
                 setTeamPlaying11([...teamPlaying11, selectedPlayer]);
             }
         }
+    };
+
+    const HandleSelectSquad = () => {
+        if (route.params?.selectFor === "team A") {
+            dispatch(setTeamAPlaying11(teamPlaying11));
+        }
+
+        if (route.params?.selectFor === "team B") {
+            dispatch(setTeamBPlaying11(teamPlaying11));
+        }
+
+        navigation.navigate("select-teams");
     };
 
     return (
@@ -136,6 +153,18 @@ const TeamSquadScreen = ({ navigation, route }) => {
                 keyExtractor={item => item._id}
                 contentContainerStyle={styles.choose_players_wrapper}
             />
+            {teamPlaying11.length === 11 && (
+                <View style={styles.confirm_squad_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.confirm_squad_btn}
+                        onPress={HandleSelectSquad}
+                    >
+                        <Text style={styles.confirm_squad_btn_text}>
+                            confirm playing 11
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 };
@@ -225,6 +254,23 @@ const styles = StyleSheet.create({
         color: "#474646",
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
+    },
+    confirm_squad_btn_wrapper: {
+        position: "fixed",
+        bottom: 0,
+        lef: 0,
+        right: 0
+    },
+    confirm_squad_btn: {
+        backgroundColor: "#14B391",
+        paddingVertical: normalizeVertical(18)
+    },
+    confirm_squad_btn_text: {
+        fontSize: normalize(19),
+        textAlign: "center",
+        color: "white",
+        textTransform: "capitalize",
+        fontFamily: "robotoBold"
     },
     selected: {
         borderWidth: 2,

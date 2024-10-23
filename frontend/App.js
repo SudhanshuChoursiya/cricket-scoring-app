@@ -24,7 +24,7 @@ import poppinsBold from "./assets/Poppins-Bold.ttf";
 import latoBold from "./assets/Lato-Bold.ttf";
 
 import * as SplashScreen from "expo-splash-screen";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, useRoute } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -73,6 +73,7 @@ const CustomHeader = ({ title, navigation, route }) => {
 };
 
 function TopTabNavigator() {
+    const route = useRoute();
     return (
         <TopTab.Navigator
             screenOptions={{
@@ -91,7 +92,11 @@ function TopTabNavigator() {
                 }
             }}
         >
-            <TopTab.Screen name="my teams" component={ChooseTeamScreen} />
+            <TopTab.Screen
+                name="my teams"
+                initialParams={route.params}
+                component={ChooseTeamScreen}
+            />
             <TopTab.Screen name="add team" component={AddTeamScreen} />
         </TopTab.Navigator>
     );

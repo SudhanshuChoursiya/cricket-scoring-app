@@ -8,14 +8,18 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
+import { setTeamA, setTeamB } from "../redux/matchSlice.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const ChooseTeamScreen = ({ navigation, route }) => {
     const [teams, setTeams] = useState([]);
+    const [selectedTeam, setSelectedTeam] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const dispatch = useDispatch();
+
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -62,12 +66,37 @@ const ChooseTeamScreen = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
+    const HandleSelectTeam = () => {
+        if (route.params?.selectFor === "team A") {
+            dispatch(setTeamA(selectedTeam.team_name));
+            navigation.navigate("team-squad", {
+                teamId: selectedTeam._id,
+                selectFor: "team A"
+            });
+        }
+
+        if (route.params?.selectFor === "team B") {
+            dispatch(setTeamB(selectedTeam.team_name));
+            navigation.navigate("team-squad", {
+                teamId: selectedTeam._id,
+                selectFor: "team B"
+            });
+        }
+    };
+
     return (
         <View style={styles.wrapper}>
             <FlatList
                 data={teams}
                 renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.team} onPress={()=>navigation.navigate("team-squad",{teamId:item._id})}>
+                    <TouchableOpacity
+                        style={[
+                            styles.team,
+                            selectedTeam?.team_name === item?.team_name &&
+                                styles.selected
+                        ]}
+                        onPress={() => setSelectedTeam(item)}
+                    >
                         <View style={styles.team_icon}>
                             <Text style={styles.team_icon_text}>
                                 {item.team_name[0]}
@@ -115,6 +144,18 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                 keyExtractor={item => item._id}
                 contentContainerStyle={styles.choose_team_wrapper}
             />
+            {selectedTeam && (
+                <View style={styles.confirm_team_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.confirm_team_btn}
+                        onPress={HandleSelectTeam}
+                    >
+                        <Text style={styles.confirm_team_btn_text}>
+                            confirm team
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 };
@@ -140,7 +181,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: normalize(10),
         paddingVertical: normalizeVertical(15),
         borderRadius: normalize(8),
-        elevation: 2
+        elevation: 2,
+        borderWidth: 2,
+        borderColor: "white"
     },
     team_icon: {
         backgroundColor: "#f75454",
@@ -207,6 +250,33 @@ const styles = StyleSheet.create({
         color: "#474646",
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
+    },
+    add_to_team_btn_wrapper: {
+        position: "fixed",
+        bottom: 0,
+        lef: 0,
+        right: 0
+    },
+    confirm_team_btn_wrapper: {
+        position: "fixed",
+        bottom: 0,
+        lef: 0,
+        right: 0
+    },
+    confirm_team_btn: {
+        backgroundColor: "#14B391",
+        paddingVertical: normalizeVertical(18)
+    },
+    confirm_team_btn_text: {
+        fontSize: normalize(19),
+        textAlign: "center",
+        color: "white",
+        textTransform: "capitalize",
+        fontFamily: "robotoBold"
+    },
+    selected: {
+        borderWidth: 2,
+        borderColor: "#14B391"
     }
 });
 

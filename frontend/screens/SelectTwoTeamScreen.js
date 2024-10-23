@@ -6,6 +6,7 @@ import {
     StatusBar
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
@@ -14,6 +15,9 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
     const [cakesDetails, setCakesDetails] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    const selectedTeamDetails = useSelector(state => state.match);
+
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -70,24 +74,89 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
             <View style={styles.select_team_wrapper}>
                 <TouchableOpacity
                     style={styles.select_team}
-                    onPress={() => navigation.navigate("choose-team",{selectFor:"team a"})}
+                    onPress={() =>
+                        navigation.navigate("choose-team", {
+                            selectFor: "team A"
+                        })
+                    }
                 >
-                    <View style={styles.select_icon_wrapper}>
-                        <Icon name="add" size={normalize(26)} color="white" />
-                    </View>
-                    <Text style={styles.select_caption}>select team a</Text>
+                    {!selectedTeamDetails.teamA.name ? (
+                        <>
+                            <View style={styles.select_icon_wrapper}>
+                                <Icon
+                                    name="add"
+                                    size={normalize(26)}
+                                    color="white"
+                                />
+                            </View>
+
+                            <Text style={styles.select_caption}>
+                                select team a
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <View style={styles.selected_team_icon_wrapper}>
+                                <Text style={styles.selected_team_icon_text}>
+                                    {selectedTeamDetails.teamA.name[0]}
+                                </Text>
+                            </View>
+                            <Text style={styles.selected_team_name}>
+                                {selectedTeamDetails.teamA.name}
+                            </Text>
+                        </>
+                    )}
                 </TouchableOpacity>
                 <Text style={styles.versus_text}>Vs</Text>
                 <TouchableOpacity
                     style={styles.select_team}
-                    onPress={() => navigation.navigate("choose-team",{selectFor:"team b"})}
+                    onPress={() =>
+                        navigation.navigate("choose-team", {
+                            selectFor: "team B"
+                        })
+                    }
                 >
-                    <View style={styles.select_icon_wrapper}>
-                        <Icon name="add" size={normalize(26)} color="white" />
-                    </View>
-                    <Text style={styles.select_caption}>select team b</Text>
+                    {!selectedTeamDetails.teamB.name ? (
+                        <>
+                            <View style={styles.select_icon_wrapper}>
+                                <Icon
+                                    name="add"
+                                    size={normalize(26)}
+                                    color="white"
+                                />
+                            </View>
+
+                            <Text style={styles.select_caption}>
+                                select team b
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <View style={styles.selected_team_icon_wrapper}>
+                                <Text style={styles.selected_team_icon_text}>
+                                    {selectedTeamDetails.teamB.name[0]}
+                                </Text>
+                            </View>
+                            <Text style={styles.selected_team_name}>
+                                {selectedTeamDetails.teamB.name}
+                            </Text>
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
+            {selectedTeamDetails.teamA.name &&
+                selectedTeamDetails.teamB.name && (
+                    <View style={styles.confirm_btn_wrapper}>
+                        <TouchableOpacity
+                            style={styles.confirm_btn}
+                            onPress={() => navigation.navigate("create-match")}
+                        >
+                            <Text style={styles.confirm_btn_text}>
+                                continue
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
         </View>
     );
 };
@@ -144,6 +213,45 @@ const styles = StyleSheet.create({
     },
     versus_text: {
         fontSize: normalize(20),
+        fontFamily: "robotoBold"
+    },
+    selected_team_icon_wrapper: {
+        height: normalize(100),
+        width: normalize(100),
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#E21F26",
+        borderRadius: normalize(50)
+    },
+    selected_team_icon_text: {
+        fontSize: normalize(28),
+        color: "white",
+        fontFamily: "robotoMedium",
+        textTransform: "capitalize"
+    },
+    selected_team_name: {
+        backgroundColor: "#1A4DA1",
+        color: "white",
+        paddingHorizontal: normalize(15),
+        paddingVertical: normalizeVertical(10),
+        borderRadius: normalize(8),
+        textTransform: "capitalize"
+    },
+    confirm_btn_wrapper: {
+        position: "fixed",
+        bottom: 0,
+        lef: 0,
+        right: 0
+    },
+    confirm_btn: {
+        backgroundColor: "#14B391",
+        paddingVertical: normalizeVertical(18)
+    },
+    confirm_btn_text: {
+        fontSize: normalize(19),
+        textAlign: "center",
+        color: "white",
+        textTransform: "capitalize",
         fontFamily: "robotoBold"
     }
 });
