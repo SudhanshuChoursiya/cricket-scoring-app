@@ -225,6 +225,98 @@ const addPlayersController = asyncHandler(async (req, res) => {
     );
 });
 
+const createMatchController = asyncHandler(async (req, res) => {
+    const { teamA, teamB, totalOvers, matchPlace } = req.body;
+
+    const isEmpty = [
+        teamA.name,
+        teamB.name,
+        teamA.playing11,
+        teamB.playing11,
+        totalOvers,
+        matchPlace.city,
+        matchPlace.ground
+    ].some(field => {
+        if (Array.isArray(field)) {
+            return field.length !== 11;
+        } else if (typeof field === "string") {
+            return field.trim() === "";
+        } else {
+            return field === null || field === undefined;
+        }
+    });
+
+    if (isEmpty) {
+        throw new ApiError(400, "required filed can not be empty");
+    }
+
+    if (isNaN(totalOvers) || Number(totalOvers) <= 0) {
+        throw new ApiError(400, "total over should be greater then 0");
+    }
+
+    const initialInningDetails = {
+        battingTeam: null,
+        bowlingTeam: null,
+        totalOvers
+    };
+
+    const match = await MatchModel.create({
+        inning1: initialInningDetails,
+        inning2: initialInningDetails,
+        teamA,
+        teamB,
+        matchPlace
+    });
+
+    if (!match) {
+        throw new ApiError(
+            500,
+            "there is some issue in creating match,try again letter"
+        );
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, match, "match created successfully")
+    );
+});
+
+const updateTossDetailsController = asyncHandler(async (req, res) => {
+    const { tossWinner, tossDecision } = req.body;
+
+    const matchId = req.params.matchId;
+
+    const match = await MatchModel.findById(matchId);
+
+    if (!match) {
+        throw new ApiError(500, "no match has been found");
+    }
+
+    let battingTeam, bowlingTeam;
+
+    if (tossDecision === "bat") {
+        battingTeam =
+            tossWinner === match.teamA.name ? match.teamA : match.teamB;
+        bowlingTeam =
+            tossWinner === match.teamA.name ? match.teamB : match.teamA;
+    } else if (tossDecision === "bowl") {
+        bowlingTeam =
+            tossWinner === match.teamA.name ? match.teamA : match.teamB;
+        battingTeam =
+            tossWinner === match.teamA.name ? match.teamB : match.teamA;
+    }
+
+    match.inning1.battingTeam = battingTeam;
+    match.inning1.bowlingTeam = bowlingTeam;
+    match.matchStatus = "toss happend";
+    match.toss.tossWinner = tossWinner;
+    match.toss.tossDecision = tossDecision;
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "toss details updated successfully")
+    );
+});
+
 const updateScoreController = asyncHandler(async (req, res) => {
     // Helper function to switch innings
     const switchInnings = match => {
@@ -454,6 +546,8 @@ export {
     checkAuthController,
     addNewTeamController,
     addPlayersController,
+    createMatchController,
+    updateTossDetailsController,
     updateScoreController,
     getAllTeamsController,
     getSingleTeamController,

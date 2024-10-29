@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamA, setTeamB } from "../redux/matchSlice.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
@@ -19,6 +19,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const dispatch = useDispatch();
+    const { teamA, teamB } = useSelector(state => state.match);
 
     useEffect(() => {
         setIsScreenFocused(true);
@@ -66,6 +67,17 @@ const ChooseTeamScreen = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
+    const availableTeams = () => {
+        return teams.filter(team => {
+            if (route.params?.selectFor === "team A") {
+                return team.team_name !== teamB?.name;
+            } else if (route.params?.selectFor === "team B") {
+                return team.team_name !== teamA?.name;
+            }
+            return true;
+        });
+    };
+
     const HandleSelectTeam = () => {
         if (route.params?.selectFor === "team A") {
             dispatch(setTeamA(selectedTeam.team_name));
@@ -87,7 +99,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
     return (
         <View style={styles.wrapper}>
             <FlatList
-                data={teams}
+                data={availableTeams()}
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={[
@@ -117,8 +129,8 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                                         />
                                     </View>
                                     <Text style={styles.city_name}>
-                                        {item.city.length > 10
-                                            ? item.city.substring(0, 10) + ".."
+                                        {item.city.length > 12
+                                            ? item.city.substring(0, 12) + ".."
                                             : item.city}
                                     </Text>
                                 </View>
@@ -128,10 +140,10 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                                             <Text style={styles.icon}>C</Text>
                                         </View>
                                         <Text style={styles.captain_name}>
-                                            {item.captain_name.length > 10
+                                            {item.captain_name.length > 12
                                                 ? item.captain_name.substring(
                                                       0,
-                                                      10
+                                                      12
                                                   ) + ".."
                                                 : item.captain_name}
                                         </Text>
@@ -252,9 +264,9 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium"
     },
     add_to_team_btn_wrapper: {
-        position: "fixed",
+        position: "absolute",
         bottom: 0,
-        lef: 0,
+        left: 0,
         right: 0
     },
     confirm_team_btn_wrapper: {

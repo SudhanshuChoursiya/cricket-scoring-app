@@ -8,6 +8,11 @@ const initialState = {
     teamB: {
         name: null,
         playing11: []
+    },
+    totalOvers: null,
+    matchPlace: {
+        city: null,
+        ground: null
     }
 };
 
@@ -26,11 +31,27 @@ const matchSlice = createSlice({
         },
         setTeamBPlaying11: (state, action) => {
             state.teamB.playing11 = action.payload;
+        },
+        setTotalOvers: (state, action) => {
+            state.totalOvers = action.payload;
+        },
+        setCity: (state, action) => {
+            state.matchPlace.city = action.payload;
+        },
+        setGround: (state, action) => {
+            state.matchPlace.ground = action.payload;
         }
     }
 });
 
-export const { setTeamA, setTeamB, setTeamAPlaying11, setTeamBPlaying11 } =
-    matchSlice.actions;
+export const {
+    setTeamA,
+    setTeamB,
+    setTeamAPlaying11,
+    setTeamBPlaying11,
+    setTotalOvers,
+    setCity,
+    setGround
+} = matchSlice.actions;
 
 export default matchSlice.reducer;

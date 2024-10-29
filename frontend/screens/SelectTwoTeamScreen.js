@@ -12,15 +12,15 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectTwoTeamScreen = ({ navigation, route }) => {
-    const [cakesDetails, setCakesDetails] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
-    const selectedTeamDetails = useSelector(state => state.match);
+    const { teamA, teamB } = useSelector(state => state.match);
 
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
+    
     useEffect(() => {
         const getCategorizedCakes = async () => {
             try {
@@ -80,7 +80,7 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         })
                     }
                 >
-                    {!selectedTeamDetails.teamA.name ? (
+                    {!teamA.name ? (
                         <>
                             <View style={styles.select_icon_wrapper}>
                                 <Icon
@@ -98,11 +98,11 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         <>
                             <View style={styles.selected_team_icon_wrapper}>
                                 <Text style={styles.selected_team_icon_text}>
-                                    {selectedTeamDetails.teamA.name[0]}
+                                    {teamA.name[0]}
                                 </Text>
                             </View>
                             <Text style={styles.selected_team_name}>
-                                {selectedTeamDetails.teamA.name}
+                                {teamA.name}
                             </Text>
                         </>
                     )}
@@ -116,7 +116,7 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         })
                     }
                 >
-                    {!selectedTeamDetails.teamB.name ? (
+                    {!teamB.name ? (
                         <>
                             <View style={styles.select_icon_wrapper}>
                                 <Icon
@@ -134,29 +134,26 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         <>
                             <View style={styles.selected_team_icon_wrapper}>
                                 <Text style={styles.selected_team_icon_text}>
-                                    {selectedTeamDetails.teamB.name[0]}
+                                    {teamB.name[0]}
                                 </Text>
                             </View>
                             <Text style={styles.selected_team_name}>
-                                {selectedTeamDetails.teamB.name}
+                                {teamB.name}
                             </Text>
                         </>
                     )}
                 </TouchableOpacity>
             </View>
-            {selectedTeamDetails.teamA.name &&
-                selectedTeamDetails.teamB.name && (
-                    <View style={styles.confirm_btn_wrapper}>
-                        <TouchableOpacity
-                            style={styles.confirm_btn}
-                            onPress={() => navigation.navigate("create-match")}
-                        >
-                            <Text style={styles.confirm_btn_text}>
-                                continue
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+            {teamA.name && teamB.name && (
+                <View style={styles.confirm_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.confirm_btn}
+                        onPress={() => navigation.navigate("create-match")}
+                    >
+                        <Text style={styles.confirm_btn_text}>continue</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 };
@@ -212,7 +209,7 @@ const styles = StyleSheet.create({
         textTransform: "capitalize"
     },
     versus_text: {
-        fontSize: normalize(20),
+        fontSize: normalize(22),
         fontFamily: "robotoBold"
     },
     selected_team_icon_wrapper: {
@@ -238,9 +235,9 @@ const styles = StyleSheet.create({
         textTransform: "capitalize"
     },
     confirm_btn_wrapper: {
-        position: "fixed",
+        position: "absolute",
         bottom: 0,
-        lef: 0,
+        left: 0,
         right: 0
     },
     confirm_btn: {

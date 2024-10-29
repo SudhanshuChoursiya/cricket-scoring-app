@@ -353,9 +353,9 @@ const styles = StyleSheet.create({
         marginLeft: normalize(11)
     },
     add_to_team_btn_wrapper: {
-        position: "fixed",
+        position: "absolute",
         bottom: 0,
-        lef: 0,
+        left: 0,
         right: 0
     },
     add_to_team_btn: {

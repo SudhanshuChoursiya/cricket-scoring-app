@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 
@@ -19,9 +19,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
-    const selectedTeamDetails = useSelector(state => state.match);
 
-    console.log(JSON.stringify(selectedTeamDetails));
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -81,12 +79,18 @@ const TeamSquadScreen = ({ navigation, route }) => {
     };
 
     const HandleSelectSquad = () => {
+        const filterdTeamPlaying11 = teamPlaying11.map(player => {
+            return {
+                name: player.name
+            };
+        });
+
         if (route.params?.selectFor === "team A") {
-            dispatch(setTeamAPlaying11(teamPlaying11));
+            dispatch(setTeamAPlaying11(filterdTeamPlaying11));
         }
 
         if (route.params?.selectFor === "team B") {
-            dispatch(setTeamBPlaying11(teamPlaying11));
+            dispatch(setTeamBPlaying11(filterdTeamPlaying11));
         }
 
         navigation.navigate("select-teams");
@@ -122,10 +126,15 @@ const TeamSquadScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.squad_count_wrapper}>
-                <Text style={styles.squad_count}>
+            <View style={styles.squad_size_and_selected_count_wrapper}>
+                <Text style={styles.squad_size}>
                     squad ({teamDetails.players?.length})
                 </Text>
+                {teamPlaying11.length > 0 && (
+                    <Text style={styles.selected_count}>
+                        selected ({teamPlaying11?.length})
+                    </Text>
+                )}
             </View>
             <FlatList
                 data={teamDetails.players}
@@ -191,14 +200,23 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },
-    squad_count_wrapper: {
+    squad_size_and_selected_count_wrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginHorizontal: normalize(18)
     },
-    squad_count: {
-        fontSize: normalize(20),
+    squad_size: {
+        fontSize: normalize(19),
         color: "#474646",
         textTransform: "capitalize",
         fontFamily: "robotoBold"
+    },
+    selected_count: {
+        fontSize: normalize(18),
+        color: "#474646",
+        textTransform: "capitalize",
+        fontFamily: "robotoMedium"
     },
 
     add_player_btn: {
@@ -218,7 +236,8 @@ const styles = StyleSheet.create({
     },
     choose_players_wrapper: {
         gap: normalizeVertical(22),
-        paddingVertical: normalizeVertical(28)
+        paddingTop: normalizeVertical(24),
+        paddingBottom: normalizeVertical(82)
     },
     player: {
         width: "90%",
@@ -256,9 +275,9 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium"
     },
     confirm_squad_btn_wrapper: {
-        position: "fixed",
+        position: "absolute",
         bottom: 0,
-        lef: 0,
+        left: 0,
         right: 0
     },
     confirm_squad_btn: {
