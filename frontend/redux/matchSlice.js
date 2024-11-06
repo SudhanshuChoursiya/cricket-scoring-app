@@ -13,7 +13,9 @@ const initialState = {
     matchPlace: {
         city: null,
         ground: null
-    }
+    },
+    tossWinner: null,
+    tossDecision: null
 };
 
 const matchSlice = createSlice({
@@ -40,6 +42,12 @@ const matchSlice = createSlice({
         },
         setGround: (state, action) => {
             state.matchPlace.ground = action.payload;
+        },
+        setTossWinner: (state, action) => {
+            state.tossWinner = action.payload;
+        },
+        setTossDecision: (state, action) => {
+            state.tossDecision = action.payload;
         }
     }
 });
@@ -51,7 +59,9 @@ export const {
     setTeamBPlaying11,
     setTotalOvers,
     setCity,
-    setGround
+    setGround,
+    setTossWinner,
+    setTossDecision
 } = matchSlice.actions;
 
 export default matchSlice.reducer;

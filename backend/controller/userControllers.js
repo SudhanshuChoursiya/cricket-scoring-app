@@ -285,6 +285,18 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
 
     const matchId = req.params.matchId;
 
+    const isEmpty = [tossWinner, tossDecision].some(field => {
+        if (typeof field === "string") {
+            return field.trim() === "";
+        } else {
+            return field === null || field === undefined;
+        }
+    });
+
+    if (isEmpty) {
+        throw new ApiError(400, "required field can not be empty");
+    }
+
     const match = await MatchModel.findById(matchId);
 
     if (!match) {
@@ -298,7 +310,7 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
             tossWinner === match.teamA.name ? match.teamA : match.teamB;
         bowlingTeam =
             tossWinner === match.teamA.name ? match.teamB : match.teamA;
-    } else if (tossDecision === "bowl") {
+    } else if (tossDecision === "ball") {
         bowlingTeam =
             tossWinner === match.teamA.name ? match.teamA : match.teamB;
         battingTeam =

@@ -115,7 +115,7 @@ const MatchSchema = new mongoose.Schema({
         },
         tossDecision: {
             type: String,
-            enum: ["bat", "bowl"],
+            enum: ["bat", "ball"],
             default: null
         }
     },
@@ -132,4 +132,4 @@ const MatchSchema = new mongoose.Schema({
 });
 
 // Match Model
-export const MatchModel = mongoose.model("MatchModel", MatchSchema);
+export const MatchModel = mongoose.model("Match", MatchSchema);

@@ -84,6 +84,7 @@ const CreateMatchScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
+
             if (response.status !== 200) {
                 dispatch(
                     showAlert({
@@ -105,6 +106,8 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 );
 
                 setIsLoading(false);
+
+                navigation.navigate("toss-screen", { matchId: data.data._id });
             }
         } catch (error) {
             console.log(error);

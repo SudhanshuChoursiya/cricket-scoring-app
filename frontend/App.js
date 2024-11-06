@@ -51,6 +51,7 @@ import TeamSquadScreen from "./screens/TeamSquadScreen.js";
 
 import AddNewPlayersScreen from "./screens/AddNewPlayersScreen.js";
 import CreateMatchScreen from "./screens/CreateMatchScreen.js";
+import TossScreen from "./screens/TossScreen.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -126,6 +127,7 @@ function StackNavigator() {
             <Stack.Screen name="team-squad" component={TeamSquadScreen} />
             <Stack.Screen name="add-players" component={AddNewPlayersScreen} />
             <Stack.Screen name="create-match" component={CreateMatchScreen} />
+            <Stack.Screen name="toss-screen" component={TossScreen} />
         </Stack.Navigator>
     );
 }
