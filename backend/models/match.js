@@ -46,6 +46,9 @@ const PlayerSchema = new mongoose.Schema({
     runsConceded: {
         type: Number,
         default: 0
+    },
+    onStrike: {
+        type: Boolean
     }
 });
 

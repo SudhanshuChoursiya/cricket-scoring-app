@@ -119,6 +119,7 @@ const TossScreen = ({ navigation, route }) => {
                 );
 
                 setIsLoading(false);
+                navigation.navigate("player-assignment-screen",{matchId:route.params?.matchId})
             }
         } catch (error) {
             console.log(error);

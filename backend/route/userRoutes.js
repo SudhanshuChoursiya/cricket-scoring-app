@@ -8,6 +8,7 @@ import {
     addPlayersController,
     createMatchController,
     updateTossDetailsController,
+    updateInitialPlayersController,
     updateScoreController,
     getAllTeamsController,
     getSingleTeamController,
@@ -30,7 +31,11 @@ router.route("/create-new-match").post(createMatchController);
 
 router.route("/update-toss-details/:matchId").post(updateTossDetailsController);
 
-router.route("/update-score").post(updateScoreController);
+router
+    .route("/update-initial-players/:matchId")
+    .post(updateInitialPlayersController);
+
+router.route("/update-score/:matchId").post(updateScoreController);
 
 router.route("/get-all-teams").get(getAllTeamsController);
 router.route("/get-single-team/:teamId").get(getSingleTeamController);
