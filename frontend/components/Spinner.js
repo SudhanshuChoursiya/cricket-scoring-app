@@ -11,8 +11,14 @@ const Spinner = ({
     fontFamily
 }) => {
     return (
-        <View style={{ flexDirection: "row", alignItems: "center",
-        justifyContent: "center",gap:normalize(7)}}>
+        <View
+            style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: normalize(7)
+            }}
+        >
             {label && (
                 <Text
                     style={{
@@ -20,8 +26,9 @@ const Spinner = ({
                             ? normalize(labelSize)
                             : normalize(15),
                         color: labelColor ? labelColor : "black",
-                        
-                       fontFamily:fontFamily?fontFamily:"robotoBold", textTransform: "capitalize"
+
+                        fontFamily: fontFamily ? fontFamily : "robotoBold",
+                        textTransform: "capitalize"
                     }}
                 >
                     {label}

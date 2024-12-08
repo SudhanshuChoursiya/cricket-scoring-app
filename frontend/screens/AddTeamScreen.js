@@ -19,8 +19,8 @@ const AddTeamScreen = ({ navigation, route }) => {
     const [teamName, setTeamName] = useState(null);
     const [city, setCity] = useState(null);
     const [captainName, setCaptainName] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-
+    const [isLoading, setIsLoading] = useState(true);
+    const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     useEffect(() => {
@@ -29,7 +29,8 @@ const AddTeamScreen = ({ navigation, route }) => {
 
     const handleAddNewTeam = async () => {
         try {
-          Keyboard.dismiss()
+            setShowSpinner(true);
+            Keyboard.dismiss();
             if (!teamName || !city) {
                 dispatch(
                     showAlert({
@@ -42,7 +43,6 @@ const AddTeamScreen = ({ navigation, route }) => {
                 return;
             }
 
-            setIsLoading(true);
             const response = await fetch(
                 `${process.env.EXPO_PUBLIC_BASE_URL}/add-new-team`,
 
@@ -65,7 +65,6 @@ const AddTeamScreen = ({ navigation, route }) => {
                         msg: data.message
                     })
                 );
-                setIsLoading(false);
             } else {
                 dispatch(
                     showAlert({
@@ -79,7 +78,6 @@ const AddTeamScreen = ({ navigation, route }) => {
                 setTeamName(null);
                 setCity(null);
                 setCaptainName(null);
-                setIsLoading(false);
             }
         } catch (error) {
             console.log(error);
@@ -91,7 +89,8 @@ const AddTeamScreen = ({ navigation, route }) => {
                     msg: "unexpected error occured,please try again latter"
                 })
             );
-            setIsLoading(false);
+        } finally {
+            setShowSpinner(false);
         }
     };
 
@@ -144,16 +143,16 @@ const AddTeamScreen = ({ navigation, route }) => {
                     style={styles.add_btn}
                     onPress={handleAddNewTeam}
                 >
-                    {!isLoading ? (
+                    {!showSpinner ? (
                         <Text style={styles.add_btn_text}>add team</Text>
                     ) : (
                         <Spinner
-                            isLoading={isLoading}
+                            isLoading={showSpinner}
                             label="adding..."
                             spinnerColor="white"
                             labelColor="white"
                             labelSize={17}
-                            spinnerSize={24}
+                            spinnerSize={26}
                         />
                     )}
                 </TouchableOpacity>

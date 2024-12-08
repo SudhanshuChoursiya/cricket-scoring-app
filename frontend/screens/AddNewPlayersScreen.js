@@ -20,8 +20,9 @@ import { normalize, normalizeVertical } from "../utils/responsive.js";
 const AddNewPlayersScreen = ({ navigation, route }) => {
     const [players, setPlayers] = useState([{ name: "" }]);
     const [teamId, setTeamId] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
+    const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const playersRefs = useRef([]);
@@ -64,26 +65,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
         setIsScreenFocused(true);
     }, []);
 
-    /*   useEffect(() => {
-        const getCategorizedCakes = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-cakes`
-                );
-                const data = await response.json();
-
-                if (response.status === 200) {
-                    setCakesDetails(data.data.cakesDetails);
-                }
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        getCategorizedCakes();
-    }, []);*/
-
     useFocusEffect(
         useCallback(() => {
             navigation.getParent()?.setOptions({
@@ -99,8 +80,8 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
     );
 
     const HandleAddPlayers = async () => {
-        setIsLoading(true);
         try {
+            setShowSpinner(true);
             const filteredPlayers = await removeEmptyValueFromArray(players);
 
             if (filteredPlayers.length === 0) {
@@ -163,7 +144,7 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
                 })
             );
         } finally {
-            setIsLoading(false);
+            setShowSpinner(false);
         }
     };
 
@@ -238,18 +219,18 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
                     style={styles.add_to_team_btn}
                     onPress={HandleAddPlayers}
                 >
-                    {!isLoading ? (
+                    {!showSpinner ? (
                         <Text style={styles.add_to_team_btn_text}>
                             add to team
                         </Text>
                     ) : (
                         <Spinner
-                            isLoading={isLoading}
+                            isLoading={showSpinner}
                             label="adding..."
                             spinnerColor="white"
                             labelColor="white"
-                            labelSize={17}
-                            spinnerSize={24}
+                            labelSize={19}
+                            spinnerSize={28}
                         />
                     )}
                 </TouchableOpacity>
@@ -266,8 +247,7 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
-        width: "100%",
-        
+        width: "100%"
     },
     header: {
         paddingTop: normalizeVertical(50),
@@ -313,7 +293,7 @@ const styles = StyleSheet.create({
     serial_no: {
         fontSize: normalize(15),
         color: "white",
-        fontFamily: "robotoBold",
+        fontFamily: "robotoBold"
     },
 
     player_input: {

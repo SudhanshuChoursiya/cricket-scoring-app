@@ -15,14 +15,18 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CreateMatchScreen = ({ navigation, route }) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const { teamA, teamB, totalOvers, matchPlace } = useSelector(
         state => state.match
     );
+
+    const { isLoggedin, user } = useSelector(state => state.auth);
 
     useEffect(() => {
         setIsScreenFocused(true);
@@ -44,6 +48,7 @@ const CreateMatchScreen = ({ navigation, route }) => {
 
     const handleCreateMatch = async () => {
         try {
+            setShowSpinner(true);
             Keyboard.dismiss();
             if (
                 !teamA.name ||
@@ -65,13 +70,14 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 return;
             }
 
-            setIsLoading(true);
+            const accessToken = await AsyncStorage.getItem("accessToken");
             const response = await fetch(
                 `${process.env.EXPO_PUBLIC_BASE_URL}/create-new-match`,
 
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -94,7 +100,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
                         msg: data.message
                     })
                 );
-                setIsLoading(false);
             } else {
                 dispatch(
                     showAlert({
@@ -104,8 +109,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
                         msg: data.message
                     })
                 );
-
-                setIsLoading(false);
 
                 navigation.navigate("toss-screen", { matchId: data.data._id });
             }
@@ -119,7 +122,8 @@ const CreateMatchScreen = ({ navigation, route }) => {
                     msg: "unexpected error occured,please try again latter"
                 })
             );
-            setIsLoading(false);
+        } finally {
+            setShowSpinner(false);
         }
     };
 
@@ -192,16 +196,16 @@ const CreateMatchScreen = ({ navigation, route }) => {
                     style={styles.confirm_btn}
                     onPress={handleCreateMatch}
                 >
-                    {!isLoading ? (
+                    {!showSpinner ? (
                         <Text style={styles.confirm_btn_text}>NEXT (TOSS)</Text>
                     ) : (
                         <Spinner
-                            isLoading={isLoading}
+                            isLoading={showSpinner}
                             label="creating..."
                             spinnerColor="white"
                             labelColor="white"
-                            labelSize={17}
-                            spinnerSize={24}
+                            labelSize={19}
+                            spinnerSize={28}
                         />
                     )}
                 </TouchableOpacity>

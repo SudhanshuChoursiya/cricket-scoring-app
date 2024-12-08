@@ -52,8 +52,9 @@ import TeamSquadScreen from "./screens/TeamSquadScreen.js";
 import AddNewPlayersScreen from "./screens/AddNewPlayersScreen.js";
 import CreateMatchScreen from "./screens/CreateMatchScreen.js";
 import TossScreen from "./screens/TossScreen.js";
-import PlayerAssignmentScreen from "./screens/PlayerAssignmentScreen.js";
-import SelectActivePlayerScreen from "./screens/SelectActivePlayerScreen.js";
+import InitialPlayersAssignScreen from "./screens/InitialPlayersAssignScreen.js";
+import SelectInitialPlayerScreen from "./screens/SelectInitialPlayerScreen.js";
+import ManageScoreBoardScreen from "./screens/ManageScoreBoard.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -130,8 +131,18 @@ function StackNavigator() {
             <Stack.Screen name="add-players" component={AddNewPlayersScreen} />
             <Stack.Screen name="create-match" component={CreateMatchScreen} />
             <Stack.Screen name="toss-screen" component={TossScreen} />
-            <Stack.Screen name="player-assignment-screen" component={PlayerAssignmentScreen} />
-            <Stack.Screen name="select-active-player-screen" component={SelectActivePlayerScreen} />
+            <Stack.Screen
+                name="initial-players-assign-screen"
+                component={InitialPlayersAssignScreen}
+            />
+            <Stack.Screen
+                name="select-initial-player-screen"
+                component={SelectInitialPlayerScreen}
+            />
+            <Stack.Screen
+                name="manage-scoreboard"
+                component={ManageScoreBoardScreen}
+            />
         </Stack.Navigator>
     );
 }

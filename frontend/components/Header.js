@@ -122,7 +122,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: normalize(10),
 
         height: normalizeVertical(124),
-        position: "relative"
+        position: "relative",
+        zIndex: 2000,
     },
 
     top_container: {

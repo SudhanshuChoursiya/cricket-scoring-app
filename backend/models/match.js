@@ -131,6 +131,10 @@ const MatchSchema = new mongoose.Schema({
         ground: {
             type: String
         }
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserSignup"
     }
 });
 

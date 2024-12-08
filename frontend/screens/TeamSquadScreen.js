@@ -11,12 +11,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
-
+import LoadingSpinner from "../components/Loading.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TeamSquadScreen = ({ navigation, route }) => {
     const [teamDetails, setTeamDetails] = useState([]);
     const [teamPlaying11, setTeamPlaying11] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
 
@@ -125,54 +126,62 @@ const TeamSquadScreen = ({ navigation, route }) => {
                     </Text>
                 </TouchableOpacity>
             </View>
-
-            <View style={styles.squad_size_and_selected_count_wrapper}>
-                <Text style={styles.squad_size}>
-                    squad ({teamDetails.players?.length})
-                </Text>
-                {teamPlaying11.length > 0 && (
-                    <Text style={styles.selected_count}>
-                        selected ({teamPlaying11?.length})
-                    </Text>
-                )}
-            </View>
-            <FlatList
-                data={teamDetails.players}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={[
-                            styles.player,
-                            teamPlaying11.some(
-                                player => player.playerId === item.playerId
-                            ) && styles.selected
-                        ]}
-                        onPress={() => handlePlayerSelect(item)}
-                    >
-                        <View style={styles.player_icon}>
-                            <Text style={styles.player_icon_text}>
-                                {item.name[0]}
-                            </Text>
-                        </View>
-
-                        <View style={styles.other_player_info_wrapper}>
-                            <Text style={styles.player_name}>{item.name}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
-                keyExtractor={item => item._id}
-                contentContainerStyle={styles.choose_players_wrapper}
-            />
-            {teamPlaying11.length === 11 && (
-                <View style={styles.confirm_squad_btn_wrapper}>
-                    <TouchableOpacity
-                        style={styles.confirm_squad_btn}
-                        onPress={HandleSelectSquad}
-                    >
-                        <Text style={styles.confirm_squad_btn_text}>
-                            confirm playing 11
+            {!isLoading ? (
+                <>
+                    <View style={styles.squad_size_and_selected_count_wrapper}>
+                        <Text style={styles.squad_size}>
+                            squad ({teamDetails.players?.length})
                         </Text>
-                    </TouchableOpacity>
-                </View>
+                        {teamPlaying11.length > 0 && (
+                            <Text style={styles.selected_count}>
+                                selected ({teamPlaying11?.length})
+                            </Text>
+                        )}
+                    </View>
+                    <FlatList
+                        data={teamDetails.players}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={[
+                                    styles.player,
+                                    teamPlaying11.some(
+                                        player =>
+                                            player.playerId === item.playerId
+                                    ) && styles.selected
+                                ]}
+                                onPress={() => handlePlayerSelect(item)}
+                            >
+                                <View style={styles.player_icon}>
+                                    <Text style={styles.player_icon_text}>
+                                        {item.name[0]}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.other_player_info_wrapper}>
+                                    <Text style={styles.player_name}>
+                                        {item.name}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={item => item._id}
+                        contentContainerStyle={styles.choose_players_wrapper}
+                    />
+                    {teamPlaying11.length === 11 && (
+                        <View style={styles.confirm_squad_btn_wrapper}>
+                            <TouchableOpacity
+                                style={styles.confirm_squad_btn}
+                                onPress={HandleSelectSquad}
+                            >
+                                <Text style={styles.confirm_squad_btn_text}>
+                                    confirm playing 11
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </>
+            ) : (
+                <LoadingSpinner />
             )}
         </View>
     );
@@ -204,7 +213,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginHorizontal: normalize(18)
+        marginHorizontal: normalize(18),
+        marginTop: normalizeVertical(25)
     },
     squad_size: {
         fontSize: normalize(19),
@@ -221,7 +231,7 @@ const styles = StyleSheet.create({
 
     add_player_btn: {
         backgroundColor: "#1A4DA1",
-        marginVertical: normalizeVertical(25),
+        marginTop: normalizeVertical(25),
         marginHorizontal: normalize(18),
         paddingHorizontal: normalize(5),
         paddingVertical: normalizeVertical(14),

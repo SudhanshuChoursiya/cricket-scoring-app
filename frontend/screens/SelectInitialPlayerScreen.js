@@ -15,8 +15,9 @@ import {
     setNonStrikeBatsman,
     setCurrentBowler
 } from "../redux/matchSlice.js";
+import LoadingSpinner from "../components/Loading.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const SelectActivePlayerScreen = ({ navigation, route }) => {
+const SelectInitialPlayerScreen = ({ navigation, route }) => {
     const [battingTeam, setBattingTeam] = useState(null);
     const [bowlingTeam, setBowlingTeam] = useState(null);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -96,21 +97,21 @@ const SelectActivePlayerScreen = ({ navigation, route }) => {
     const HandleSelectPlayer = () => {
         if (route.params?.selectFor === "strike batsman") {
             dispatch(setStrikeBatsman(selectedPlayer));
-            navigation.navigate("player-assignment-screen", {
+            navigation.navigate("initial-players-assign-screen", {
                 matchId: route.params?.matchId
             });
         }
 
         if (route.params?.selectFor === "non strike batsman") {
             dispatch(setNonStrikeBatsman(selectedPlayer));
-            navigation.navigate("player-assignment-screen", {
+            navigation.navigate("initial-players-assign-screen", {
                 matchId: route.params?.matchId
             });
         }
 
         if (route.params?.selectFor === "current bowler") {
             dispatch(setCurrentBowler(selectedPlayer));
-            navigation.navigate("player-assignment-screen", {
+            navigation.navigate("initial-players-assign-screen", {
                 matchId: route.params?.matchId
             });
         }
@@ -133,51 +134,61 @@ const SelectActivePlayerScreen = ({ navigation, route }) => {
                     select {route.params?.selectFor}
                 </Text>
             </View>
-            <View style={styles.team_name_wrapper}>
-                <Text style={styles.team_name}>
-                    team:{" "}
-                    {route.params?.selectFor === "strike batsman" ||
-                    route.params?.selectFor === "non strike batsman"
-                        ? battingTeam?.name
-                        : bowlingTeam?.name}
-                </Text>
-            </View>
-            <FlatList
-                data={availablePlayers()}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={[
-                            styles.player,
 
-                            selectedPlayer?._id === item._id && styles.selected
-                        ]}
-                        onPress={() => setSelectedPlayer(item)}
-                    >
-                        <View style={styles.player_icon}>
-                            <Text style={styles.player_icon_text}>
-                                {item.name[0]}
-                            </Text>
-                        </View>
-
-                        <View style={styles.other_player_info_wrapper}>
-                            <Text style={styles.player_name}>{item.name}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
-                keyExtractor={item => item._id}
-                contentContainerStyle={styles.choose_player_wrapper}
-            />
-            {selectedPlayer && (
-                <View style={styles.confirm_squad_btn_wrapper}>
-                    <TouchableOpacity
-                        style={styles.confirm_squad_btn}
-                        onPress={HandleSelectPlayer}
-                    >
-                        <Text style={styles.confirm_squad_btn_text}>
-                            continue
+            {!isLoading ? (
+                <>
+                    <View style={styles.team_name_wrapper}>
+                        <Text style={styles.team_name}>
+                            team:{" "}
+                            {route.params?.selectFor === "strike batsman" ||
+                            route.params?.selectFor === "non strike batsman"
+                                ? battingTeam?.name
+                                : bowlingTeam?.name}
                         </Text>
-                    </TouchableOpacity>
-                </View>
+                    </View>
+                    <FlatList
+                        data={availablePlayers()}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={[
+                                    styles.player,
+
+                                    selectedPlayer?._id === item._id &&
+                                        styles.selected
+                                ]}
+                                onPress={() => setSelectedPlayer(item)}
+                            >
+                                <View style={styles.player_icon}>
+                                    <Text style={styles.player_icon_text}>
+                                        {item.name[0]}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.other_player_info_wrapper}>
+                                    <Text style={styles.player_name}>
+                                        {item.name}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={item => item._id}
+                        contentContainerStyle={styles.choose_player_wrapper}
+                    />
+                    {selectedPlayer && (
+                        <View style={styles.confirm_squad_btn_wrapper}>
+                            <TouchableOpacity
+                                style={styles.confirm_squad_btn}
+                                onPress={HandleSelectPlayer}
+                            >
+                                <Text style={styles.confirm_squad_btn_text}>
+                                    continue
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </>
+            ) : (
+                <LoadingSpinner />
             )}
         </View>
     );
@@ -281,4 +292,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SelectActivePlayerScreen;
+export default SelectInitialPlayerScreen;

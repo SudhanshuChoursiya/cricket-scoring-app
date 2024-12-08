@@ -271,7 +271,8 @@ const createMatchController = asyncHandler(async (req, res) => {
         inning2: initialInningDetails,
         teamA,
         teamB,
-        matchPlace
+        matchPlace,
+        createdBy: req.user._id
     });
 
     if (!match) {
@@ -421,12 +422,12 @@ const updateScoreController = asyncHandler(async (req, res) => {
         batsman => batsman.onStrike === false
     );
 
-    const batter = currentInning.battingTeam.playing11.find(
-        player => player._id === strikeBatsmen._id
+    const batter = currentInning.battingTeam.playing11.find(player =>
+        player._id.equals(strikeBatsmen._id)
     );
 
-    const bowler = currentInning.bowlingTeam.playing11.find(
-        player => player._id === currentBowler._id
+    const bowler = currentInning.bowlingTeam.playing11.find(player =>
+        player._id.equals(currentBowler._id)
     );
 
     // Helper function to check if the match is completed (target reached, overs bowled, or wickets fallen)
@@ -524,7 +525,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
             currentBowler.runsConceded += 1 + runs;
             bowler.runsConceded += 1 + runs;
-        } else if (wide) {
+        } else if (isWide) {
             currentBowler.runsConceded += 1 + runs;
             bowler.runsConceded += 1 + runs;
         }
@@ -643,8 +644,18 @@ const updateScoreController = asyncHandler(async (req, res) => {
     );
 });
 
+const getAllMatchDetailsController = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const matchDetails = await MatchModel.find({ createdBy: user._id });
+
+    if (!matchDetails) {
+        throw new ApiError(404, "no match has been found");
+    }
+    res.status(200).json(new ApiResponse(200, matchDetails));
+});
+
 const getSingleMatchDetailsController = asyncHandler(async (req, res) => {
-    const matchId = req.params.id;
+    const matchId = req.params.matchId;
     const matchDetails = await MatchModel.findById(matchId);
 
     if (!matchDetails) {
@@ -665,5 +676,6 @@ export {
     updateScoreController,
     getAllTeamsController,
     getSingleTeamController,
+    getAllMatchDetailsController,
     getSingleMatchDetailsController
 };

@@ -14,19 +14,20 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import batLogo from "../assets/cricket-bat.png";
 import ballLogo from "../assets/cricket-ball.png";
 import Spinner from "../components/Spinner.js";
+import LoadingSpinner from "../components/Loading.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TossScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
 
     const { tossWinner, tossDecision } = useSelector(state => state.match);
 
-    console.log("28", tossWinner, tossDecision);
-    console.log("29", matchDetails);
+    
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -69,6 +70,7 @@ const TossScreen = ({ navigation, route }) => {
 
     const handleToss = async () => {
         try {
+            setShowSpinner(true);
             if (!tossWinner || !tossDecision) {
                 dispatch(
                     showAlert({
@@ -81,7 +83,6 @@ const TossScreen = ({ navigation, route }) => {
                 return;
             }
 
-            setIsLoading(true);
             const response = await fetch(
                 `${process.env.EXPO_PUBLIC_BASE_URL}/update-toss-details/${route.params?.matchId}`,
 
@@ -107,7 +108,6 @@ const TossScreen = ({ navigation, route }) => {
                         msg: data.message
                     })
                 );
-                setIsLoading(false);
             } else {
                 dispatch(
                     showAlert({
@@ -118,8 +118,10 @@ const TossScreen = ({ navigation, route }) => {
                     })
                 );
 
-                setIsLoading(false);
-                navigation.navigate("player-assignment-screen",{matchId:route.params?.matchId})
+
+                navigation.navigate("player-assignment-screen", {
+                    matchId: route.params?.matchId
+                });
             }
         } catch (error) {
             console.log(error);
@@ -131,7 +133,8 @@ const TossScreen = ({ navigation, route }) => {
                     msg: "unexpected error occured,please try again latter"
                 })
             );
-            setIsLoading(false);
+        } finally {
+            setShowSpinner(false);
         }
     };
 
@@ -150,118 +153,131 @@ const TossScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
                 <Text style={styles.label}>Toss</Text>
             </View>
+            {!isLoading ? (
+                <>
+                    <View style={styles.toss_winner_wrapper}>
+                        <Text style={styles.heading}>Who won the toss?</Text>
 
-            <View style={styles.toss_winner_wrapper}>
-                <Text style={styles.heading}>Who won the toss?</Text>
+                        <View style={styles.teams_wrapper}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.team,
+                                    tossWinner === matchDetails?.teamA.name &&
+                                        styles.selected
+                                ]}
+                                onPress={() =>
+                                    dispatch(
+                                        setTossWinner(matchDetails?.teamA.name)
+                                    )
+                                }
+                            >
+                                <View style={styles.team_icon_wrapper}>
+                                    <Text style={styles.team_icon_text}>
+                                        {matchDetails?.teamA.name[0]}
+                                    </Text>
+                                </View>
+                                <Text style={styles.team_name}>
+                                    {matchDetails?.teamA.name}
+                                </Text>
+                            </TouchableOpacity>
 
-                <View style={styles.teams_wrapper}>
-                    <TouchableOpacity
-                        style={[
-                            styles.team,
-                            tossWinner === matchDetails?.teamA.name &&
-                                styles.selected
-                        ]}
-                        onPress={() =>
-                            dispatch(setTossWinner(matchDetails?.teamA.name))
-                        }
-                    >
-                        <View style={styles.team_icon_wrapper}>
-                            <Text style={styles.team_icon_text}>
-                                {matchDetails?.teamA.name[0]}
-                            </Text>
+                            <TouchableOpacity
+                                style={[
+                                    styles.team,
+                                    tossWinner === matchDetails?.teamB.name &&
+                                        styles.selected
+                                ]}
+                                onPress={() =>
+                                    dispatch(
+                                        setTossWinner(matchDetails?.teamB.name)
+                                    )
+                                }
+                            >
+                                <View style={styles.team_icon_wrapper}>
+                                    <Text style={styles.team_icon_text}>
+                                        {matchDetails?.teamB.name[0]}
+                                    </Text>
+                                </View>
+                                <Text style={styles.team_name}>
+                                    {matchDetails?.teamB.name}
+                                </Text>
+                            </TouchableOpacity>
                         </View>
-                        <Text style={styles.team_name}>
-                            {matchDetails?.teamA.name}
+                    </View>
+
+                    <View style={styles.toss_decision_wrapper}>
+                        <Text style={styles.heading}>
+                            Winner of the toss elected to?
                         </Text>
-                    </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[
-                            styles.team,
-                            tossWinner === matchDetails?.teamB.name &&
-                                styles.selected
-                        ]}
-                        onPress={() =>
-                            dispatch(setTossWinner(matchDetails?.teamB.name))
-                        }
-                    >
-                        <View style={styles.team_icon_wrapper}>
-                            <Text style={styles.team_icon_text}>
-                                {matchDetails?.teamB.name[0]}
-                            </Text>
+                        <View style={styles.decisions_wrapper}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.decision,
+                                    tossDecision === "bat" && styles.selected
+                                ]}
+                                onPress={() => dispatch(setTossDecision("bat"))}
+                            >
+                                <View style={styles.decision_icon_wrapper}>
+                                    <Image
+                                        style={styles.decision_icon}
+                                        resizeMode="cover"
+                                        source={batLogo}
+                                    />
+                                </View>
+                                <Text style={styles.decision_text}>bat</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.decision,
+                                    tossDecision === "ball" && styles.selected
+                                ]}
+                                onPress={() =>
+                                    dispatch(setTossDecision("ball"))
+                                }
+                            >
+                                <View style={styles.decision_icon_wrapper}>
+                                    <Image
+                                        style={styles.decision_icon}
+                                        resizeMode="cover"
+                                        source={ballLogo}
+                                    />
+                                </View>
+                                <Text style={styles.decision_text}>ball</Text>
+                            </TouchableOpacity>
                         </View>
-                        <Text style={styles.team_name}>
-                            {matchDetails?.teamB.name}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                    </View>
 
-            <View style={styles.toss_decision_wrapper}>
-                <Text style={styles.heading}>
-                    Winner of the toss elected to?
-                </Text>
-
-                <View style={styles.decisions_wrapper}>
-                    <TouchableOpacity
-                        style={[
-                            styles.decision,
-                            tossDecision === "bat" && styles.selected
-                        ]}
-                        onPress={() => dispatch(setTossDecision("bat"))}
-                    >
-                        <View style={styles.decision_icon_wrapper}>
-                            <Image
-                                style={styles.decision_icon}
-                                resizeMode="cover"
-                                source={batLogo}
-                            />
-                        </View>
-                        <Text style={styles.decision_text}>bat</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.decision,
-                            tossDecision === "ball" && styles.selected
-                        ]}
-                        onPress={() => dispatch(setTossDecision("ball"))}
-                    >
-                        <View style={styles.decision_icon_wrapper}>
-                            <Image
-                                style={styles.decision_icon}
-                                resizeMode="cover"
-                                source={ballLogo}
-                            />
-                        </View>
-                        <Text style={styles.decision_text}>ball</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.confirm_btn_wrapper}>
-                <TouchableOpacity
-                    style={styles.confirm_btn}
-                    onPress={handleToss}
-                >
-                    {!isLoading ? (
-                        <Text style={styles.confirm_btn_text}>Let’s Play</Text>
-                    ) : (
-                        <Spinner
-                            isLoading={isLoading}
-                            label="processing..."
-                            spinnerColor="white"
-                            labelColor="white"
-                            labelSize={17}
-                            spinnerSize={24}
-                        />
-                    )}
-                </TouchableOpacity>
-            </View>
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
+                    <View style={styles.confirm_btn_wrapper}>
+                        <TouchableOpacity
+                            style={styles.confirm_btn}
+                            onPress={handleToss}
+                        >
+                            {!showSpinner? (
+                                <Text style={styles.confirm_btn_text}>
+                                    Let’s Play
+                                </Text>
+                            ) : (
+                                <Spinner
+                                    isLoading={showSpinner}
+                                    label="processing..."
+                                    spinnerColor="white"
+                                    labelColor="white"
+                                    labelSize={19}
+                                    spinnerSize={28}
+                                />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                    <AlertToast
+                        topOffSet={15}
+                        successToastStyle={{ borderLeftColor: "green" }}
+                        errorToastStyle={{ borderLeftColor: "red" }}
+                    />
+                </>
+            ) : (
+                <LoadingSpinner />
+            )}
         </View>
     );
 };

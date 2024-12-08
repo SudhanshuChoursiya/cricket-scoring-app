@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamA, setTeamB } from "../redux/matchSlice.js";
+import LoadingSpinner from "../components/Loading.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const ChooseTeamScreen = ({ navigation, route }) => {
     const [teams, setTeams] = useState([]);
@@ -98,75 +99,96 @@ const ChooseTeamScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.wrapper}>
-            <FlatList
-                data={availableTeams()}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={[
-                            styles.team,
-                            selectedTeam?.team_name === item?.team_name &&
-                                styles.selected
-                        ]}
-                        onPress={() => setSelectedTeam(item)}
-                    >
-                        <View style={styles.team_icon}>
-                            <Text style={styles.team_icon_text}>
-                                {item.team_name[0]}
-                            </Text>
-                        </View>
-
-                        <View style={styles.other_team_info_wrapper}>
-                            <Text style={styles.team_name}>
-                                {item.team_name}
-                            </Text>
-                            <View style={styles.city_and_captain_wrapper}>
-                                <View style={styles.city_wrapper}>
-                                    <View style={styles.icon_wrapper}>
-                                        <Icon
-                                            name="location-on"
-                                            size={12}
-                                            color="white"
-                                        />
-                                    </View>
-                                    <Text style={styles.city_name}>
-                                        {item.city.length > 12
-                                            ? item.city.substring(0, 12) + ".."
-                                            : item.city}
+            {!isLoading ? (
+                <>
+                    <FlatList
+                        data={availableTeams()}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={[
+                                    styles.team,
+                                    selectedTeam?.team_name ===
+                                        item?.team_name && styles.selected
+                                ]}
+                                onPress={() => setSelectedTeam(item)}
+                            >
+                                <View style={styles.team_icon}>
+                                    <Text style={styles.team_icon_text}>
+                                        {item.team_name[0]}
                                     </Text>
                                 </View>
-                                {item.captain_name && (
-                                    <View style={styles.captain_wrapper}>
-                                        <View style={styles.icon_wrapper}>
-                                            <Text style={styles.icon}>C</Text>
+
+                                <View style={styles.other_team_info_wrapper}>
+                                    <Text style={styles.team_name}>
+                                        {item.team_name}
+                                    </Text>
+                                    <View
+                                        style={styles.city_and_captain_wrapper}
+                                    >
+                                        <View style={styles.city_wrapper}>
+                                            <View style={styles.icon_wrapper}>
+                                                <Icon
+                                                    name="location-on"
+                                                    size={12}
+                                                    color="white"
+                                                />
+                                            </View>
+                                            <Text style={styles.city_name}>
+                                                {item.city.length > 12
+                                                    ? item.city.substring(
+                                                          0,
+                                                          12
+                                                      ) + ".."
+                                                    : item.city}
+                                            </Text>
                                         </View>
-                                        <Text style={styles.captain_name}>
-                                            {item.captain_name.length > 12
-                                                ? item.captain_name.substring(
-                                                      0,
-                                                      12
-                                                  ) + ".."
-                                                : item.captain_name}
-                                        </Text>
+                                        {item.captain_name && (
+                                            <View
+                                                style={styles.captain_wrapper}
+                                            >
+                                                <View
+                                                    style={styles.icon_wrapper}
+                                                >
+                                                    <Text style={styles.icon}>
+                                                        C
+                                                    </Text>
+                                                </View>
+                                                <Text
+                                                    style={styles.captain_name}
+                                                >
+                                                    {item.captain_name.length >
+                                                    12
+                                                        ? item.captain_name.substring(
+                                                              0,
+                                                              12
+                                                          ) + ".."
+                                                        : item.captain_name}
+                                                </Text>
+                                            </View>
+                                        )}
                                     </View>
-                                )}
-                            </View>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={item => item._id}
+                        contentContainerStyle={styles.choose_team_wrapper}
+                    />
+
+                    {selectedTeam && (
+                        <View style={styles.confirm_team_btn_wrapper}>
+                            <TouchableOpacity
+                                style={styles.confirm_team_btn}
+                                onPress={HandleSelectTeam}
+                            >
+                                <Text style={styles.confirm_team_btn_text}>
+                                    confirm team
+                                </Text>
+                            </TouchableOpacity>
                         </View>
-                    </TouchableOpacity>
-                )}
-                keyExtractor={item => item._id}
-                contentContainerStyle={styles.choose_team_wrapper}
-            />
-            {selectedTeam && (
-                <View style={styles.confirm_team_btn_wrapper}>
-                    <TouchableOpacity
-                        style={styles.confirm_team_btn}
-                        onPress={HandleSelectTeam}
-                    >
-                        <Text style={styles.confirm_team_btn_text}>
-                            confirm team
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                    )}
+                </>
+            ) : (
+                <LoadingSpinner/>
             )}
         </View>
     );
