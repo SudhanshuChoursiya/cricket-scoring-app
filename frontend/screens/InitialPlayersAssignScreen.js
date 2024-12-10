@@ -17,7 +17,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";

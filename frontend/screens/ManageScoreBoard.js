@@ -4,6 +4,7 @@ import {
     Image,
     StyleSheet,
     TouchableOpacity,
+    Pressable,
     StatusBar
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
@@ -13,6 +14,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
 import UndoModal from "../components/UndoModal.js";
+import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ManageScoreBoardScreen = ({ navigation, route }) => {
@@ -27,6 +29,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [showOverCompletionModal, setShowOverCompletionModal] =
         useState(false);
     const [showUndoModal, setShowUndoModal] = useState(false);
+    const [showChangeStrikerModal, setShowChangeStrikerModal] = useState(false);
 
     const [modalProps, setModalProps] = useState({
         title: "",
@@ -413,7 +416,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 </View>
                 <View style={styles.current_batsman_wrapper}>
                     {currentInningDetails?.currentBatsmen.map(player => (
-                        <View style={styles.current_batsman} key={player._id}>
+                        <Pressable style={styles.current_batsman} key={player._id} onPress={() => setShowChangeStrikerModal(true)}>
                             <Text style={styles.batsman_score}>
                                 {player.runs} ({player.balls})
                             </Text>
@@ -422,10 +425,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                     styles.batsman_name,
                                     player.onStrike && styles.on_strike
                                 ]}
+                                
                             >
                                 {player.name}
                             </Text>
-                        </View>
+                        </Pressable>
                     ))}
                 </View>
             </View>
@@ -557,6 +561,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             <UndoModal
                 showModal={showUndoModal}
                 setShowModal={setShowUndoModal}
+            />
+            <ChangeStrikerModal
+                showModal={showChangeStrikerModal}
+                setShowModal={setShowChangeStrikerModal}
+                matchDetails={matchDetails}
             />
         </View>
     );

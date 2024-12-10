@@ -11,7 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TeamSquadScreen = ({ navigation, route }) => {
     const [teamDetails, setTeamDetails] = useState([]);

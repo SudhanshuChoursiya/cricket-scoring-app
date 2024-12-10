@@ -11,7 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamA, setTeamB } from "../redux/matchSlice.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const ChooseTeamScreen = ({ navigation, route }) => {
     const [teams, setTeams] = useState([]);

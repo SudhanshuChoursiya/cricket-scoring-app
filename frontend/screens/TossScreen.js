@@ -14,7 +14,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import batLogo from "../assets/cricket-bat.png";
 import ballLogo from "../assets/cricket-ball.png";
 import Spinner from "../components/Spinner.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";

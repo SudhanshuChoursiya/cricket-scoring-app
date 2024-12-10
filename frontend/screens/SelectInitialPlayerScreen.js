@@ -15,7 +15,7 @@ import {
     setNonStrikeBatsman,
     setCurrentBowler
 } from "../redux/matchSlice.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectInitialPlayerScreen = ({ navigation, route }) => {
     const [battingTeam, setBattingTeam] = useState(null);

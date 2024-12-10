@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
 import Header from "../components/Header.js";
-import LoadingSpinner from "../components/Loading.js";
+import LoadingSpinner from "../components/LoadingSpinner.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 

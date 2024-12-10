@@ -12,7 +12,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import appLogo from "../assets/icon.png";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const HeaderComponent = ({ showSuggestions, setShowSuggestions }) => {
+const Header = ({ showSuggestions, setShowSuggestions }) => {
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
 
@@ -240,4 +240,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default HeaderComponent;
+export default Header;
