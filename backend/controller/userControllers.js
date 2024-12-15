@@ -573,6 +573,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     batsman => (batsman.onStrike = !batsman.onStrike)
                 );
             }
+            io.emit("overCompleted")
         }
     };
 
@@ -644,6 +645,36 @@ const updateScoreController = asyncHandler(async (req, res) => {
     );
 });
 
+//change bowler controller
+const changeBowlerController = asyncHandler(async (req, res) => {
+    const { newBowlerId } = req.body;
+
+    if (!newBowlerId) {
+        throw new ApiError(400, "plz provide new bolwer id");
+    }
+
+    const match = await MatchModel.findById(req.params.matchId);
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    const currentInning =
+        match.currentInning === 1 ? match.inning1 : match.inning2;
+
+    const newBowler = currentInning.bowlingTeam.playing11.find(player =>
+        player._id.equals(newBowlerId)
+    );
+
+    currentInning.currentBowler = newBowler;
+
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "bowler changed successfully")
+    );
+});
+
 const getAllMatchDetailsController = asyncHandler(async (req, res) => {
     const user = req.user;
     const matchDetails = await MatchModel.find({ createdBy: user._id });
@@ -674,6 +705,7 @@ export {
     updateTossDetailsController,
     updateInitialPlayersController,
     updateScoreController,
+    changeBowlerController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,

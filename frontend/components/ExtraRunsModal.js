@@ -139,13 +139,13 @@ const styles = StyleSheet.create({
         width: "50%",
         backgroundColor: "#F2F2F2",
         paddingVertical: normalizeVertical(18),
-        marginTop: 20
+        marginTop: normalizeVertical(20)
     },
     ok_button: {
         width: "50%",
         backgroundColor: "#14B492",
         paddingVertical: normalizeVertical(18),
-        marginTop: 20
+        marginTop: normalizeVertical(20)
     },
     cancel_button_text: {
         color: "black",

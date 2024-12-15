@@ -10,6 +10,7 @@ import {
     updateTossDetailsController,
     updateInitialPlayersController,
     updateScoreController,
+    changeBowlerController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
@@ -37,6 +38,7 @@ router
     .post(updateInitialPlayersController);
 
 router.route("/update-score/:matchId").post(updateScoreController);
+router.route("/change-bowler/:matchId").post(changeBowlerController);
 
 router.route("/get-all-teams").get(getAllTeamsController);
 router.route("/get-single-team/:teamId").get(getSingleTeamController);

@@ -15,6 +15,7 @@ import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
+import { io } from "socket.io-client";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ManageScoreBoardScreen = ({ navigation, route }) => {
@@ -70,6 +71,16 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         setIsScreenFocused(true);
+    }, []);
+
+    useEffect(() => {
+        const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
+
+        socket.on("overCompleted", () => {
+            setShowOverCompletionModal(true);
+        });
+
+        return () => socket.disconnect();
     }, []);
 
     useFocusEffect(
@@ -416,7 +427,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 </View>
                 <View style={styles.current_batsman_wrapper}>
                     {currentInningDetails?.currentBatsmen.map(player => (
-                        <Pressable style={styles.current_batsman} key={player._id} onPress={() => setShowChangeStrikerModal(true)}>
+                        <Pressable
+                            style={styles.current_batsman}
+                            key={player._id}
+                            onPress={() => setShowChangeStrikerModal(true)}
+                        >
                             <Text style={styles.batsman_score}>
                                 {player.runs} ({player.balls})
                             </Text>
@@ -425,7 +440,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                     styles.batsman_name,
                                     player.onStrike && styles.on_strike
                                 ]}
-                                
                             >
                                 {player.name}
                             </Text>
@@ -526,12 +540,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                 }
                             ]}
                             onPress={() =>
-                                button.label === "OTHER"
-                                    ? setShowOverCompletionModal(true)
-                                    : handleOpenModal(
-                                          button.label,
-                                          button.payload
-                                      )
+                                handleOpenModal(button.label, button.payload)
                             }
                             key={index}
                         >
@@ -557,6 +566,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 showModal={showOverCompletionModal}
                 setShowModal={setShowOverCompletionModal}
                 currentInningDetails={currentInningDetails}
+                matchId={matchDetails?._id}
             />
             <UndoModal
                 showModal={showUndoModal}

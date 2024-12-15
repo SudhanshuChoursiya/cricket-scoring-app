@@ -7,9 +7,17 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const OverCompletionModal = ({ showModal, setShowModal,currentInningDetails}) => {
+const OverCompletionModal = ({
+    showModal,
+    setShowModal,
+    currentInningDetails,
+    matchId
+}) => {
+    const navigation = useNavigation();
+
     return (
         <View style={styles.modal_wrapper}>
             <Modal
@@ -23,9 +31,18 @@ const OverCompletionModal = ({ showModal, setShowModal,currentInningDetails}) =>
                         <Text style={styles.modal_title}>Over Complete</Text>
                         <View style={styles.modal_content}>
                             <Text style={styles.over_info}>
-                                End of over {currentInningDetails?.currentOvers} by {currentInningDetails?.currentBowler.name}
+                                End of over {currentInningDetails?.currentOvers}{" "}
+                                by {currentInningDetails?.currentBowler.name}
                             </Text>
-                            <TouchableOpacity style={styles.start_new_over_btn}>
+                            <TouchableOpacity
+                                style={styles.start_new_over_btn}
+                                onPress={() => {
+                                    navigation.navigate("select-new-bowler", {
+                                        matchId
+                                    });
+                                    setShowModal(false);
+                                }}
+                            >
                                 <Text style={styles.start_new_over_btn_text}>
                                     start next over
                                 </Text>

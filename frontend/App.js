@@ -55,6 +55,7 @@ import TossScreen from "./screens/TossScreen.js";
 import InitialPlayersAssignScreen from "./screens/InitialPlayersAssignScreen.js";
 import SelectInitialPlayerScreen from "./screens/SelectInitialPlayerScreen.js";
 import ManageScoreBoardScreen from "./screens/ManageScoreBoard.js";
+import SelectNewBowler from "./screens/SelectNewBolwer.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -142,6 +143,10 @@ function StackNavigator() {
             <Stack.Screen
                 name="manage-scoreboard"
                 component={ManageScoreBoardScreen}
+            />
+            <Stack.Screen
+                name="select-new-bowler"
+                component={SelectNewBowler}
             />
         </Stack.Navigator>
     );
