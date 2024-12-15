@@ -7,10 +7,12 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const UndoModal = ({ showModal, setShowModal }) => {
+const ReplaceBowlerModal = ({ showModal, setShowModal, matchId }) => {
+    const navigation = useNavigation();
     return (
         <View style={styles.modal_wrapper}>
             <Modal
@@ -29,11 +31,21 @@ const UndoModal = ({ showModal, setShowModal }) => {
                                     color="#F99F0D"
                                 />
                             </View>
-                            <Text style={styles.modal_title}>Undo?</Text>
-                            <Text style={styles.modal_desc}>
-                                Confirmed undo last ball?
+                            <Text style={styles.modal_title}>
+                                Replace bowler?
                             </Text>
-                            <TouchableOpacity style={styles.confirm_btn}>
+                            <Text style={styles.modal_desc}>
+                                Are u sure to replace current bowler?
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.confirm_btn}
+                                onPress={() => {
+                                    navigation.navigate("select-new-bowler", {
+                                        matchId
+                                    });
+                                    setShowModal(false);
+                                }}
+                            >
                                 <Text style={styles.confirm_btn_text}>
                                     yes, i’m sure
                                 </Text>
@@ -101,7 +113,7 @@ const styles = StyleSheet.create({
         fontSize: normalize(18),
         fontFamily: "ubuntuRegular",
         color: "#A8ACAF",
-        textAlign: "center"
+        textAlign: "center",
     },
 
     confirm_btn: {
@@ -136,4 +148,4 @@ const styles = StyleSheet.create({
         textAlign: "center"
     }
 });
-export default UndoModal;
+export default ReplaceBowlerModal;

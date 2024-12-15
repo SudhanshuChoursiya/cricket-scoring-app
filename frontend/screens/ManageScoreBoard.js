@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
+import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
 import { io } from "socket.io-client";
@@ -29,6 +30,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [showOverCompletionModal, setShowOverCompletionModal] =
         useState(false);
+    const [showReplaceBowlerModal, setShowReplaceBowlerModal] = useState(false);
     const [showUndoModal, setShowUndoModal] = useState(false);
     const [showChangeStrikerModal, setShowChangeStrikerModal] = useState(false);
 
@@ -449,7 +451,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             </View>
 
             <View style={styles.current_bowler_wrapper}>
-                <View style={styles.current_bowler}>
+                <Pressable
+                    style={styles.current_bowler}
+                    onPress={() => setShowReplaceBowlerModal(true)}
+                >
                     <Icon
                         name="sports-baseball"
                         size={normalize(26)}
@@ -458,7 +463,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     <Text style={styles.bowler_name}>
                         {currentInningDetails?.currentBowler.name}
                     </Text>
-                </View>
+                </Pressable>
                 <View style={styles.bowler_stats_wrapper}>
                     <Text style={styles.bowler_stats}>
                         {currentInningDetails?.currentBowler.wickets}-
@@ -566,6 +571,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 showModal={showOverCompletionModal}
                 setShowModal={setShowOverCompletionModal}
                 currentInningDetails={currentInningDetails}
+                matchId={matchDetails?._id}
+            />
+            <ReplaceBowlerModal
+                showModal={showReplaceBowlerModal}
+                setShowModal={setShowReplaceBowlerModal}
                 matchId={matchDetails?._id}
             />
             <UndoModal
