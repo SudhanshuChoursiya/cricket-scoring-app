@@ -25,6 +25,7 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const dispatch = useDispatch();
+    const { accessToken } = useSelector(state => state.auth);
     const { strikeBatsman, nonStrikeBatsman, currentBowler } = useSelector(
         state => state.match
     );
@@ -38,7 +39,12 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
             const getMatchDetails = async () => {
                 try {
                     const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        }
                     );
                     const data = await response.json();
 

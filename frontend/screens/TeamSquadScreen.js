@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
@@ -20,7 +20,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
-
+    const { accessToken } = useSelector(state => state.auth);
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -30,7 +30,12 @@ const TeamSquadScreen = ({ navigation, route }) => {
             const getTeamDetails = async () => {
                 try {
                     const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-single-team/${route.params.teamId}`
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-single-team/${route.params.teamId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        }
                     );
                     const data = await response.json();
 

@@ -9,10 +9,11 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
+import InningCompletionModal from "../components/InningCompletionModal.js";
 import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
@@ -30,6 +31,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [showOverCompletionModal, setShowOverCompletionModal] =
         useState(false);
+    const [showInningCompletionModal, setShowInningCompletionModal] =
+        useState(false);
     const [showReplaceBowlerModal, setShowReplaceBowlerModal] = useState(false);
     const [showUndoModal, setShowUndoModal] = useState(false);
     const [showChangeStrikerModal, setShowChangeStrikerModal] = useState(false);
@@ -42,10 +45,17 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         isShow: false
     });
 
+    const { accessToken } = useSelector(state => state.auth);
+
     const getMatchDetails = async () => {
         try {
             const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`
+                `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                }
             );
             const data = await response.json();
 
@@ -80,6 +90,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
         socket.on("overCompleted", () => {
             setShowOverCompletionModal(true);
+        });
+        
+        socket.on("inningCompleted", () => {
+            setShowInningCompletionModal(true);
         });
 
         return () => socket.disconnect();
@@ -366,6 +380,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify(payload)
@@ -381,6 +396,34 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         } catch (error) {
             console.log(error);
         } finally {
+            setShowSpinner(false);
+        }
+    };
+
+    const handleChangeStrike = async () => {
+        try {
+            setShowSpinner(true);
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_BASE_URL}/change-strike/${route.params?.matchId}`,
+
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+            if (response.status === 200) {
+                getMatchDetails();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setShowChangeStrikerModal(false);
             setShowSpinner(false);
         }
     };
@@ -401,7 +444,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 <Text style={styles.label}>
                     {matchDetails?.currentInning === 1
                         ? matchDetails?.inning1.battingTeam.name
-                        : matchDetails?.inning2.battingTeam}
+                        : matchDetails?.inning2.battingTeam.name}
                 </Text>
             </View>
 
@@ -427,6 +470,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         to {matchDetails?.toss.tossDecision}
                     </Text>
                 </View>
+
                 <View style={styles.current_batsman_wrapper}>
                     {currentInningDetails?.currentBatsmen.map(player => (
                         <Pressable
@@ -434,20 +478,40 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             key={player._id}
                             onPress={() => setShowChangeStrikerModal(true)}
                         >
-                            <Text style={styles.batsman_score}>
-                                {player.runs} ({player.balls})
-                            </Text>
-                            <Text
-                                style={[
-                                    styles.batsman_name,
-                                    player.onStrike && styles.on_strike
-                                ]}
-                            >
-                                {player.name}
-                            </Text>
+                            <View style={styles.batsman_score_wrapper}>
+                                <Text style={styles.batsman_score}>
+                                    {player.runs} ({player.balls})
+                                </Text>
+                            </View>
+                            <View style={styles.batsman_name_wrapper}>
+                                <Text
+                                    style={[
+                                        styles.batsman_name,
+                                        player.onStrike && styles.on_strike
+                                    ]}
+                                >
+                                    {player.name}
+                                </Text>
+                                {player.onStrike && (
+                                    <Icon
+                                        name="sports-cricket"
+                                        size={20}
+                                        color="#f6d67c"
+                                    />
+                                )}
+                            </View>
                         </Pressable>
                     ))}
                 </View>
+            </View>
+
+            <View style={styles.bowling_team_name_wrapper}>
+                <Text style={styles.vs_text}>Vs</Text>
+                <Text style={styles.bowling_team_name}>
+                    {matchDetails?.currentInning === 1
+                        ? matchDetails?.inning1.bowlingTeam.name
+                        : matchDetails?.inning2.bowlingTeam.name}
+                </Text>
             </View>
 
             <View style={styles.current_bowler_wrapper}>
@@ -467,7 +531,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 <View style={styles.bowler_stats_wrapper}>
                     <Text style={styles.bowler_stats}>
                         {currentInningDetails?.currentBowler.wickets}-
-                        {currentInningDetails?.currentBowler.runsConceded}(
+                        {currentInningDetails?.currentBowler.runsConceded} (
                         {formatOver(
                             currentInningDetails?.currentBowler.ballsBowled
                         )}
@@ -561,15 +625,21 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 modalProps={modalProps}
                 setModalProps={setModalProps}
                 handleCloseModal={handleCloseModal}
+                showSpinner={showSpinner}
                 handleConfirmModal={handleConfirmModal}
             />
 
             {/* Over Completion modal*/}
 
             <OverCompletionModal
-                s
                 showModal={showOverCompletionModal}
                 setShowModal={setShowOverCompletionModal}
+                currentInningDetails={currentInningDetails}
+                matchId={matchDetails?._id}
+            />
+            <InningCompletionModal
+                showModal={showInningCompletionModal}
+                setShowModal={setShowInningCompletionModal}
                 currentInningDetails={currentInningDetails}
                 matchId={matchDetails?._id}
             />
@@ -585,7 +655,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             <ChangeStrikerModal
                 showModal={showChangeStrikerModal}
                 setShowModal={setShowChangeStrikerModal}
+                showSpinner={showSpinner}
                 matchDetails={matchDetails}
+                handleChangeStrike={handleChangeStrike}
             />
         </View>
     );
@@ -598,30 +670,33 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF"
     },
     header: {
-        paddingTop: normalizeVertical(50),
+        paddingTop: normalizeVertical(40),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: normalize(20)
+        justifyContent: "center",
+        paddingHorizontal: normalize(20),
+        position: "relative"
+    },
+    back_btn: {
+        position: "absolute",
+        left: normalize(20),
+        top: normalizeVertical(42)
     },
     label: {
         fontSize: normalize(20),
         color: "white",
         paddingHorizontal: normalize(13),
         textTransform: "capitalize",
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: normalizeVertical(50),
         textAlign: "center",
         fontFamily: "robotoMedium"
     },
 
     batting_team_score_wrapper: {
         width: "100%",
-        height: normalizeVertical(280),
-        paddingTop: normalizeVertical(60),
+        height: normalizeVertical(240),
+        paddingTop: normalizeVertical(40),
         alignItems: "center",
         gap: normalizeVertical(5),
         backgroundColor: "#E73336",
@@ -664,6 +739,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: normalizeVertical(5)
     },
+    batsman_name_wrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: normalize(4)
+    },
     batsman_name: {
         fontSize: normalize(18),
         color: "white",
@@ -673,6 +753,26 @@ const styles = StyleSheet.create({
     batsman_score: {
         fontSize: normalize(17),
         color: "white",
+        fontFamily: "latoBold"
+    },
+    bowling_team_name_wrapper: {
+        backgroundColor: "#E21F26",
+        paddingVertical: normalizeVertical(10),
+        paddingHorizontal: normalize(20),
+        gap: normalizeVertical(5),
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    vs_text: {
+        fontSize: normalize(17),
+        color: "white",
+        textTransform: "capitalize",
+        fontFamily: "latoBold"
+    },
+    bowling_team_name: {
+        fontSize: normalize(18),
+        color: "white",
+        textTransform: "capitalize",
         fontFamily: "latoBold"
     },
     current_bowler_wrapper: {

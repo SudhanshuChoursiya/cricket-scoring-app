@@ -20,6 +20,7 @@ import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const InitialPlayersAssignScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
@@ -27,6 +28,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
+    const { accessToken } = useSelector(state => state.auth);
 
     const { strikeBatsman, nonStrikeBatsman, currentBowler } = useSelector(
         state => state.match
@@ -55,8 +57,14 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
             const getMatchDetails = async () => {
                 try {
                     const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        }
                     );
+
                     const data = await response.json();
 
                     if (response.status === 200) {
@@ -97,6 +105,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -144,6 +153,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
             setShowSpinner(false);
         }
     };
+    
 
     return (
         <View style={styles.wrapper}>

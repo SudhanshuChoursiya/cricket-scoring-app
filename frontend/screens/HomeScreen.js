@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { useSelector } from "react-redux";
 import Header from "../components/Header.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const HomeScreen = ({ navigation }) => {
@@ -21,6 +21,8 @@ const HomeScreen = ({ navigation }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [matches, setMatches] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const { accessToken } = useSelector(state => state.auth);
 
     useFocusEffect(
         useCallback(() => {
@@ -33,11 +35,6 @@ const HomeScreen = ({ navigation }) => {
         useCallback(() => {
             const getMatchDetails = async () => {
                 try {
-                    const accessToken =
-                        await AsyncStorage.getItem("accessToken");
-                    if (!accessToken) {
-                        throw new Error("access token not found");
-                    }
                     const response = await fetch(
                         `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-matches`,
                         {

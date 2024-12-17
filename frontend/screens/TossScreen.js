@@ -17,6 +17,7 @@ import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TossScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
@@ -24,10 +25,9 @@ const TossScreen = ({ navigation, route }) => {
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
-
+    const { accessToken } = useSelector(state => state.auth);
     const { tossWinner, tossDecision } = useSelector(state => state.match);
 
-    
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -51,7 +51,12 @@ const TossScreen = ({ navigation, route }) => {
             const getMatchDetails = async () => {
                 try {
                     const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        }
                     );
                     const data = await response.json();
 
@@ -89,6 +94,7 @@ const TossScreen = ({ navigation, route }) => {
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -118,8 +124,7 @@ const TossScreen = ({ navigation, route }) => {
                     })
                 );
 
-
-                navigation.navigate("player-assignment-screen", {
+                navigation.navigate("initial-players-assign-screen", {
                     matchId: route.params?.matchId
                 });
             }
@@ -253,7 +258,7 @@ const TossScreen = ({ navigation, route }) => {
                             style={styles.confirm_btn}
                             onPress={handleToss}
                         >
-                            {!showSpinner? (
+                            {!showSpinner ? (
                                 <Text style={styles.confirm_btn_text}>
                                     Let’s Play
                                 </Text>

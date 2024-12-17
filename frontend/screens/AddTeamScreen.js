@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showAlert } from "../redux/alertSlice.js";
@@ -23,6 +23,7 @@ const AddTeamScreen = ({ navigation, route }) => {
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
+    const { accessToken } = useSelector(state => state.auth);
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -49,6 +50,7 @@ const AddTeamScreen = ({ navigation, route }) => {
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ teamName, city, captainName })

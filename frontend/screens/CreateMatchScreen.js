@@ -15,18 +15,19 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CreateMatchScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
+
     const { teamA, teamB, totalOvers, matchPlace } = useSelector(
         state => state.match
     );
 
-    const { isLoggedin, user } = useSelector(state => state.auth);
+    const { isLoggedin, user, accessToken } = useSelector(state => state.auth);
 
     useEffect(() => {
         setIsScreenFocused(true);
@@ -70,7 +71,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 return;
             }
 
-            const accessToken = await AsyncStorage.getItem("accessToken");
             const response = await fetch(
                 `${process.env.EXPO_PUBLIC_BASE_URL}/create-new-match`,
 

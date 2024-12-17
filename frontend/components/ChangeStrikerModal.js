@@ -1,8 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import Spinner from "./Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const ChangeStrikerModal = ({ showModal, setShowModal, matchDetails }) => {
+const ChangeStrikerModal = ({
+    showModal,
+    setShowModal,
+    matchDetails,
+    showSpinner,
+    handleChangeStrike
+}) => {
     return (
         <View style={styles.modal_wrapper}>
             <Modal
@@ -30,10 +37,20 @@ const ChangeStrikerModal = ({ showModal, setShowModal, matchDetails }) => {
                                     not now
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.ok_button}>
+                            <TouchableOpacity
+                                style={styles.ok_button}
+                                onPress={handleChangeStrike}
+                            >
                                 <Text style={styles.ok_button_text}>
                                     yes sure
                                 </Text>
+                                {showSpinner && (
+                                    <Spinner
+                                        isLoading={showSpinner}
+                                        spinnerColor="white"
+                                        spinnerSize={28}
+                                    />
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -78,18 +95,25 @@ const styles = StyleSheet.create({
     },
     modal_btn_wrapper: {
         flexDirection: "row",
-        alignContent: "centet"
+        alignContent: "center"
     },
     cancel_button: {
         width: "50%",
+        height: normalizeVertical(62),
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
         backgroundColor: "#F2F2F2",
-        paddingVertical: normalizeVertical(18),
         marginTop: normalizeVertical(20)
     },
     ok_button: {
         width: "50%",
+        height: normalizeVertical(62),
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: normalize(10),
         backgroundColor: "#14B492",
-        paddingVertical: normalizeVertical(18),
         marginTop: normalizeVertical(20)
     },
     cancel_button_text: {

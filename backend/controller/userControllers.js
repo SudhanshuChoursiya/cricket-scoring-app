@@ -50,7 +50,7 @@ const loginController = asyncHandler(async (req, res) => {
 
     const ticket = await client.verifyIdToken({
         idToken: id_token,
-        audience: process.env.CLIENT_ID
+        audience: process.env.OAUTH2_CLIENT_ID
     });
 
     const payload = ticket.getPayload();
@@ -152,6 +152,7 @@ const checkAuthController = asyncHandler(async (req, res) => {
 
 const addNewTeamController = asyncHandler(async (req, res) => {
     const { teamName, city, captainName } = req.body;
+    const user = req.user;
     const isEmpty = [teamName, city].some(field => {
         if (typeof field === "string") {
             return field.trim() === "";
@@ -167,7 +168,8 @@ const addNewTeamController = asyncHandler(async (req, res) => {
     const team = await TeamModel.create({
         team_name: teamName,
         city: city,
-        captain_name: captainName
+        captain_name: captainName,
+        createdBy: user._id
     });
 
     if (!team) {
@@ -177,16 +179,19 @@ const addNewTeamController = asyncHandler(async (req, res) => {
 });
 
 const getAllTeamsController = asyncHandler(async (req, res) => {
-    const teams = await TeamModel.find();
+    const user = req.user;
+    const teams = await TeamModel.find({ createdBy: user._id });
 
     if (!teams) {
         throw new ApiError(404, "no teams has been found");
     }
     res.status(200).json(new ApiResponse(200, teams));
 });
+
 const getSingleTeamController = asyncHandler(async (req, res) => {
+    const user = req.user;
     const teamId = req.params.teamId;
-    const team = await TeamModel.findById(teamId);
+    const team = await TeamModel.findOne({ _id: teamId, createdBy: user._id });
 
     if (!team) {
         throw new ApiError(404, "no team has been found");
@@ -195,6 +200,7 @@ const getSingleTeamController = asyncHandler(async (req, res) => {
 });
 
 const addPlayersController = asyncHandler(async (req, res) => {
+    const user = req.user;
     const players = req.body.players;
     const teamId = req.params.teamId;
 
@@ -206,7 +212,7 @@ const addPlayersController = asyncHandler(async (req, res) => {
         throw new ApiError(400, " plz add atleast one player");
     }
 
-    const team = await TeamModel.findById(teamId);
+    const team = await TeamModel.findOne({ _id: teamId, createdBy: user._id });
 
     if (!team) {
         throw new ApiError(404, "no team has been found");
@@ -227,7 +233,7 @@ const addPlayersController = asyncHandler(async (req, res) => {
 
 const createMatchController = asyncHandler(async (req, res) => {
     const { teamA, teamB, totalOvers, matchPlace } = req.body;
-
+    const user = req.user;
     const isEmpty = [
         teamA.name,
         teamB.name,
@@ -272,7 +278,7 @@ const createMatchController = asyncHandler(async (req, res) => {
         teamA,
         teamB,
         matchPlace,
-        createdBy: req.user._id
+        createdBy: user._id
     });
 
     if (!match) {
@@ -289,7 +295,7 @@ const createMatchController = asyncHandler(async (req, res) => {
 
 const updateTossDetailsController = asyncHandler(async (req, res) => {
     const { tossWinner, tossDecision } = req.body;
-
+    const user = req.user;
     const matchId = req.params.matchId;
 
     const isEmpty = [tossWinner, tossDecision].some(field => {
@@ -304,7 +310,10 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
         throw new ApiError(400, "required field can not be empty");
     }
 
-    const match = await MatchModel.findById(matchId);
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
 
     if (!match) {
         throw new ApiError(500, "no match has been found");
@@ -338,6 +347,8 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
 
 const updateInitialPlayersController = asyncHandler(async (req, res) => {
     const { strikeBatsmanId, nonStrikeBatsmanId, currentBowlerId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
 
     const isEmpty = [strikeBatsmanId, nonStrikeBatsmanId, currentBowlerId].some(
         field => {
@@ -353,7 +364,10 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
         throw new ApiError(400, "required filed can not be empty");
     }
 
-    const match = await MatchModel.findById(req.params.matchId);
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
 
     if (!match) {
         throw new ApiError(404, "match not found");
@@ -403,7 +417,13 @@ const updateScoreController = asyncHandler(async (req, res) => {
         caughtBy
     } = req.body;
 
-    const match = await MatchModel.findById(req.params.matchId);
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
 
     if (!match) {
         throw new ApiError(404, "match not found");
@@ -430,27 +450,48 @@ const updateScoreController = asyncHandler(async (req, res) => {
         player._id.equals(currentBowler._id)
     );
 
-    // Helper function to check if the match is completed (target reached, overs bowled, or wickets fallen)
-    const checkMatchCompletion = () => {
-        if (match.currentInning === 2) {
-            if (currentInning.totalScore >= match.targetScore) {
-                match.status = `${currentInning.battingTeam} won by ${
-                    10 - currentInning.wicketsFallen
-                } wickets`;
-                res.status(200).json(
-                    new ApiResponse(200, {}, "Match over, batting team won")
-                );
-            }
-            if (
-                currentInning.remainingBalls <= 0 ||
-                currentInning.wicketsFallen >= 10
-            ) {
-                match.status = `${currentInning.bowlingTeam} won by ${
-                    match.targetScore - currentInning.totalScore
-                }`;
-                res.status(200).json(
-                    new ApiResponse(200, {}, "Match over, bowling team won")
-                );
+    // Check if the first inning is over (10 wickets or total overs completed)
+    const switchInnings = match => {
+        match.currentInning = 2;
+        match.targetScore = match.inning1.totalScore + 1;
+
+        match.inning2.battingTeam = match.inning1.bowlingTeam;
+
+        match.inning2.bowlingTeam = match.inning1.battingTeam;
+    };
+
+    const checkGameProgress = () => {
+        // Check if the current inning is complete
+        if (
+            currentInning.wicketsFallen >= 10 ||
+            currentInning.currentOvers >= currentInning.totalOvers
+        ) {
+            currentInning.isInningComplete = true;
+
+            if (match.currentInning === 1) {
+                // Switch innings if it's the first inning
+                switchInnings(match);
+                io.emit("inningCompleted");
+            } else if (match.currentInning === 2) {
+                // Match completion logic in the second inning
+                if (currentInning.totalScore >= match.targetScore) {
+                    match.status = `${currentInning.battingTeam} won by ${
+                        10 - currentInning.wicketsFallen
+                    } wickets`;
+                    res.status(200).json(
+                        new ApiResponse(200, {}, "Match over, batting team won")
+                    );
+                } else if (
+                    currentInning.remainingBalls <= 0 ||
+                    currentInning.wicketsFallen >= 10
+                ) {
+                    match.status = `${currentInning.bowlingTeam} won by ${
+                        match.targetScore - currentInning.totalScore
+                    } runs`;
+                    res.status(200).json(
+                        new ApiResponse(200, {}, "Match over, bowling team won")
+                    );
+                }
             }
         }
     };
@@ -573,27 +614,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     batsman => (batsman.onStrike = !batsman.onStrike)
                 );
             }
-            io.emit("overCompleted")
+            io.emit("overCompleted");
         }
     };
 
     // Helper function to switch innings
-    const switchInnings = match => {
-        match.currentInning = 2;
-        match.targetScore = match.inning1.totalScore + 1; // Second team needs 1 more run than the first team's score
-
-        // Set initial state for the second inning
-        match.inning2 = {
-            battingTeam: match.inning1.bowlingTeam,
-            bowlingTeam: match.inning1.battingTeam,
-            currentBatsmen: match.inning1.bowlingTeam.players.slice(0, 2), // Set the first two players as current batsmen
-            currentOverBalls: 0,
-            currentOvers: 0,
-            totalScore: 0,
-            wicketsFallen: 0,
-            isInningComplete: false
-        };
-    };
 
     // Run updates based on the type of ball
     if (!isWide && !isNoBall && !isLegBye && !isBye) {
@@ -604,22 +629,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
     switchStrike();
     endOver();
-    checkMatchCompletion();
-
-    // Check if the first inning is over (10 wickets or 20 overs)
-    if (
-        currentInning.wicketsFallen >= 10 ||
-        currentInning.currentOvers >= currentInning.totalOvers
-    ) {
-        if (match.currentInning === 1) {
-            currentInning.isInningComplete = true;
-            switchInnings(match); // Switch to the second inning
-        } else {
-            res.status(200).json(
-                new ApiResponse(200, {}, "Match over, second inning complete!")
-            );
-        }
-    }
+    checkGameProgress();
 
     // Save match details
     await match.save();
@@ -648,12 +658,16 @@ const updateScoreController = asyncHandler(async (req, res) => {
 //change bowler controller
 const changeBowlerController = asyncHandler(async (req, res) => {
     const { newBowlerId } = req.body;
-
+    const user = req.user;
+    const matchId = req.params.matchId;
     if (!newBowlerId) {
         throw new ApiError(400, "plz provide new bolwer id");
     }
 
-    const match = await MatchModel.findById(req.params.matchId);
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
 
     if (!match) {
         throw new ApiError(404, "match not found");
@@ -675,6 +689,33 @@ const changeBowlerController = asyncHandler(async (req, res) => {
     );
 });
 
+const changeStrikeController = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    const currentInning =
+        match.currentInning === 1 ? match.inning1 : match.inning2;
+
+    currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsmen => {
+        return { ...batsmen, onStrike: !batsmen.onStrike };
+    });
+
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "bowler changed successfully")
+    );
+});
+
 const getAllMatchDetailsController = asyncHandler(async (req, res) => {
     const user = req.user;
     const matchDetails = await MatchModel.find({ createdBy: user._id });
@@ -686,8 +727,12 @@ const getAllMatchDetailsController = asyncHandler(async (req, res) => {
 });
 
 const getSingleMatchDetailsController = asyncHandler(async (req, res) => {
+    const user = req.user;
     const matchId = req.params.matchId;
-    const matchDetails = await MatchModel.findById(matchId);
+    const matchDetails = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
 
     if (!matchDetails) {
         throw new ApiError(404, "no match has been found");
@@ -706,6 +751,7 @@ export {
     updateInitialPlayersController,
     updateScoreController,
     changeBowlerController,
+    changeStrikeController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,

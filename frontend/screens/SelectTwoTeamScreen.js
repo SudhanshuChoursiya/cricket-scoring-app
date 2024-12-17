@@ -20,26 +20,6 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
-    
-    useEffect(() => {
-        const getCategorizedCakes = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-cakes`
-                );
-                const data = await response.json();
-
-                if (response.status === 200) {
-                    setCakesDetails(data.data.cakesDetails);
-                }
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        getCategorizedCakes();
-    }, []);
 
     useFocusEffect(
         useCallback(() => {

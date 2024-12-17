@@ -26,6 +26,10 @@ const teamSchema = new mongoose.Schema({
     },
     captain_name: {
         type: String
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserSignup"
     }
 });
 

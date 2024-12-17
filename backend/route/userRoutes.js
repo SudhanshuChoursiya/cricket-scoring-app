@@ -11,6 +11,7 @@ import {
     updateInitialPlayersController,
     updateScoreController,
     changeBowlerController,
+    changeStrikeController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
@@ -26,24 +27,42 @@ router.route("/refresh-access-token").post(refreshAccessTokenController);
 
 router.route("/check-auth").get(verifyToken, checkAuthController);
 
-router.route("/add-new-team").post(addNewTeamController);
+router.route("/add-new-team").post(verifyToken, addNewTeamController);
 
-router.route("/add-new-players/:teamId").post(addPlayersController);
-router.route("/create-new-match").post(verifyToken,createMatchController);
+router
+    .route("/add-new-players/:teamId")
+    .post(verifyToken, addPlayersController);
 
-router.route("/update-toss-details/:matchId").post(updateTossDetailsController);
+router.route("/get-all-teams").get(verifyToken, getAllTeamsController);
+
+router
+    .route("/get-single-team/:teamId")
+    .get(verifyToken, getSingleTeamController);
+
+router.route("/create-new-match").post(verifyToken, createMatchController);
+
+router
+    .route("/update-toss-details/:matchId")
+    .post(verifyToken, updateTossDetailsController);
 
 router
     .route("/update-initial-players/:matchId")
-    .post(updateInitialPlayersController);
+    .post(verifyToken, updateInitialPlayersController);
 
-router.route("/update-score/:matchId").post(updateScoreController);
-router.route("/change-bowler/:matchId").post(changeBowlerController);
+router.route("/update-score/:matchId").post(verifyToken, updateScoreController);
 
-router.route("/get-all-teams").get(getAllTeamsController);
-router.route("/get-single-team/:teamId").get(getSingleTeamController);
+router
+    .route("/change-bowler/:matchId")
+    .post(verifyToken, changeBowlerController);
 
-router.route("/get-all-matches").get(verifyToken,getAllMatchDetailsController);
-router.route("/get-match-details/:matchId").get(getSingleMatchDetailsController);
+router
+    .route("/change-strike/:matchId")
+    .post(verifyToken, changeStrikeController);
+
+router.route("/get-all-matches").get(verifyToken, getAllMatchDetailsController);
+
+router
+    .route("/get-match-details/:matchId")
+    .get(verifyToken, getSingleMatchDetailsController);
 
 export default router;

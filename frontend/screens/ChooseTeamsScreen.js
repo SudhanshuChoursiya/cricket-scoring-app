@@ -20,6 +20,8 @@ const ChooseTeamScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const dispatch = useDispatch();
+    const { accessToken } = useSelector(state => state.auth);
+
     const { teamA, teamB } = useSelector(state => state.match);
 
     useEffect(() => {
@@ -31,7 +33,12 @@ const ChooseTeamScreen = ({ navigation, route }) => {
             const getAllTeams = async () => {
                 try {
                     const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-teams`
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-all-teams`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        }
                     );
                     const data = await response.json();
 
@@ -188,7 +195,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                     )}
                 </>
             ) : (
-                <LoadingSpinner/>
+                <LoadingSpinner />
             )}
         </View>
     );

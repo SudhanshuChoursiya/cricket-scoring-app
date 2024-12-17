@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { showAlert } from "../redux/alertSlice.js";
 
 import AlertToast from "../components/AlertToast.js";
@@ -27,6 +27,8 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const playersRefs = useRef([]);
     const scrollViewRef = useRef();
+
+    const { accessToken } = useSelector(state => state.auth);
 
     const addPlayerInput = () => {
         setPlayers([...players, { name: "" }]);
@@ -103,6 +105,7 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
                 {
                     method: "POST",
                     headers: {
+                        Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ players: filteredPlayers })
