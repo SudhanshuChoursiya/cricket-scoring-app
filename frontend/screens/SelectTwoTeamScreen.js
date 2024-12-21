@@ -178,7 +178,8 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#282829",
-        borderRadius: normalize(50)
+        borderRadius: normalize(50),
+        elevation: 1,
     },
     select_caption: {
         backgroundColor: "#1A4DA1",
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
         paddingVertical: normalizeVertical(10),
         borderRadius: normalize(8),
         textTransform: "capitalize"
+        ,elevation:1
     },
     versus_text: {
         fontSize: normalize(22),

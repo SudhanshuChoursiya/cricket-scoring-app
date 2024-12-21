@@ -135,6 +135,11 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                         msg: data.message
                     })
                 );
+
+                dispatch(setStrikeBatsman({ _id: null, name: null }));
+                dispatch(setNonStrikeBatsman({ _id: null, name: null }));
+                dispatch(setCurrentBowler({ _id: null, name: null }));
+
                 navigation.navigate("manage-scoreboard", {
                     matchId: route.params?.matchId
                 });
@@ -153,7 +158,6 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
             setShowSpinner(false);
         }
     };
-    
 
     return (
         <View style={styles.wrapper}>
@@ -169,7 +173,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                     />
                 </TouchableOpacity>
                 <Text style={styles.label}>
-                    Start {matchDetails?.currentInning === 1 ? "1st" : "2nd"}
+                    Start {matchDetails?.currentInning === 1 ? "1st" : "2nd"}{" "}
                     Innings
                 </Text>
             </View>

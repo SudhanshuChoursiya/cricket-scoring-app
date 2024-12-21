@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
 
         height: normalizeVertical(124),
         position: "relative",
-        zIndex: 2000,
+        zIndex: 2000
     },
 
     top_container: {
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     app_logo: {
-        height: normalize(44),
-        width: normalize(44)
+        height: normalize(50),
+        width: normalize(50)
     },
     app_logo_title: {
         color: "#f1f1f1",

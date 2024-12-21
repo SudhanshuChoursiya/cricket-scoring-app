@@ -335,6 +335,10 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
 
     match.inning1.battingTeam = battingTeam;
     match.inning1.bowlingTeam = bowlingTeam;
+
+    match.inning2.battingTeam = bowlingTeam;
+    match.inning2.bowlingTeam = battingTeam;
+
     match.matchStatus = "toss happend";
     match.toss.tossWinner = tossWinner;
     match.toss.tossDecision = tossDecision;
@@ -397,7 +401,10 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     ];
 
     currentInning.currentBowler = currentBowler;
-
+    match.isInningChangePending = false;
+    if (match.currentInning === 2) {
+        match.isSecondInningStarted = true;
+    }
     await match.save();
 
     res.status(200).json(
@@ -450,48 +457,41 @@ const updateScoreController = asyncHandler(async (req, res) => {
         player._id.equals(currentBowler._id)
     );
 
-    // Check if the first inning is over (10 wickets or total overs completed)
-    const switchInnings = match => {
-        match.currentInning = 2;
-        match.targetScore = match.inning1.totalScore + 1;
-
-        match.inning2.battingTeam = match.inning1.bowlingTeam;
-
-        match.inning2.bowlingTeam = match.inning1.battingTeam;
-    };
-
     const checkGameProgress = () => {
-        // Check if the current inning is complete
-        if (
-            currentInning.wicketsFallen >= 10 ||
-            currentInning.currentOvers >= currentInning.totalOvers
-        ) {
-            currentInning.isInningComplete = true;
+        if (match.currentInning === 1) {
+            if (
+                match.inning1.wicketsFallen >= 10 ||
+                match.inning1.currentOvers >= match.inning1.totalOvers
+            ) {
+                match.currentInning = 2;
+                match.targetScore = match.inning1.totalScore + 1;
+                match.isInningChangePending = true;
 
-            if (match.currentInning === 1) {
-                // Switch innings if it's the first inning
-                switchInnings(match);
                 io.emit("inningCompleted");
-            } else if (match.currentInning === 2) {
-                // Match completion logic in the second inning
-                if (currentInning.totalScore >= match.targetScore) {
-                    match.status = `${currentInning.battingTeam} won by ${
-                        10 - currentInning.wicketsFallen
-                    } wickets`;
-                    res.status(200).json(
-                        new ApiResponse(200, {}, "Match over, batting team won")
-                    );
-                } else if (
-                    currentInning.remainingBalls <= 0 ||
-                    currentInning.wicketsFallen >= 10
-                ) {
-                    match.status = `${currentInning.bowlingTeam} won by ${
-                        match.targetScore - currentInning.totalScore
-                    } runs`;
-                    res.status(200).json(
-                        new ApiResponse(200, {}, "Match over, bowling team won")
-                    );
-                }
+            }
+        }
+
+        if (match.currentInning === 2) {
+            if (match.inning2.totalScore >= match.targetScore) {
+                match.matchStatus = "completed";
+
+                match.matchWinner.teamName = match.inning2.battingTeam.name;
+
+                match.matchWinner.wonBy = `${
+                    10 - match.inning2.wicketsFallen
+                } wickets`;
+                io.emit("matchCompleted");
+            } else if (
+                match.inning2.currentOvers >= match.inning2.totalOvers ||
+                match.inning2.wicketsFallen >= 10
+            ) {
+                match.matchStatus = "completed";
+                match.matchWinner.teamName = match.inning2.bowlingTeam.name;
+
+                match.matchWinner.wonBy = `${
+                    match.targetScore - match.inning2.totalScore
+                } runs`;
+                io.emit("matchCompleted");
             }
         }
     };
@@ -614,13 +614,28 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     batsman => (batsman.onStrike = !batsman.onStrike)
                 );
             }
-            io.emit("overCompleted");
+
+            if (
+                currentInning.currentOvers !== currentInning.totalOvers &&
+                currentInning.wicketsFallen !== 10
+            ) {
+                if (match.currentInning === 2) {
+                    if (match.inning2.totalScore < match.targetScore) {
+                        match.isOverChangePending = true;
+                        io.emit("overCompleted");
+                    }
+                } else {
+                    match.isOverChangePending = true;
+                    io.emit("overCompleted");
+                }
+            }
         }
     };
 
     // Helper function to switch innings
 
     // Run updates based on the type of ball
+
     if (!isWide && !isNoBall && !isLegBye && !isBye) {
         updateRegularBall();
     } else {
@@ -630,7 +645,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
     switchStrike();
     endOver();
     checkGameProgress();
-
+    io.emit("scoreUpdated", match);
     // Save match details
     await match.save();
 
@@ -638,16 +653,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
     const response = {
         match
     };
-
-    // Add target and remaining balls to the response if it's the second inning
-    if (match.currentInning === 2) {
-        response.target = match.targetScore;
-        response.runsRequired = match.targetScore - currentInning.totalScore;
-        response.remainingBalls =
-            currentInning.totalOvers -
-            currentInning.currentOvers * 6 -
-            currentInning.currentOverBalls;
-    }
 
     // Return the response
     res.status(200).json(
@@ -681,7 +686,7 @@ const changeBowlerController = asyncHandler(async (req, res) => {
     );
 
     currentInning.currentBowler = newBowler;
-
+    match.isOverChangePending = false;
     await match.save();
 
     res.status(200).json(

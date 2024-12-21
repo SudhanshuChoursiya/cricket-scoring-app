@@ -86,10 +86,6 @@ const InningSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    isInningComplete: {
-        type: Boolean,
-        default: false
-    },
     totalOvers: {
         type: Number
     }
@@ -132,9 +128,31 @@ const MatchSchema = new mongoose.Schema({
             type: String
         }
     },
+    matchWinner: {
+        teamName: {
+            type: String,
+            default: null
+        },
+        wonBy: {
+            type: String,
+            default: null
+        }
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserSignup"
+    },
+    isOverChangePending: {
+        type: Boolean,
+        default: false
+    },
+    isInningChangePending: {
+        type: Boolean,
+        default: false
+    },
+    isSecondInningStarted: {
+        type: Boolean,
+        default: false
     }
 });
 

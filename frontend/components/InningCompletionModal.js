@@ -10,12 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const InningCompletionModal = ({
-    showModal,
-    setShowModal,
-    currentInningDetails,
-    matchId
-}) => {
+const InningCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
     const navigation = useNavigation();
 
     return (
@@ -31,16 +26,18 @@ const InningCompletionModal = ({
                         <Text style={styles.modal_title}>Inning complete</Text>
                         <View style={styles.modal_content}>
                             <Text style={styles.inning_info}>
-                                {currentInningDetails?.battingTeam.name} scores{" "}
-                                {currentInningDetails?.battingTeam.totalScore}{" "}
-                                runs
+                                {matchDetails?.inning1.battingTeam.name} scores{" "}
+                                {matchDetails?.inning1.totalScore} runs
                             </Text>
                             <TouchableOpacity
                                 style={styles.start_new_inning_btn}
                                 onPress={() => {
-                                    navigation.navigate("select-new-bowler", {
-                                        matchId
-                                    });
+                                    navigation.navigate(
+                                        "initial-players-assign-screen",
+                                        {
+                                            matchId: matchDetails?._id
+                                        }
+                                    );
                                     setShowModal(false);
                                 }}
                             >

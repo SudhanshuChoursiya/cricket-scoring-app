@@ -58,6 +58,28 @@ const HomeScreen = ({ navigation }) => {
         }, [isScreenFocused])
     );
 
+    const handleNavigate = match => {
+        if (match.matchStatus !== "completed") {
+            if (match.matchStatus === "no toss") {
+                navigation.navigate("toss -screen", {
+                    matchId: match._id
+                });
+            } else if (match.isOverChangePending) {
+                navigation.navigate("select-new-bowler", {
+                    matchId: match._id
+                });
+            } else if (match.isInningChangePending) {
+                navigation.navigate("initial-players-assign-screen", {
+                    matchId: match._id
+                });
+            } else {
+                navigation.navigate("manage-scoreboard", {
+                    matchId: match._id
+                });
+            }
+        }
+    };
+
     return (
         <View style={styles.wrapper}>
             <Header
@@ -90,19 +112,7 @@ const HomeScreen = ({ navigation }) => {
                                 <TouchableOpacity
                                     style={styles.match}
                                     key={match._id}
-                                    onPress={() =>
-                                        match.matchStatus === "no toss"
-                                            ? navigation.navigate(
-                                                  "toss -screen",
-                                                  {
-                                                      matchId: match._id
-                                                  }
-                                              )
-                                            : navigation.navigate(
-                                                  "manage-scoreboard",
-                                                  { matchId: match._id }
-                                              )
-                                    }
+                                    onPress={() => handleNavigate(match)}
                                 >
                                     <View
                                         style={styles.other_match_info_wrapper}
@@ -112,12 +122,18 @@ const HomeScreen = ({ navigation }) => {
                                             {match.matchPlace.city}
                                         </Text>
                                         <View
-                                            style={styles.match_status_wrapper}
+                                            style={[
+                                                styles.match_status_wrapper,
+                                                match.matchStatus ===
+                                                "completed"
+                                                    ? styles.bg_green
+                                                    : styles.bg_orange
+                                            ]}
                                         >
                                             <Text style={styles.match_status}>
                                                 {match.matchStatus ===
-                                                "match completed"
-                                                    ? "completed"
+                                                "completed"
+                                                    ? "Completed"
                                                     : "in progress"}
                                             </Text>
                                         </View>
@@ -134,12 +150,16 @@ const HomeScreen = ({ navigation }) => {
                                         </Text>
                                     </View>
 
-                                    <View style={styles.toss_info_wrapper}>
-                                        <Text style={styles.toss_info}>
+                                    <View style={styles.match_info_wrapper}>
+                                        <Text style={styles.match_info}>
+                                            {match.matchStatus === "no toss" &&
+                                                "toss will commence shortly"}
                                             {match.matchStatus ===
-                                            "toss happend"
-                                                ? `${match.toss.tossWinner} elected to ${match.toss.tossDecision} first`
-                                                : "toss will commence shortly"}
+                                                "toss happend" &&
+                                                `${match.toss.tossWinner} elected to ${match.toss.tossDecision} first`}
+                                            {match.matchStatus ===
+                                                "completed" &&
+                                                `${match.matchWinner.teamName} won by ${match.matchWinner.wonBy}`}
                                         </Text>
                                     </View>
                                 </TouchableOpacity>
@@ -238,16 +258,17 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between"
     },
-    toss_info_wrapper: {
+    match_info_wrapper: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center"
     },
-    toss_info: {
+    match_info: {
         fontSize: normalize(18),
         color: "#1A4DA1",
-        fontFamily: "robotoBold",
-        textAlign: "center"
+        fontFamily: "robotoMedium",
+        textAlign: "center",
+        textTransform: "capitalize"
     },
     match_place: {
         fontSize: normalize(16),
@@ -255,8 +276,6 @@ const styles = StyleSheet.create({
         fontFamily: "latoBold"
     },
     match_status_wrapper: {
-        backgroundColor: "#f48441",
-
         paddingHorizontal: normalize(15),
         paddingVertical: normalizeVertical(6),
         borderRadius: normalize(15)
@@ -265,6 +284,12 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: normalize(16),
         fontFamily: "latoBold"
+    },
+    bg_orange: {
+        backgroundColor: "#f48441"
+    },
+    bg_green: {
+        backgroundColor: "#14B492"
     }
 });
 

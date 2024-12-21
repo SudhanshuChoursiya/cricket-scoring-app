@@ -10,12 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const OverCompletionModal = ({
-    showModal,
-    setShowModal,
-    currentInningDetails,
-    matchId
-}) => {
+const MatchCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
     const navigation = useNavigation();
 
     return (
@@ -28,28 +23,24 @@ const OverCompletionModal = ({
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>Over Complete</Text>
+                        <Text style={styles.modal_title}>Match Completed</Text>
                         <View style={styles.modal_content}>
-                            <Text style={styles.over_info}>
-                                End of over {currentInningDetails?.currentOvers}{" "}
-                                by {currentInningDetails?.currentBowler?.name}
+                            <Text style={styles.inning_info}>
+                                {matchDetails?.matchWinner?.teamName} won by{" "}
+                                {matchDetails?.matchWinner?.wonBy}
                             </Text>
                             <TouchableOpacity
-                                style={styles.start_new_over_btn}
+                                style={styles.start_new_inning_btn}
                                 onPress={() => {
-                                    navigation.navigate("select-new-bowler", {
-                                        matchId
-                                    });
+                                    navigation.navigate("home-screen");
                                     setShowModal(false);
                                 }}
                             >
-                                <Text style={styles.start_new_over_btn_text}>
-                                    start next over
+                                <Text style={styles.start_new_inning_btn_text}>
+                                    End Match
                                 </Text>
                             </TouchableOpacity>
                         </View>
-
-                        {/* Button to close the modal */}
 
                         <TouchableOpacity style={styles.continue_over_btn}>
                             <Text style={styles.continue_over_btn_text}>
@@ -94,20 +85,20 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8)
     },
 
-    over_info: {
+    inning_info: {
         fontSize: normalize(18),
         fontFamily: "ubuntuMedium",
         color: "#565656"
     },
 
-    start_new_over_btn: {
+    start_new_inning_btn: {
         backgroundColor: "#14B492",
         paddingVertical: normalizeVertical(15),
 
         borderRadius: normalize(8),
         elevation: 1
     },
-    start_new_over_btn_text: {
+    start_new_inning_btn_text: {
         color: "white",
         fontSize: normalize(17),
 
@@ -132,4 +123,4 @@ const styles = StyleSheet.create({
         textAlign: "center"
     }
 });
-export default OverCompletionModal;
+export default MatchCompletionModal;

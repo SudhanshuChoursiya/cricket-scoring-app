@@ -14,6 +14,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
 import InningCompletionModal from "../components/InningCompletionModal.js";
+import MatchCompletionModal from "../components/MatchCompletionModal.js";
 import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
@@ -32,6 +33,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [showOverCompletionModal, setShowOverCompletionModal] =
         useState(false);
     const [showInningCompletionModal, setShowInningCompletionModal] =
+        useState(false);
+    const [showMatchCompletionModal, setShowMatchCompletionModal] =
         useState(false);
     const [showReplaceBowlerModal, setShowReplaceBowlerModal] = useState(false);
     const [showUndoModal, setShowUndoModal] = useState(false);
@@ -61,7 +64,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
             if (response.status === 200) {
                 setMatchDetails(data.data);
-
                 setCurrentInningDetails(
                     data.data.currentInning === 1
                         ? data.data.inning1
@@ -88,12 +90,26 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     useEffect(() => {
         const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
 
+        socket.on("scoreUpdated", match => {
+            setMatchDetails(match);
+            if (match.currentInning === 2 && !match.isSecondInningStarted) {
+                setCurrentInningDetails(match.inning1);
+            } else {
+                setCurrentInningDetails(
+                    match.currentInning === 1 ? match.inning1 : match.inning2
+                );
+            }
+        });
+
         socket.on("overCompleted", () => {
             setShowOverCompletionModal(true);
         });
-        
+
         socket.on("inningCompleted", () => {
             setShowInningCompletionModal(true);
+        });
+        socket.on("matchCompleted", () => {
+            setShowMatchCompletionModal(true);
         });
 
         return () => socket.disconnect();
@@ -388,9 +404,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
-            if (response.status === 200) {
-                getMatchDetails();
-            } else {
+            if (response.status !== 200) {
                 throw new Error(data.message);
             }
         } catch (error) {
@@ -415,9 +429,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
-            if (response.status === 200) {
-                getMatchDetails();
-            } else {
+            if (response.status !== 200) {
                 throw new Error(data.message);
             }
         } catch (error) {
@@ -442,9 +454,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     />
                 </TouchableOpacity>
                 <Text style={styles.label}>
-                    {matchDetails?.currentInning === 1
-                        ? matchDetails?.inning1.battingTeam.name
-                        : matchDetails?.inning2.battingTeam.name}
+                    {currentInningDetails &&
+                        currentInningDetails.battingTeam.name}
                 </Text>
             </View>
 
@@ -464,13 +475,40 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         </Text>
                     </View>
                 </View>
-                <View style={styles.toss_details_wrapper}>
-                    <Text style={styles.toss_details}>
-                        {matchDetails?.toss.tossWinner} won the toss and elected
-                        to {matchDetails?.toss.tossDecision}
-                    </Text>
-                </View>
+                {!matchDetails?.isSecondInningStarted && (
+                    <View style={styles.toss_details_wrapper}>
+                        <Text style={styles.toss_details}>
+                            {matchDetails?.toss.tossWinner} won the toss and
+                            elected to {matchDetails?.toss.tossDecision}
+                        </Text>
+                    </View>
+                )}
 
+                {matchDetails?.matchStatus !== "completed" &&
+                    matchDetails?.currentInning === 2 &&
+                    matchDetails?.isSecondInningStarted && (
+                        <View style={styles.toss_details_wrapper}>
+                            <Text style={styles.toss_details}>
+                                {currentInningDetails?.battingTeam.name} needs{" "}
+                                {matchDetails?.targetScore -
+                                    matchDetails?.inning2.totalScore}{" "}
+                                runs in{" "}
+                                {matchDetails?.inning2.totalOvers * 6 -
+                                    matchDetails.inning2.currentOvers * 6 -
+                                    matchDetails.inning2.currentOverBalls}{" "}
+                                balls
+                            </Text>
+                        </View>
+                    )}
+                {matchDetails?.matchStatus === "completed" &&
+                    matchDetails?.currentInning === 2 && (
+                        <View style={styles.toss_details_wrapper}>
+                            <Text style={styles.toss_details}>
+                                {matchDetails?.matchWinner?.teamName} won by{" "}
+                                {matchDetails?.matchWinner?.wonBy}
+                            </Text>
+                        </View>
+                    )}
                 <View style={styles.current_batsman_wrapper}>
                     {currentInningDetails?.currentBatsmen.map(player => (
                         <Pressable
@@ -525,15 +563,15 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         color="#474646"
                     />
                     <Text style={styles.bowler_name}>
-                        {currentInningDetails?.currentBowler.name}
+                        {currentInningDetails?.currentBowler?.name}
                     </Text>
                 </Pressable>
                 <View style={styles.bowler_stats_wrapper}>
                     <Text style={styles.bowler_stats}>
-                        {currentInningDetails?.currentBowler.wickets}-
-                        {currentInningDetails?.currentBowler.runsConceded} (
+                        {currentInningDetails?.currentBowler?.wickets}-
+                        {currentInningDetails?.currentBowler?.runsConceded} (
                         {formatOver(
-                            currentInningDetails?.currentBowler.ballsBowled
+                            currentInningDetails?.currentBowler?.ballsBowled
                         )}
                         )
                     </Text>
@@ -640,8 +678,12 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             <InningCompletionModal
                 showModal={showInningCompletionModal}
                 setShowModal={setShowInningCompletionModal}
-                currentInningDetails={currentInningDetails}
-                matchId={matchDetails?._id}
+                matchDetails={matchDetails}
+            />
+            <MatchCompletionModal
+                showModal={showMatchCompletionModal}
+                setShowModal={setShowMatchCompletionModal}
+                matchDetails={matchDetails}
             />
             <ReplaceBowlerModal
                 showModal={showReplaceBowlerModal}
