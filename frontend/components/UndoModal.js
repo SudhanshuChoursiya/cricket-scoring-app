@@ -7,17 +7,21 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setUndoModal } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const UndoModal = ({ showModal, setShowModal }) => {
+const UndoModal = () => {
+    const undoModal = useSelector(state => state.modal.undoModal);
+    const dispatch = useDispatch();
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={showModal}
-                onRequestClose={() => setShowModal(false)}
+                visible={undoModal.isShow}
+                onRequestClose={() => dispatch(setUndoModal({ isShow: false }))}
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
@@ -41,7 +45,9 @@ const UndoModal = ({ showModal, setShowModal }) => {
 
                             <TouchableOpacity
                                 style={styles.close_btn}
-                                onPress={() => setShowModal(false)}
+                                onPress={() =>
+                                    dispatch(setUndoModal({ isShow: false }))
+                                }
                             >
                                 <Text style={styles.close_btn_text}>
                                     cancel

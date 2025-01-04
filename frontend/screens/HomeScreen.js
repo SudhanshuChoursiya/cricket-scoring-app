@@ -68,6 +68,10 @@ const HomeScreen = ({ navigation }) => {
                 navigation.navigate("select-new-bowler", {
                     matchId: match._id
                 });
+            } else if (match.isSelectNewBatsmanPending) {
+                navigation.navigate("select-new-batsman", {
+                    matchId: match._id
+                });
             } else if (match.isInningChangePending) {
                 navigation.navigate("initial-players-assign-screen", {
                     matchId: match._id
@@ -201,12 +205,12 @@ const styles = StyleSheet.create({
     },
     matches_wrapper: {
         gap: normalizeVertical(22),
-        paddingTop: normalizeVertical(10),
-        paddingBottom: normalizeVertical(55)
+        paddingTop: normalizeVertical(5),
+        paddingBottom: normalizeVertical(50)
     },
     match: {
         width: "90%",
-        gap: normalize(18),
+        gap: normalize(20),
         justifyContent: "center",
         backgroundColor: "white",
         marginHorizontal: "auto",

@@ -24,12 +24,13 @@ const PlayerSchema = new mongoose.Schema({
         default: false
     },
     outMethod: {
-        type: String,
-        default: ""
+        type: String
     },
     caughtBy: {
-        type: String,
-        default: ""
+        type: String
+    },
+    dismissBy: {
+        type: String
     },
     ballsBowled: {
         type: Number,
@@ -141,6 +142,10 @@ const MatchSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "UserSignup"
+    },
+    isSelectNewBatsmanPending: {
+        type: Boolean,
+        default: false
     },
     isOverChangePending: {
         type: Boolean,

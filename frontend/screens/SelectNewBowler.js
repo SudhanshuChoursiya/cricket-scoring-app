@@ -60,6 +60,14 @@ const SelectNewBowler = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            setIsLoading(true);
+            setSelectedPlayer(null);
+        });
+        return unsubscribe;
+    }, [navigation]);
+
     useFocusEffect(
         useCallback(() => {
             navigation.getParent()?.setOptions({
@@ -115,6 +123,7 @@ const SelectNewBowler = ({ navigation, route }) => {
             setShowSpinner(false);
         }
     };
+
     return (
         <View style={styles.wrapper}>
             <View style={styles.header}>

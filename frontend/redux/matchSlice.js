@@ -27,6 +27,10 @@ const initialState = {
     currentBowler: {
         playerId: null,
         name: null
+    },
+    fielder: {
+        playerId: null,
+        name: null
     }
 };
 
@@ -62,16 +66,20 @@ const matchSlice = createSlice({
             state.tossDecision = action.payload;
         },
         setStrikeBatsman: (state, action) => {
-            state.strikeBatsman.playerId= action.payload._id;
-            state.strikeBatsman.name= action.payload.name;
+            state.strikeBatsman.playerId = action.payload._id;
+            state.strikeBatsman.name = action.payload.name;
         },
         setNonStrikeBatsman: (state, action) => {
-            state.nonStrikeBatsman .playerId= action.payload._id;
-            state.nonStrikeBatsman .name= action.payload.name;
+            state.nonStrikeBatsman.playerId = action.payload._id;
+            state.nonStrikeBatsman.name = action.payload.name;
         },
         setCurrentBowler: (state, action) => {
-            state.currentBowler.playerId= action.payload._id;
+            state.currentBowler.playerId = action.payload._id;
             state.currentBowler.name = action.payload.name;
+        },
+        setFielder: (state, action) => {
+            state.fielder.playerId = action.payload._id;
+            state.fielder.name = action.payload.name;
         }
     }
 });
@@ -88,7 +96,8 @@ export const {
     setTossDecision,
     setStrikeBatsman,
     setNonStrikeBatsman,
-    setCurrentBowler
+    setCurrentBowler,
+    setFielder
 } = matchSlice.actions;
 
 export default matchSlice.reducer;

@@ -11,6 +11,7 @@ import {
     updateInitialPlayersController,
     updateScoreController,
     changeBowlerController,
+    updateCurrentBatsmanController,
     changeStrikeController,
     getAllTeamsController,
     getSingleTeamController,
@@ -54,6 +55,10 @@ router.route("/update-score/:matchId").post(verifyToken, updateScoreController);
 router
     .route("/change-bowler/:matchId")
     .post(verifyToken, changeBowlerController);
+
+router
+    .route("/update-current-batsman/:matchId")
+    .post(verifyToken, updateCurrentBatsmanController);
 
 router
     .route("/change-strike/:matchId")

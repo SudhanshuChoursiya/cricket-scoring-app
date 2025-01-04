@@ -1,59 +1,86 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    TextInput,
+    Modal
+} from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setChangeStrikeModal } from "../redux/modalSlice.js";
+import { setCustomRunsModal } from "../redux/modalSlice.js";
 import Spinner from "./Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const ChangeStrikerModal = ({
-    matchDetails,
-    showSpinner,
-    handleChangeStrike
-}) => {
-    const changeStrikeModal = useSelector(
-        state => state.modal.changeStrikeModal
-    );
+const CustomRunsModal = ({ showSpinner, handleUpdateScore }) => {
+    const customRunsModal = useSelector(state => state.modal.customRunsModal);
     const dispatch = useDispatch();
+
+    const handleCloseModal = () => {
+        dispatch(
+            setCustomRunsModal({
+                inputValue: 0,
+                isShow: false
+            })
+        );
+    };
+
+    const handleConfirmModal = () => {
+        handleUpdateScore(
+            customRunsModal.inputLabel,
+            customRunsModal.payload
+        ).then(() => handleCloseModal());
+    };
+
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={changeStrikeModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setChangeStrikeModal({ isShow: false }))
-                }
+                visible={customRunsModal.isShow}
+                onRequestClose={handleCloseModal}
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>change striker</Text>
-
-                        <View style={styles.modal_content}></View>
-
-                        <Text style={styles.modal_info}>
-                            Are you sure to change the strike batsman?
+                        <Text style={styles.modal_title}>
+                            Runs Scored by runnning
                         </Text>
 
+                        <View style={styles.modal_content}>
+                            <View style={styles.modal_input_wrapper}>
+                                <TextInput
+                                    style={styles.modal_input}
+                                    value={customRunsModal.inputValue}
+                                    onChangeText={text =>
+                                        dispatch(
+                                            setCustomRunsModal({
+                                                inputValue: Number(text)
+                                            })
+                                        )
+                                    }
+                                    keyboardType="numeric"
+                                />
+                            </View>
+                            <Text style={styles.modal_desc}>
+                                *4 and 6 will not be considered boundaries
+                            </Text>
+                        </View>
+
+                        {/* Button to close the modal */}
                         <View style={styles.modal_btn_wrapper}>
                             <TouchableOpacity
                                 style={styles.cancel_button}
-                                onPress={() =>
-                                    dispatch(
-                                        setChangeStrikeModal({ isShow: false })
-                                    )
-                                }
+                                onPress={handleCloseModal}
                             >
                                 <Text style={styles.cancel_button_text}>
-                                    not now
+                                    cancel
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={styles.ok_button}
-                                onPress={handleChangeStrike}
+                                onPress={handleConfirmModal}
                             >
-                                <Text style={styles.ok_button_text}>
-                                    yes sure
-                                </Text>
+                                <Text style={styles.ok_button_text}>ok</Text>
                                 {showSpinner && (
                                     <Spinner
                                         isLoading={showSpinner}
@@ -91,17 +118,28 @@ const styles = StyleSheet.create({
         elevation: 1
     },
     modal_title: {
-        paddingTop: normalizeVertical(25),
-        fontSize: normalize(22),
-        fontFamily: "robotoBold",
-        textTransform: "capitalize"
+        paddingTop: normalizeVertical(22),
+        fontSize: normalize(21),
+        fontFamily: "robotoBold"
     },
-    modal_info: {
-        fontSize: normalize(19),
-        fontFamily: "robotoMedium",
-        color: "#565656",
-        width: "80%",
-        textAlign: "center"
+    modal_content: {
+        gap: normalizeVertical(10)
+    },
+    modal_input_wrapper: {
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    modal_input: {
+        width: normalize(65),
+        borderWidth: 2,
+        borderColor: "#14B492",
+        borderRadius: normalize(5),
+        paddingHorizontal: normalize(10)
+    },
+    modal_desc: {
+        color: "#474646",
+        fontSize: normalize(18),
+        fontFamily: "robotoMedium"
     },
     modal_btn_wrapper: {
         flexDirection: "row",
@@ -114,6 +152,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F2F2F2",
+
         marginTop: normalizeVertical(20)
     },
     ok_button: {
@@ -141,4 +180,4 @@ const styles = StyleSheet.create({
         textAlign: "center"
     }
 });
-export default ChangeStrikerModal;
+export default CustomRunsModal;

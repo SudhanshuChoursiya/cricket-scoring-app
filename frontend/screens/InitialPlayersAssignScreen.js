@@ -182,7 +182,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 <>
                     <View style={styles.select_striker_and_nonstriker_wrapper}>
                         <Text style={styles.heading}>
-                            batting -{" "}
+                            Batting -{" "}
                             {matchDetails?.currentInning === 1
                                 ? matchDetails?.inning1.battingTeam.name
                                 : matchDetails?.inning2.battingTeam.name}
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(150),
+        width: normalize(155),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(150),
+        width: normalize(155),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,

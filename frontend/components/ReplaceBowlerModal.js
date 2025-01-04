@@ -7,19 +7,33 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setReplaceBowlerModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const ReplaceBowlerModal = ({ showModal, setShowModal, matchId }) => {
+const ReplaceBowlerModal = ({ matchId }) => {
+    const replaceBowlerModal = useSelector(
+        state => state.modal.replaceBowlerModal
+    );
+    const dispatch = useDispatch();
     const navigation = useNavigation();
+    const handleNavigate = () => {
+        navigation.navigate("select-new-bowler", {
+            matchId
+        });
+        dispatch(setReplaceBowlerModal({ isShow: false }));
+    };
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={showModal}
-                onRequestClose={() => setShowModal(false)}
+                visible={replaceBowlerModal.isShow}
+                onRequestClose={() =>
+                    dispatch(setReplaceBowlerModal({ isShow: false }))
+                }
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
@@ -39,12 +53,7 @@ const ReplaceBowlerModal = ({ showModal, setShowModal, matchId }) => {
                             </Text>
                             <TouchableOpacity
                                 style={styles.confirm_btn}
-                                onPress={() => {
-                                    navigation.navigate("select-new-bowler", {
-                                        matchId
-                                    });
-                                    setShowModal(false);
-                                }}
+                                onPress={handleNavigate}
                             >
                                 <Text style={styles.confirm_btn_text}>
                                     yes, i’m sure
@@ -53,7 +62,11 @@ const ReplaceBowlerModal = ({ showModal, setShowModal, matchId }) => {
 
                             <TouchableOpacity
                                 style={styles.close_btn}
-                                onPress={() => setShowModal(false)}
+                                onPress={() =>
+                                    dispatch(
+                                        setReplaceBowlerModal({ isShow: false })
+                                    )
+                                }
                             >
                                 <Text style={styles.close_btn_text}>
                                     cancel
@@ -113,7 +126,7 @@ const styles = StyleSheet.create({
         fontSize: normalize(18),
         fontFamily: "ubuntuRegular",
         color: "#A8ACAF",
-        textAlign: "center",
+        textAlign: "center"
     },
 
     confirm_btn: {

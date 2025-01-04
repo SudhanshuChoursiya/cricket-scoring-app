@@ -1,0 +1,288 @@
+import {
+    View,
+    Text,
+    StyleSheet,
+    Image,
+    TouchableOpacity,
+    Modal
+} from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setOutMethodModal } from "../redux/modalSlice.js";
+import outMethodImg from "../assets/icon.png";
+import { useNavigation } from "@react-navigation/native";
+import { normalize, normalizeVertical } from "../utils/responsive.js";
+
+const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
+    const outMethodModal = useSelector(state => state.modal.outMethodModal);
+    const dispatch = useDispatch();
+    const navigation = useNavigation();
+    const outMedthodList = [
+        {
+            name: "bowled",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "bowled"
+            }
+        },
+        {
+            name: "caught",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "caught"
+            }
+        },
+        {
+            name: "caught behind",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "caught behind"
+            }
+        },
+        {
+            name: "caught & bowled",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "caught & bowled"
+            }
+        },
+        {
+            name: "run out",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "run out"
+            }
+        },
+        {
+            name: "lbw",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "lbw"
+            }
+        },
+        {
+            name: "stumped",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "stumped"
+            }
+        },
+        {
+            name: "retired hurt",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                outMethod: "retired hurt"
+            }
+        }
+    ];
+
+    const handlePress = outMethod => {
+        if (
+            outMethod.name === "bowled" ||
+            outMethod.name === "lbw" ||
+            outMethod.name === "caught & bowled" ||
+            outMethod.name === "retired hurt"
+        ) {
+            handleUpdateScore("OUT", outMethod.payload);
+            dispatch(setOutMethodModal({ isShow: false }));
+        } else if (
+            outMethod.name === "caught" ||
+            outMethod.name === "caught behind" ||
+            outMethod.name === "stumped"
+        ) {
+            navigation.navigate("caught-out-fielder-assign", {
+                matchId: matchDetails?._id,
+                payload: outMethod.payload
+            });
+
+            dispatch(setOutMethodModal({ isShow: false }));
+        } else if (outMethod.name === "run out") {
+            navigation.navigate("run-out-fielder-assign", {
+                matchId: matchDetails?._id,
+                payload: outMethod.payload
+            });
+
+            dispatch(setOutMethodModal({ isShow: false }));
+        }
+    };
+
+    return (
+        <View style={styles.modal_wrapper}>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={outMethodModal.isShow}
+                onRequestClose={() =>
+                    dispatch(setOutMethodModal({ isShow: false }))
+                }
+            >
+                <View style={styles.modal_overlay}>
+                    <View style={styles.modal_container}>
+                        <Text style={styles.modal_title}>select out type</Text>
+
+                        <View style={styles.modal_content}>
+                            {outMedthodList.map((outMethod, index) => (
+                                <TouchableOpacity
+                                    style={styles.out_method}
+                                    key={index}
+                                    onPress={() => handlePress(outMethod)}
+                                >
+                                    <View style={styles.out_method_img_wrapper}>
+                                        <Image
+                                            style={styles.out_method_img}
+                                            resizeMode="cover"
+                                            source={outMethod.img}
+                                        />
+                                    </View>
+                                    <Text style={styles.out_method_text}>
+                                        {outMethod.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <View style={styles.modal_btn_wrapper}>
+                            <TouchableOpacity
+                                style={styles.cancel_button}
+                                onPress={() =>
+                                    dispatch(
+                                        setOutMethodModal({ isShow: false })
+                                    )
+                                }
+                            >
+                                <Text style={styles.cancel_button_text}>
+                                    cancel
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    modal_overlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        position: "relative"
+    },
+    modal_container: {
+        width: "100%",
+        height: normalizeVertical(450),
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "white",
+        borderTopLeftRadius: normalize(25),
+        borderTopRightRadius: normalize(25),
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        elevation: 1
+    },
+    modal_title: {
+        marginTop: normalizeVertical(25),
+        marginBottom: normalizeVertical(20),
+        fontSize: normalize(21),
+        fontFamily: "robotoMedium",
+        textTransform: "capitalize"
+    },
+    modal_content: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "center"
+    },
+    out_method: {
+        width: normalize(92),
+        alignItems: "center",
+        gap: normalizeVertical(8),
+        marginVertical: normalizeVertical(15)
+    },
+    out_method_img_wrapper: {
+        backgroundColor: "F2F2F2",
+        height: normalize(75),
+        width: normalize(75),
+        borderRadius: normalize(37),
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 1
+    },
+    out_method_img: {
+        height: "100%",
+        width: "100%"
+    },
+    out_method_text: {
+        fontSize: normalize(16),
+        fontFamily: "robotoMedium",
+        width: "85%",
+        textAlign: "center",
+        textTransform: "capitalize",
+        color: "#565656"
+    },
+    modal_btn_wrapper: {
+        flexDirection: "row",
+        alignContent: "center"
+    },
+    cancel_button: {
+        marginTop: normalizeVertical(20),
+        marginBottom: normalizeVertical(25)
+    },
+
+    cancel_button_text: {
+        color: "black",
+        fontSize: normalize(18),
+        fontFamily: "robotoMedium",
+        textTransform: "uppercase"
+    }
+});
+export default OutMethodModal;

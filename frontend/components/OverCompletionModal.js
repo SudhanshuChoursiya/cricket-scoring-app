@@ -4,29 +4,65 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    Animated,
+    StatusBar
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+
+import { useDispatch, useSelector } from "react-redux";
+import { setOverCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const OverCompletionModal = ({
-    showModal,
-    setShowModal,
-    currentInningDetails,
-    matchId
-}) => {
+const OverCompletionModal = ({ currentInningDetails, matchId }) => {
+    const overCompleteModal = useSelector(
+        state => state.modal.overCompleteModal
+    );
+    const dispatch = useDispatch();
     const navigation = useNavigation();
 
+    const slideAnim = useRef(new Animated.Value(500)).current;
+
+    useEffect(() => {
+        if (overCompleteModal.isShow) {
+            slideIn();
+        } else {
+            slideOut();
+        }
+    }, [overCompleteModal.isShow]);
+
+    const slideIn = () => {
+        Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: true
+        }).start();
+    };
+
+    const slideOut = () => {
+        Animated.timing(slideAnim, {
+            toValue: 500,
+            duration: 150,
+            useNativeDriver: true
+        }).start();
+    };
+
+    const handleNavigate = () => {
+        navigation.navigate("select-new-bowler", {
+            matchId
+        });
+        dispatch(setOverCompleteModal({ isShow: false }));
+    };
+
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={showModal}
-                onRequestClose={() => setShowModal(false)}
-            >
-                <View style={styles.modal_overlay}>
+        <>
+            {overCompleteModal.isShow && (
+                <Animated.View
+                    style={[
+                        styles.modal_wrapper,
+                        { transform: [{ translateY: slideAnim }] }
+                    ]}
+                >
                     <View style={styles.modal_container}>
                         <Text style={styles.modal_title}>Over Complete</Text>
                         <View style={styles.modal_content}>
@@ -36,12 +72,7 @@ const OverCompletionModal = ({
                             </Text>
                             <TouchableOpacity
                                 style={styles.start_new_over_btn}
-                                onPress={() => {
-                                    navigation.navigate("select-new-bowler", {
-                                        matchId
-                                    });
-                                    setShowModal(false);
-                                }}
+                                onPress={handleNavigate}
                             >
                                 <Text style={styles.start_new_over_btn_text}>
                                     start next over
@@ -57,21 +88,28 @@ const OverCompletionModal = ({
                             </Text>
                         </TouchableOpacity>
                     </View>
-                </View>
-            </Modal>
-        </View>
+                </Animated.View>
+            )}
+        </>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        marginTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),
+
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),

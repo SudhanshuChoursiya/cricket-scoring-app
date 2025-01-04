@@ -9,15 +9,28 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    setExtrasModal,
+    setOverCompleteModal,
+    setInningCompleteModal,
+    setMatchCompleteModal,
+    setUndoModal,
+    setChangeStrikeModal,
+    setReplaceBowlerModal,
+    setOutMethodModal,
+    setCustomRunsModal
+} from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
+import CustomRunsModal from "../components/CustomRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
 import InningCompletionModal from "../components/InningCompletionModal.js";
 import MatchCompletionModal from "../components/MatchCompletionModal.js";
 import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
+import OutMethodModal from "../components/OutMethodModal.js";
 import { io } from "socket.io-client";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
@@ -25,28 +38,14 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
 
-    const [strikeBatsman, setStrikeBatsman] = useState(null);
-    const [nonStrikeBatsman, setNonStrikeBatsman] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
-    const [showOverCompletionModal, setShowOverCompletionModal] =
-        useState(false);
-    const [showInningCompletionModal, setShowInningCompletionModal] =
-        useState(false);
-    const [showMatchCompletionModal, setShowMatchCompletionModal] =
-        useState(false);
-    const [showReplaceBowlerModal, setShowReplaceBowlerModal] = useState(false);
-    const [showUndoModal, setShowUndoModal] = useState(false);
-    const [showChangeStrikerModal, setShowChangeStrikerModal] = useState(false);
+    const [isWicketFallen, setIsWicketFallen] = useState(false);
 
-    const [modalProps, setModalProps] = useState({
-        title: "",
-        inputLabel: "",
-        inputValue: 0,
-        payload: null,
-        isShow: false
-    });
+    const dispatch = useDispatch();
+
+    const { extrasModal, customRunsModal } = useSelector(state => state.modal);
 
     const { accessToken } = useSelector(state => state.auth);
 
@@ -64,11 +63,18 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
             if (response.status === 200) {
                 setMatchDetails(data.data);
-                setCurrentInningDetails(
-                    data.data.currentInning === 1
-                        ? data.data.inning1
-                        : data.data.inning2
-                );
+                if (
+                    data.data.currentInning === 2 &&
+                    !data.data.isSecondInningStarted
+                ) {
+                    setCurrentInningDetails(data.data.inning1);
+                } else {
+                    setCurrentInningDetails(
+                        data.data.currentInning === 1
+                            ? data.data.inning1
+                            : data.data.inning2
+                    );
+                }
             }
         } catch (error) {
             console.log(error);
@@ -85,11 +91,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
     }, []);
 
     useEffect(() => {
         const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
-
         socket.on("scoreUpdated", match => {
             setMatchDetails(match);
             if (match.currentInning === 2 && !match.isSecondInningStarted) {
@@ -101,19 +107,37 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             }
         });
 
+        socket.on("wicketFallen", () => {
+            setIsWicketFallen(true);
+        });
+
         socket.on("overCompleted", () => {
-            setShowOverCompletionModal(true);
+            dispatch(setOverCompleteModal({ isShow: true }));
         });
 
         socket.on("inningCompleted", () => {
-            setShowInningCompletionModal(true);
+            dispatch(setInningCompleteModal({ isShow: true }));
         });
         socket.on("matchCompleted", () => {
-            setShowMatchCompletionModal(true);
+            dispatch(setMatchCompleteModal({ isShow: true }));
         });
 
-        return () => socket.disconnect();
+        return () => {
+            socket.disconnect();
+        };
     }, []);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            if (isWicketFallen) {
+                navigation.navigate("select-new-batsman", {
+                    matchId: route.params?.matchId
+                });
+                setIsWicketFallen(false);
+            }
+        });
+        return unsubscribe;
+    }, [isWicketFallen, navigation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -146,48 +170,73 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleOpenModal = (modalType, payload) => {
         if (modalType === "WIDE") {
-            setModalProps(preVal => ({
-                ...preVal,
-
-                title: "Wide Ball",
-                inputLabel: "WIDE",
-                payload: payload,
-                isShow: true
-            }));
+            dispatch(
+                setExtrasModal({
+                    title: "Wide Ball",
+                    inputLabel: "WIDE",
+                    inputValue: 0,
+                    payload: payload,
+                    isShow: true
+                })
+            );
         } else if (modalType === "NB") {
-            setModalProps(preVal => ({
-                ...preVal,
-                title: "No Ball",
-                inputLabel: "NB",
-                payload: payload,
-                isShow: true
-            }));
+            dispatch(
+                setExtrasModal({
+                    title: "No Ball",
+                    inputLabel: "NB",
+                    inputValue: 0,
+                    payload: payload,
+                    isShow: true
+                })
+            );
         } else if (modalType === "BY") {
-            setModalProps(preVal => ({
-                ...preVal,
-                title: "Bye",
-                inputLabel: "BY",
-                payload: payload,
-                isShow: true
-            }));
+            dispatch(
+                setExtrasModal({
+                    title: "Bye",
+                    inputLabel: "BY",
+                    inputValue: 0,
+                    payload: payload,
+                    isShow: true
+                })
+            );
         } else if (modalType === "LB") {
-            setModalProps(preVal => ({
-                ...preVal,
-                title: "Leg Bye",
-                inputLabel: "LB",
-                payload: payload,
-                isShow: true
-            }));
+            dispatch(
+                setExtrasModal({
+                    title: "Leg Bye",
+                    inputLabel: "LB",
+                    inputValue: 0,
+                    payload: payload,
+                    isShow: true
+                })
+            );
+        } else if (modalType === "5,7") {
+            dispatch(
+                setCustomRunsModal({
+                    inputLabel: "5,7",
+                    inputValue: 0,
+                    payload: payload,
+                    isShow: true
+                })
+            );
+        } else if (modalType === "UNDO") {
+            dispatch(setUndoModal({ isShow: true }));
+        } else if (modalType === "OUT") {
+            dispatch(setOutMethodModal({ isShow: true }));
         }
     };
 
     const handleCloseModal = () => {
-        setModalProps(preVal => ({ ...preVal, inputValue: 0, isShow: false }));
+        dispatch(
+            setExtrasModal({
+                inputValue: 0,
+                isShow: false
+            })
+        );
     };
 
     const handleConfirmModal = () => {
-        handleUpdateScore(modalProps.inputLabel, modalProps.payload).then(() =>
-            handleCloseModal()
+        handleUpdateScore(extrasModal.inputLabel, extrasModal.payload).then(
+            () => handleCloseModal()
         );
     };
 
@@ -273,20 +322,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             }
         },
         {
-            label: "5",
+            label: "5,7",
             payload: {
-                runs: 5,
-                isWide: false,
-                isNoball: false,
-                isBye: false,
-                isLegBye: false,
-                isWicket: false
-            }
-        },
-        {
-            label: "7",
-            payload: {
-                runs: 7,
+                runs: 0,
                 isWide: false,
                 isNoball: false,
                 isBye: false,
@@ -376,7 +414,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 typeOfBall === "BY" ||
                 typeOfBall === "LB"
             ) {
-                payload = { ...payload, runs: modalProps.inputValue };
+                payload = { ...payload, runs: extrasModal.inputValue };
+            }
+
+            if (typeOfBall === "5,7") {
+                payload = { ...payload, runs: customRunsModal.inputValue };
             }
 
             if (
@@ -514,7 +556,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         <Pressable
                             style={styles.current_batsman}
                             key={player._id}
-                            onPress={() => setShowChangeStrikerModal(true)}
+                            onPress={() =>
+                                dispatch(setChangeStrikeModal({ isShow: true }))
+                            }
                         >
                             <View style={styles.batsman_score_wrapper}>
                                 <Text style={styles.batsman_score}>
@@ -525,7 +569,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                 <Text
                                     style={[
                                         styles.batsman_name,
-                                        player.onStrike && styles.on_strike
+                                        player.onStrike && styles.on_strike,
+                                        player.isOut && styles.out_player
                                     ]}
                                 >
                                     {player.name}
@@ -555,7 +600,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             <View style={styles.current_bowler_wrapper}>
                 <Pressable
                     style={styles.current_bowler}
-                    onPress={() => setShowReplaceBowlerModal(true)}
+                    onPress={() =>
+                        dispatch(setReplaceBowlerModal({ isShow: true }))
+                    }
                 >
                     <Icon
                         name="sports-baseball"
@@ -593,10 +640,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             <TouchableOpacity
                                 style={[
                                     styles.primary_score_button,
-
-                                    index === arr.length - 1 && {
-                                        borderRightWidth: 0
-                                    }
+                                    index === 0 && { borderLeftWidth: 0 },
+                                    index === 3 && { borderLeftWidth: 0 }
                                 ]}
                                 onPress={() =>
                                     handleUpdateScore(
@@ -617,9 +662,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             <TouchableOpacity
                                 style={styles.secondry_score_button}
                                 onPress={() =>
-                                    button.label === "UNDO"
-                                        ? setShowUndoModal(true)
-                                        : handleUpdateScore()
+                                    handleOpenModal(
+                                        button.label,
+                                        button.payload
+                                    )
                                 }
                                 key={index}
                             >
@@ -660,43 +706,29 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             </View>
             {/* Modal */}
             <ExtraRunsModal
-                modalProps={modalProps}
-                setModalProps={setModalProps}
                 handleCloseModal={handleCloseModal}
                 showSpinner={showSpinner}
                 handleConfirmModal={handleConfirmModal}
             />
-
-            {/* Over Completion modal*/}
+            <CustomRunsModal
+                handleUpdateScore={handleUpdateScore}
+                showSpinner={showSpinner}
+            />
 
             <OverCompletionModal
-                showModal={showOverCompletionModal}
-                setShowModal={setShowOverCompletionModal}
                 currentInningDetails={currentInningDetails}
                 matchId={matchDetails?._id}
             />
-            <InningCompletionModal
-                showModal={showInningCompletionModal}
-                setShowModal={setShowInningCompletionModal}
+
+            <InningCompletionModal matchDetails={matchDetails} />
+            <MatchCompletionModal matchDetails={matchDetails} />
+            <OutMethodModal
                 matchDetails={matchDetails}
+                handleUpdateScore={handleUpdateScore}
             />
-            <MatchCompletionModal
-                showModal={showMatchCompletionModal}
-                setShowModal={setShowMatchCompletionModal}
-                matchDetails={matchDetails}
-            />
-            <ReplaceBowlerModal
-                showModal={showReplaceBowlerModal}
-                setShowModal={setShowReplaceBowlerModal}
-                matchId={matchDetails?._id}
-            />
-            <UndoModal
-                showModal={showUndoModal}
-                setShowModal={setShowUndoModal}
-            />
+            <ReplaceBowlerModal matchId={matchDetails?._id} />
+            <UndoModal />
             <ChangeStrikerModal
-                showModal={showChangeStrikerModal}
-                setShowModal={setShowChangeStrikerModal}
                 showSpinner={showSpinner}
                 matchDetails={matchDetails}
                 handleChangeStrike={handleChangeStrike}
@@ -909,7 +941,9 @@ const styles = StyleSheet.create({
         height: normalizeVertical(85),
         flex: 1,
         backgroundColor: "#EEEEEE",
-        borderWidth: 1,
+        borderTopWidth: 1,
+        borderLeftWidth: 1,
+        borderBottomWidth: 1,
         borderColor: "#b7b6b6"
     },
     score_button_text: {
@@ -920,6 +954,9 @@ const styles = StyleSheet.create({
     },
     out_text: {
         color: "#E21F26"
+    },
+    out_player: {
+        color: "rgba(198,198,198,0.4)"
     }
 });
 

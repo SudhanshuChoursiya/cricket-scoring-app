@@ -5,11 +5,13 @@ import authReducer from "./authSlice.js";
 import alertReducer from "./alertSlice.js";
 
 import matchReducer from "./matchSlice.js";
+import modalReducer from "./modalSlice.js";
 
 const rootReducer = combineReducers({
     auth: authReducer,
     alert: alertReducer,
-    match: matchReducer
+    match: matchReducer,
+    modal:modalReducer
 });
 
 const store = configureStore({

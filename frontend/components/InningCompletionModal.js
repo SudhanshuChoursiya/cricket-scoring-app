@@ -7,19 +7,32 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setInningCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const InningCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
+const InningCompletionModal = ({ matchDetails }) => {
+    const inningCompleteModal = useSelector(
+        state => state.modal.inningCompleteModal
+    );
+    const dispatch = useDispatch();
     const navigation = useNavigation();
+
+    const handleNavigate = () => {
+        navigation.navigate("initial-players-assign-screen", {
+            matchId: matchDetails?._id
+        });
+        dispatch(setInningCompleteModal({ isShow: false }));
+    };
 
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={showModal}
-                onRequestClose={() => setShowModal(false)}
+                visible={inningCompleteModal.isShow}
+                onRequestClose={() => {}}
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
@@ -31,15 +44,7 @@ const InningCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
                             </Text>
                             <TouchableOpacity
                                 style={styles.start_new_inning_btn}
-                                onPress={() => {
-                                    navigation.navigate(
-                                        "initial-players-assign-screen",
-                                        {
-                                            matchId: matchDetails?._id
-                                        }
-                                    );
-                                    setShowModal(false);
-                                }}
+                                onPress={handleNavigate}
                             >
                                 <Text style={styles.start_new_inning_btn_text}>
                                     start next innings

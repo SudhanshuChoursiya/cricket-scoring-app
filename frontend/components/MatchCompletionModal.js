@@ -7,19 +7,32 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setMatchCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const MatchCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
+const MatchCompletionModal = ({ matchDetails }) => {
+    const matchCompleteModal = useSelector(
+        state => state.modal.matchCompleteModal
+    );
+    const dispatch = useDispatch();
     const navigation = useNavigation();
+
+    const handleNavigate = () => {
+        navigation.navigate("home-screen", {
+            matchId: matchDetails?._id
+        });
+        dispatch(setMatchCompleteModal({ isShow: false }));
+    };
 
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={showModal}
-                onRequestClose={() => setShowModal(false)}
+                visible={matchCompleteModal.isShow}
+                onRequestClose={() => {}}
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
@@ -31,10 +44,7 @@ const MatchCompletionModal = ({ showModal, setShowModal, matchDetails }) => {
                             </Text>
                             <TouchableOpacity
                                 style={styles.start_new_inning_btn}
-                                onPress={() => {
-                                    navigation.navigate("home-screen");
-                                    setShowModal(false);
-                                }}
+                                onPress={handleNavigate}
                             >
                                 <Text style={styles.start_new_inning_btn_text}>
                                     End Match

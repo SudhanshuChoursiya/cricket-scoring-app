@@ -7,52 +7,55 @@ import {
     Modal
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setExtrasModal } from "../redux/modalSlice.js";
 import Spinner from "./Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ExtraRunsModal = ({
-    modalProps,
-    setModalProps,
     handleCloseModal,
     showSpinner,
     handleConfirmModal
 }) => {
+    const extrasModal = useSelector(state => state.modal.extrasModal);
+    const dispatch = useDispatch();
     return (
         <View style={styles.modal_wrapper}>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalProps.isShow}
+                visible={extrasModal.isShow}
                 onRequestClose={handleCloseModal}
             >
                 <View style={styles.modal_overlay}>
                     <View style={styles.modal_container}>
                         <Text style={styles.modal_title}>
-                            {modalProps.title}
+                            {extrasModal.title}
                         </Text>
 
                         <View style={styles.modal_content}>
                             <View style={styles.modal_input_wrapper}>
                                 <Text style={styles.modal_input_label}>
-                                    {modalProps.inputLabel}
+                                    {extrasModal.inputLabel}
                                 </Text>
                                 <Text style={styles.operator_sign}>+</Text>
                                 <TextInput
                                     style={styles.modal_input}
-                                    value={modalProps.inputValue}
+                                    value={extrasModal.inputValue}
                                     onChangeText={text =>
-                                        setModalProps(preVal => ({
-                                            ...preVal,
-                                            inputValue: Number(text)
-                                        }))
+                                        dispatch(
+                                            setExtrasModal({
+                                                inputValue: Number(text)
+                                            })
+                                        )
                                     }
                                     keyboardType="numeric"
                                 />
                                 <Text style={styles.operator_sign}>=</Text>
                                 <Text style={styles.modal_input_sum}>
-                                    {modalProps.inputValue === 0
+                                    {extrasModal.inputValue === 0
                                         ? 1
-                                        : 1 + Number(modalProps.inputValue)}
+                                        : 1 + Number(extrasModal.inputValue)}
                                 </Text>
                             </View>
                         </View>

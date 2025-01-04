@@ -55,7 +55,11 @@ import TossScreen from "./screens/TossScreen.js";
 import InitialPlayersAssignScreen from "./screens/InitialPlayersAssignScreen.js";
 import SelectInitialPlayerScreen from "./screens/SelectInitialPlayerScreen.js";
 import ManageScoreBoardScreen from "./screens/ManageScoreBoard.js";
-import SelectNewBowler from "./screens/SelectNewBolwer.js";
+import SelectNewBowler from "./screens/SelectNewBowler.js";
+import SelectNewBatsman from "./screens/SelectNewBatsman.js";
+import CaughtOutFielderAssign from "./screens/CaughtOutFielderAssign.js";
+import RunOutFielderAssign from "./screens/RunOutFielderAssign.js";
+import SelectFielder from "./screens/SelectFielder.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -109,7 +113,11 @@ function TopTabNavigator() {
 }
 function StackNavigator() {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false
+            }}
+        >
             <Stack.Screen name="home-screen" component={HomeScreen} />
             <Stack.Screen name="select-teams" component={SelectTwoTeamScreen} />
 
@@ -148,6 +156,19 @@ function StackNavigator() {
                 name="select-new-bowler"
                 component={SelectNewBowler}
             />
+            <Stack.Screen
+                name="select-new-batsman"
+                component={SelectNewBatsman}
+            />
+            <Stack.Screen
+                name="caught-out-fielder-assign"
+                component={CaughtOutFielderAssign}
+            />
+            <Stack.Screen
+                name="run-out-fielder-assign"
+                component={RunOutFielderAssign}
+            />
+            <Stack.Screen name="select-fielder" component={SelectFielder} />
         </Stack.Navigator>
     );
 }
