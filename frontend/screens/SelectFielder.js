@@ -91,7 +91,7 @@ const SelectFielder = ({ navigation, route }) => {
 
     const handleSelectPlayer = () => {
         dispatch(setFielder(selectedPlayer));
-        console.log(route.params)
+        console.log(route.params);
         if (route.params?.payload?.outMethod === "run out") {
             navigation.navigate("run-out-fielder-assign", {
                 matchId: route.params?.matchId,

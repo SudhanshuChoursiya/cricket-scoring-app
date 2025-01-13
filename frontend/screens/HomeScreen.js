@@ -9,7 +9,23 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import {
+    setTeamAName,
+    setTeamBName,
+    setTeamAPlaying11,
+    setTeamBPlaying11,
+    setTeamACaptain,
+    setTeamBCaptain,
+    setTotalOvers,
+    setCity,
+    setGround,
+    setTossWinner,
+    setTossDecision,
+    setStrikeBatsman,
+    setNonStrikeBatsman,
+    setCurrentBowler
+} from "../redux/matchSlice.js";
 import Header from "../components/Header.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 
@@ -21,7 +37,7 @@ const HomeScreen = ({ navigation }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [matches, setMatches] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
+    const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
 
     useFocusEffect(
@@ -61,7 +77,11 @@ const HomeScreen = ({ navigation }) => {
     const handleNavigate = match => {
         if (match.matchStatus !== "completed") {
             if (match.matchStatus === "no toss") {
-                navigation.navigate("toss -screen", {
+                navigation.navigate("toss-screen", {
+                    matchId: match._id
+                });
+            } else if (match.matchStatus === "toss happend") {
+                navigation.navigate("initial-players-assign-screen", {
                     matchId: match._id
                 });
             } else if (match.isOverChangePending) {
@@ -83,6 +103,27 @@ const HomeScreen = ({ navigation }) => {
             }
         }
     };
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            setIsLoading(true);
+            dispatch(setTeamAName(null));
+            dispatch(setTeamBName(null));
+            dispatch(setTeamAPlaying11([]));
+            dispatch(setTeamBPlaying11([]));
+            dispatch(setTeamACaptain(null));
+            dispatch(setTeamBCaptain(null));
+            dispatch(setTotalOvers(null));
+            dispatch(setCity(null));
+            dispatch(setGround(null));
+            dispatch(setTossWinner(null));
+            dispatch(setTossDecision(null));
+            dispatch(setStrikeBatsman({ _id: null, name: null }));
+            dispatch(setNonStrikeBatsman({ _id: null, name: null }));
+            dispatch(setCurrentBowler({ _id: null, name: null }));
+        });
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <View style={styles.wrapper}>
@@ -158,8 +199,10 @@ const HomeScreen = ({ navigation }) => {
                                         <Text style={styles.match_info}>
                                             {match.matchStatus === "no toss" &&
                                                 "toss will commence shortly"}
-                                            {match.matchStatus ===
-                                                "toss happend" &&
+                                            {(match.matchStatus ===
+                                                "toss happend" ||
+                                                match.matchStatus ===
+                                                    "in progress") &&
                                                 `${match.toss.tossWinner} elected to ${match.toss.tossDecision} first`}
                                             {match.matchStatus ===
                                                 "completed" &&

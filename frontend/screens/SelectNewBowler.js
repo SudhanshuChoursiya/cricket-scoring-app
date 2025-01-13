@@ -289,7 +289,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

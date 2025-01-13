@@ -12,7 +12,7 @@ import { setMatchCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const MatchCompletionModal = ({ matchDetails }) => {
+const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
     const matchCompleteModal = useSelector(
         state => state.modal.matchCompleteModal
     );
@@ -23,6 +23,12 @@ const MatchCompletionModal = ({ matchDetails }) => {
         navigation.navigate("home-screen", {
             matchId: matchDetails?._id
         });
+        dispatch(setMatchCompleteModal({ isShow: false }));
+    };
+
+    const handleContinueOver = () => {
+        handleUndoScore();
+
         dispatch(setMatchCompleteModal({ isShow: false }));
     };
 
@@ -52,7 +58,10 @@ const MatchCompletionModal = ({ matchDetails }) => {
                             </TouchableOpacity>
                         </View>
 
-                        <TouchableOpacity style={styles.continue_over_btn}>
+                        <TouchableOpacity
+                            style={styles.continue_over_btn}
+                            onPress={handleContinueOver}
+                        >
                             <Text style={styles.continue_over_btn_text}>
                                 Continue This Over
                             </Text>

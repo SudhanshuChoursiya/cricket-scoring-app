@@ -10,11 +10,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setUndoModal } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const UndoModal = () => {
+const UndoModal = ({ handleUndoScore }) => {
     const undoModal = useSelector(state => state.modal.undoModal);
     const dispatch = useDispatch();
+    const handleUndo = () => {
+        handleUndoScore();
+        dispatch(setUndoModal({ isShow: false }));
+    };
     return (
         <View style={styles.modal_wrapper}>
             <Modal
@@ -37,7 +42,10 @@ const UndoModal = () => {
                             <Text style={styles.modal_desc}>
                                 Confirmed undo last ball?
                             </Text>
-                            <TouchableOpacity style={styles.confirm_btn}>
+                            <TouchableOpacity
+                                style={styles.confirm_btn}
+                                onPress={handleUndo}
+                            >
                                 <Text style={styles.confirm_btn_text}>
                                     yes, i’m sure
                                 </Text>
@@ -109,10 +117,9 @@ const styles = StyleSheet.create({
         color: "#A8ACAF",
         textAlign: "center"
     },
-
     confirm_btn: {
         backgroundColor: "#F99F0D",
-        paddingVertical: normalizeVertical(12),
+        paddingVertical: normalizeVertical(10),
         paddingHorizontal: normalize(25),
         borderRadius: normalize(8),
         elevation: 1

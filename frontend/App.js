@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 //fonts imports
+
 import kittenBold from "./assets/KittenBold.ttf";
 import ubuntuRegular from "./assets/Ubuntu-Regular.ttf";
 import ubuntuMedium from "./assets/Ubuntu-Medium.ttf";
@@ -60,6 +61,7 @@ import SelectNewBatsman from "./screens/SelectNewBatsman.js";
 import CaughtOutFielderAssign from "./screens/CaughtOutFielderAssign.js";
 import RunOutFielderAssign from "./screens/RunOutFielderAssign.js";
 import SelectFielder from "./screens/SelectFielder.js";
+import SelectCaptain from "./screens/SelectCaptain.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -138,6 +140,7 @@ function StackNavigator() {
 
             <Stack.Screen name="team-squad" component={TeamSquadScreen} />
             <Stack.Screen name="add-players" component={AddNewPlayersScreen} />
+            <Stack.Screen name="select-captain" component={SelectCaptain} />
             <Stack.Screen name="create-match" component={CreateMatchScreen} />
             <Stack.Screen name="toss-screen" component={TossScreen} />
             <Stack.Screen

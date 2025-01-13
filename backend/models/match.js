@@ -56,7 +56,8 @@ const PlayerSchema = new mongoose.Schema({
 // Team Schema
 const TeamSchema = new mongoose.Schema({
     name: String,
-    playing11: [PlayerSchema]
+    playing11: [PlayerSchema],
+    captain: String
 });
 
 // Inning Schema
@@ -79,6 +80,24 @@ const InningSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    currentOverTimeline: [
+        {
+            overNumber: Number,
+            ballNumber: Number,
+            runs: Number,
+            isFour: Boolean,
+            isSix: Boolean,
+            isWide: Boolean,
+            isNoball: Boolean,
+            isLegBye: Boolean,
+            isBye: Boolean,
+            isWicket: Boolean,
+            outMethod: String,
+            currentBowlerId: mongoose.Schema.Types.ObjectId,
+            strikeBatsmanId: mongoose.Schema.Types.ObjectId,
+            nonStrikeBatsmanId: mongoose.Schema.Types.ObjectId
+        }
+    ],
     totalScore: {
         type: Number,
         default: 0

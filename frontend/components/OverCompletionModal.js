@@ -14,7 +14,12 @@ import { setOverCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const OverCompletionModal = ({ currentInningDetails, matchId }) => {
+const OverCompletionModal = ({
+    currentInningDetails,
+    matchId,
+    handleUndoScore,
+    showSpinner
+}) => {
     const overCompleteModal = useSelector(
         state => state.modal.overCompleteModal
     );
@@ -54,6 +59,11 @@ const OverCompletionModal = ({ currentInningDetails, matchId }) => {
         dispatch(setOverCompleteModal({ isShow: false }));
     };
 
+    const handleContinueOver = () => {
+        handleUndoScore();
+        dispatch(setOverCompleteModal({ isShow: false }));
+    };
+
     return (
         <>
             {overCompleteModal.isShow && (
@@ -82,7 +92,10 @@ const OverCompletionModal = ({ currentInningDetails, matchId }) => {
 
                         {/* Button to close the modal */}
 
-                        <TouchableOpacity style={styles.continue_over_btn}>
+                        <TouchableOpacity
+                            style={styles.continue_over_btn}
+                            onPress={handleContinueOver}
+                        >
                             <Text style={styles.continue_over_btn_text}>
                                 Continue This Over
                             </Text>

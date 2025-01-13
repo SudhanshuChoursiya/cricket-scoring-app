@@ -9,57 +9,23 @@ import {
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import { setTeamACaptain, setTeamBCaptain } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import Spinner from "../components/Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const SelectNewBatsman = ({ navigation, route }) => {
-    const [battingTeam, setBattingTeam] = useState(null);
-    const [currentBatsmen, setCurrentBatsmen] = useState(null);
+const SelectCaptain = ({ navigation, route }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showSpinner, setShowSpinner] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const dispatch = useDispatch();
-    const { accessToken } = useSelector(state => state.auth);
+    const { teamA, teamB } = useSelector(state => state.match);
     useEffect(() => {
         setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
     }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            const getMatchDetails = async () => {
-                try {
-                    const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${accessToken}`
-                            }
-                        }
-                    );
-                    const data = await response.json();
-
-                    if (response.status === 200) {
-                        if (data.data.currentInning === 1) {
-                            setCurrentBatsmen(data.data.inning1.currentBatsmen);
-
-                            setBattingTeam(data.data.inning1.battingTeam);
-                        } else {
-                            setCurrentBatsmen(data.data.inning2.currentBatsmen);
-                            setBattingTeam(data.data.inning2.battingTeam);
-                        }
-                    }
-                } catch (error) {
-                    console.log(error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            getMatchDetails();
-        }, [isScreenFocused])
-    );
 
     useFocusEffect(
         useCallback(() => {
@@ -76,53 +42,34 @@ const SelectNewBatsman = ({ navigation, route }) => {
     );
 
     const availablePlayers = () => {
-        const currentBatsmenIds = currentBatsmen?.map(batsman => batsman._id);
-
-        return battingTeam?.playing11.filter(player => {
-            return !currentBatsmenIds?.includes(player._id) && !player.isOut;
-        });
+        if (route.params?.selectFor === "team A") {
+            return teamA.playing11;
+        } else {
+            return teamB.playing11;
+        }
     };
 
-    const handleChangeBatsman = async () => {
-        try {
-            setShowSpinner(true);
-
-            if (!selectedPlayer) {
-                throw new Error("plz select a batsman");
-            }
-
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/update-current-batsman/${route.params?.matchId}`,
-
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ newBatsmanId: selectedPlayer._id })
-                }
-            );
-
-            const data = await response.json();
-            if (response.status === 200) {
-                navigation.navigate("manage-scoreboard", {
-                    matchId: route.params?.matchId
-                });
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setShowSpinner(false);
+    const HandleSelectCaptain = () => {
+        if (route.params?.selectFor === "team A") {
+            dispatch(setTeamACaptain(selectedPlayer.name));
         }
+
+        if (route.params?.selectFor === "team B") {
+            dispatch(setTeamBCaptain(selectedPlayer.name));
+        }
+
+        navigation.navigate("select-teams");
     };
 
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
-            setIsLoading(true);
             setSelectedPlayer(null);
+            if (route.params?.selectFor === "team A") {
+                dispatch(setTeamACaptain(null));
+            }
+            if (route.params?.selectFor === "team B") {
+                dispatch(setTeamBCaptain(null));
+            }
         });
         return unsubscribe;
     }, [navigation]);
@@ -140,16 +87,13 @@ const SelectNewBatsman = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>select new batsman</Text>
+                <Text style={styles.label}>
+                    select {route.params?.selectFor} captain
+                </Text>
             </View>
 
             {!isLoading ? (
                 <>
-                    <View style={styles.team_name_wrapper}>
-                        <Text style={styles.team_name}>
-                            team: {battingTeam?.name}
-                        </Text>
-                    </View>
                     <FlatList
                         data={availablePlayers()}
                         renderItem={({ item }) => (
@@ -157,8 +101,7 @@ const SelectNewBatsman = ({ navigation, route }) => {
                                 style={[
                                     styles.player,
 
-                                    selectedPlayer?._id === item._id &&
-                                        styles.selected
+                                    selectedPlayer === item && styles.selected
                                 ]}
                                 onPress={() => setSelectedPlayer(item)}
                             >
@@ -175,29 +118,18 @@ const SelectNewBatsman = ({ navigation, route }) => {
                                 </View>
                             </TouchableOpacity>
                         )}
-                        keyExtractor={item => item._id}
+                        keyExtractor={(item, index) => index}
                         contentContainerStyle={styles.choose_player_wrapper}
                     />
                     {selectedPlayer && (
                         <View style={styles.confirm_btn_wrapper}>
                             <TouchableOpacity
                                 style={styles.confirm_btn}
-                                onPress={handleChangeBatsman}
+                                onPress={HandleSelectCaptain}
                             >
-                                {!showSpinner ? (
-                                    <Text style={styles.confirm_btn_text}>
-                                        Continue
-                                    </Text>
-                                ) : (
-                                    <Spinner
-                                        isLoading={showSpinner}
-                                        label="processing..."
-                                        spinnerColor="white"
-                                        labelColor="white"
-                                        labelSize={19}
-                                        spinnerSize={28}
-                                    />
-                                )}
+                                <Text style={styles.confirm_btn_text}>
+                                    Continue
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -292,9 +224,7 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
-        justifyContent: "center",
-        alignItems: "center"
+        paddingVertical: normalizeVertical(18)
     },
     confirm_btn_text: {
         fontSize: normalize(19),
@@ -309,4 +239,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SelectNewBatsman;
+export default SelectCaptain;

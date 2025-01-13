@@ -54,8 +54,10 @@ const CreateMatchScreen = ({ navigation, route }) => {
             if (
                 !teamA.name ||
                 teamA.playing11.length !== 11 ||
+                !teamA.captain ||
                 !teamB.name ||
                 teamB.playing11.length !== 11 ||
+                !teamB.captain ||
                 !totalOvers ||
                 !matchPlace.city ||
                 !matchPlace.ground
@@ -111,6 +113,10 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 );
 
                 navigation.navigate("toss-screen", { matchId: data.data._id });
+
+                dispatch(setTotalOvers(null));
+                dispatch(setCity(null));
+                dispatch(setGround(null));
             }
         } catch (error) {
             console.log(error);
@@ -127,6 +133,17 @@ const CreateMatchScreen = ({ navigation, route }) => {
         }
     };
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            dispatch(setTotalOvers(null));
+            dispatch(setCity(null));
+            dispatch(setGround(null));
+            setIsLoading(true);
+        });
+        return unsubscribe;
+    }, [navigation]);
+
+    console.log(teamA);
     return (
         <View style={styles.wrapper}>
             <View style={styles.header}>
@@ -308,7 +325,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center",
     },
     confirm_btn_text: {
         fontSize: normalize(19),

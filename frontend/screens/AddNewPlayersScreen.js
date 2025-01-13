@@ -343,7 +343,9 @@ const styles = StyleSheet.create({
     },
     add_to_team_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center"
     },
     add_to_team_btn_text: {
         fontSize: normalize(19),

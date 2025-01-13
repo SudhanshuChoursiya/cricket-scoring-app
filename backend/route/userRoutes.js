@@ -13,6 +13,7 @@ import {
     changeBowlerController,
     updateCurrentBatsmanController,
     changeStrikeController,
+    undoScoreController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
@@ -63,6 +64,7 @@ router
 router
     .route("/change-strike/:matchId")
     .post(verifyToken, changeStrikeController);
+router.route("/undo-score/:matchId").post(verifyToken, undoScoreController);
 
 router.route("/get-all-matches").get(verifyToken, getAllMatchDetailsController);
 

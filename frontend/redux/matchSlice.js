@@ -3,11 +3,13 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     teamA: {
         name: null,
-        playing11: []
+        playing11: [],
+        captain: null
     },
     teamB: {
         name: null,
-        playing11: []
+        playing11: [],
+        captain: null
     },
     totalOvers: null,
     matchPlace: {
@@ -31,17 +33,18 @@ const initialState = {
     fielder: {
         playerId: null,
         name: null
-    }
+    },
+    undoStack: []
 };
 
 const matchSlice = createSlice({
     name: "match",
     initialState,
     reducers: {
-        setTeamA: (state, action) => {
+        setTeamAName: (state, action) => {
             state.teamA.name = action.payload;
         },
-        setTeamB: (state, action) => {
+        setTeamBName: (state, action) => {
             state.teamB.name = action.payload;
         },
         setTeamAPlaying11: (state, action) => {
@@ -49,6 +52,12 @@ const matchSlice = createSlice({
         },
         setTeamBPlaying11: (state, action) => {
             state.teamB.playing11 = action.payload;
+        },
+        setTeamACaptain: (state, action) => {
+            state.teamA.captain = action.payload;
+        },
+        setTeamBCaptain: (state, action) => {
+            state.teamB.captain = action.payload;
         },
         setTotalOvers: (state, action) => {
             state.totalOvers = action.payload;
@@ -80,15 +89,31 @@ const matchSlice = createSlice({
         setFielder: (state, action) => {
             state.fielder.playerId = action.payload._id;
             state.fielder.name = action.payload.name;
+        },
+        setUndoStack: (state, action) => {
+            const newTimeline = action.payload;
+            newTimeline.forEach(ball => {
+                const exist = state.undoStack.some(
+                    exitstingBall => exitstingBall._id === ball._id
+                );
+                if (!exist) {
+                    state.undoStack.push(ball);
+                }
+            });
+        },
+        popUndoStack: (state, action) => {
+            state.undoStack.pop();
         }
     }
 });
 
 export const {
-    setTeamA,
-    setTeamB,
+    setTeamAName,
+    setTeamBName,
     setTeamAPlaying11,
     setTeamBPlaying11,
+    setTeamACaptain,
+    setTeamBCaptain,
     setTotalOvers,
     setCity,
     setGround,
@@ -97,7 +122,9 @@ export const {
     setStrikeBatsman,
     setNonStrikeBatsman,
     setCurrentBowler,
-    setFielder
+    setFielder,
+    setUndoStack,
+    popUndoStack
 } = matchSlice.actions;
 
 export default matchSlice.reducer;

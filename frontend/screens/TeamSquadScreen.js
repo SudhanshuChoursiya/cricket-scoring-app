@@ -21,6 +21,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
+    const { teamA, teamB } = useSelector(state => state.match);
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
@@ -99,8 +100,25 @@ const TeamSquadScreen = ({ navigation, route }) => {
             dispatch(setTeamBPlaying11(filterdTeamPlaying11));
         }
 
-        navigation.navigate("select-teams");
+        navigation.navigate("select-captain", {
+            selectFor: route.params?.selectFor
+        });
     };
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            if (route.params?.selectFor === "team A") {
+                dispatch(setTeamAPlaying11(null));
+            }
+
+            if (route.params?.selectFor === "team B") {
+                dispatch(setTeamBPlaying11(null));
+            }
+            setTeamPlaying11([]);
+            setIsLoading(true);
+        });
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <View style={styles.wrapper}>
@@ -115,7 +133,13 @@ const TeamSquadScreen = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>select playing 11</Text>
+                <Text style={styles.label}>
+                    select{" "}
+                    {route.params?.selectFor === "team A"
+                        ? teamA.name
+                        : teamB.name}{" "}
+                    playing 11
+                </Text>
             </View>
             <View style={styles.add_player_btn_wrapper}>
                 <TouchableOpacity
@@ -204,7 +228,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(45),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {

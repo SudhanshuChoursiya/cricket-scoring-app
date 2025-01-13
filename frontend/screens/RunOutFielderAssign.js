@@ -272,7 +272,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                     </View>
 
                     <View style={styles.select_ball_type_wrapper}>
-                        <Text style={styles.heading}>Delivery type</Text>
+                        <Text style={styles.heading}>Delivery Type</Text>
                         <View style={styles.ball_type_wrapper}>
                             {["WD", "NB", "LB", "BY"].map((ball, index) => (
                                 <TouchableOpacity
@@ -294,7 +294,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                     </View>
 
                     <View style={styles.select_runs_scored_wrapper}>
-                        <Text style={styles.heading}>runs scored</Text>
+                        <Text style={styles.heading}>Runs Scored</Text>
                         <View style={styles.runs_scored_wrapper}>
                             {[0, 1, 2, 3, 4, "+"].map((run, index) => (
                                 <TouchableOpacity
@@ -556,7 +556,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

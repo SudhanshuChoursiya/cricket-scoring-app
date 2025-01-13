@@ -4,7 +4,8 @@ import {
     View,
     Image,
     TouchableOpacity,
-    StatusBar
+    StatusBar,
+    BackHandler
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -80,6 +81,23 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
+    const handleBackPress = useCallback(() => {
+        if (matchDetails?.matchStatus === "toss happend") {
+            navigation.navigate("home-screen");
+        }
+        return true;
+    }, [navigation, matchDetails]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const backHandler = BackHandler.addEventListener(
+                "hardwareBackPress",
+                handleBackPress
+            );
+            return () => backHandler.remove();
+        }, [handleBackPress])
+    );
+
     const handleUpdateInitialPlayers = async () => {
         try {
             setShowSpinner(true);
@@ -88,14 +106,6 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 !nonStrikeBatsman.playerId ||
                 !currentBowler.playerId
             ) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "plz select all required field"
-                    })
-                );
                 return;
             }
 
@@ -118,24 +128,8 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                throw new Error(data.message);
             } else {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
-
                 dispatch(setStrikeBatsman({ _id: null, name: null }));
                 dispatch(setNonStrikeBatsman({ _id: null, name: null }));
                 dispatch(setCurrentBowler({ _id: null, name: null }));
@@ -146,14 +140,6 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
-            );
         } finally {
             setShowSpinner(false);
         }
@@ -164,7 +150,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.back_btn}
-                    onPress={() => navigation.goBack()}
+                    onPress={handleBackPress}
                 >
                     <Icon
                         name="arrow-back"
@@ -530,7 +516,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

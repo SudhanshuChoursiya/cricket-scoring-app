@@ -4,7 +4,8 @@ import {
     View,
     Image,
     TouchableOpacity,
-    StatusBar
+    StatusBar,
+    BackHandler
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,6 +31,7 @@ const TossScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
     }, []);
 
     useFocusEffect(
@@ -71,6 +73,23 @@ const TossScreen = ({ navigation, route }) => {
             };
             getMatchDetails();
         }, [isScreenFocused])
+    );
+
+    const handleBackPress = useCallback(() => {
+        if (matchDetails?.matchStatus === "no toss") {
+            navigation.navigate("home-screen");
+        }
+        return true;
+    }, [navigation, matchDetails]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const backHandler = BackHandler.addEventListener(
+                "hardwareBackPress",
+                handleBackPress
+            );
+            return () => backHandler.remove();
+        }, [handleBackPress])
     );
 
     const handleToss = async () => {
@@ -127,6 +146,8 @@ const TossScreen = ({ navigation, route }) => {
                 navigation.navigate("initial-players-assign-screen", {
                     matchId: route.params?.matchId
                 });
+                dispatch(setTossWinner(null));
+                dispatch(setTossDecision(null));
             }
         } catch (error) {
             console.log(error);
@@ -143,12 +164,21 @@ const TossScreen = ({ navigation, route }) => {
         }
     };
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+            dispatch(setTossWinner(null));
+            dispatch(setTossDecision(null));
+            setIsLoading(true);
+        });
+        return unsubscribe;
+    }, [navigation]);
+
     return (
         <View style={styles.wrapper}>
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.back_btn}
-                    onPress={() => navigation.goBack()}
+                    onPress={handleBackPress}
                 >
                     <Icon
                         name="arrow-back"
@@ -405,7 +435,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(65),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

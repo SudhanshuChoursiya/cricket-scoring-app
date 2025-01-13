@@ -239,6 +239,8 @@ const createMatchController = asyncHandler(async (req, res) => {
         teamB.name,
         teamA.playing11,
         teamB.playing11,
+        teamA.captain,
+        teamB.captain,
         totalOvers,
         matchPlace.city,
         matchPlace.ground
@@ -263,11 +265,13 @@ const createMatchController = asyncHandler(async (req, res) => {
     const initialInningDetails = {
         battingTeam: {
             name: null,
-            playing11: null
+            playing11: null,
+            captain: null
         },
         bowlingTeam: {
             name: null,
-            playing11: null
+            playing11: null,
+            captain: null
         },
         totalOvers
     };
@@ -401,8 +405,12 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     ];
 
     currentInning.currentBowler = currentBowler;
-    match.isInningChangePending = false;
+
+    if (match.currentInning === 1) {
+        match.matchStatus = "in progress";
+    }
     if (match.currentInning === 2) {
+        match.isInningChangePending = false;
         match.isSecondInningStarted = true;
     }
     await match.save();
@@ -415,8 +423,10 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
 const updateScoreController = asyncHandler(async (req, res) => {
     const {
         runs,
+        isFour,
+        isSix,
         isWide,
-        isNoBall,
+        isNoball,
         isLegBye,
         isBye,
         isWicket,
@@ -469,7 +479,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 match.currentInning = 2;
                 match.targetScore = match.inning1.totalScore + 1;
                 match.isInningChangePending = true;
-
+                match.matchStatus = "inning break";
                 io.emit("inningCompleted");
             }
         }
@@ -511,11 +521,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
         batter.runs += runs;
         batter.balls += 1;
         // Update boundary stats
-        if (runs === 4) {
+        if (isFour) {
             strikeBatsman.fours += 1;
             batter.fours += 1;
         }
-        if (runs === 6) {
+        if (isSix) {
             strikeBatsman.sixes += 1;
             batter.sixes += 1;
         }
@@ -546,11 +556,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
             } else {
                 strikeBatsman.isOut = true;
                 strikeBatsman.outMethod = outMethod;
-                strikeBatsman.caughtBy = currentFielder.name;
+                strikeBatsman.caughtBy = currentFielder?.name;
                 strikeBatsman.dismissBy = currentBowler.name;
                 batter.isOut = true;
                 batter.outMethod = outMethod;
-                batter.caughtBy = currentFielder.name;
+                batter.caughtBy = currentFielder?.name;
                 batter.dismissBy = currentBowler.name;
                 currentInning.wicketsFallen += 1;
                 currentBowler.wickets += 1;
@@ -572,6 +582,22 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 }
             }
         }
+        currentInning.currentOverTimeline.push({
+            overNumber: currentInning.currentOvers,
+            ballNumber: currentInning.currentOverBalls,
+            runs,
+            isFour,
+            isSix,
+            isWide,
+            isNoball,
+            isLegBye,
+            isBye,
+            isWicket,
+            outMethod,
+            currentBowlerId: currentBowler._id,
+            strikeBatsmanId: strikeBatsman._id,
+            nonStrikeBatsmanId: nonStrikeBatsman._id
+        });
     };
 
     // Helper function to handle extras (wide, no-ball, leg-bye, bye)
@@ -579,16 +605,16 @@ const updateScoreController = asyncHandler(async (req, res) => {
         currentInning.totalScore += 1 + runs;
         if (isLegBye || isBye) {
             currentInning.currentOverBalls += 1;
-        } else if (isNoBall) {
+        } else if (isNoball) {
             strikeBatsman.runs += runs;
 
             batter.runs += runs;
 
-            if (runs === 4) {
+            if (isFour) {
                 strikeBatsman.fours += 1;
                 batter.fours += 1;
             }
-            if (runs === 6) {
+            if (isSix) {
                 strikeBatsman.sixes += 1;
                 batter.sixes += 1;
             }
@@ -620,11 +646,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
             } else {
                 strikeBatsman.isOut = true;
                 strikeBatsman.outMethod = outMethod;
-                strikeBatsman.caughtBy = currentFielder.name;
+                strikeBatsman.caughtBy = currentFielder?.name;
                 strikeBatsman.dismissBy = currentBowler.name;
                 batter.isOut = true;
                 batter.outMethod = outMethod;
-                batter.caughtBy = currentFielder.name;
+                batter.caughtBy = currentFielder?.name;
                 batter.dismissBy = currentBowler.name;
                 currentInning.wicketsFallen += 1;
                 currentBowler.wickets = +1;
@@ -646,11 +672,27 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 }
             }
         }
+        currentInning.currentOverTimeline.push({
+            overNumber: currentInning.currentOvers,
+            ballNumber: currentInning.currentOverBalls,
+            runs,
+            isFour,
+            isSix,
+            isWide,
+            isNoball,
+            isLegBye,
+            isBye,
+            isWicket,
+            outMethod,
+            currentBowlerId: currentBowler._id,
+            strikeBatsmanId: strikeBatsman._id,
+            nonStrikeBatsmanId: nonStrikeBatsman._id
+        });
     };
 
     // Helper function to switch strike
     const switchStrike = () => {
-        if (runs % 2 !== 0 && !isWide && !isNoBall && !isLegBye && !isBye) {
+        if (runs % 2 !== 0 && !isWide && !isNoball && !isLegBye && !isBye) {
             currentInning.currentBatsmen.forEach(
                 batsman => (batsman.onStrike = !batsman.onStrike)
             );
@@ -691,7 +733,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
     // Run updates based on the type of ball
 
-    if (!isWide && !isNoBall && !isLegBye && !isBye) {
+    if (!isWide && !isNoball && !isLegBye && !isBye) {
         updateRegularBall();
     } else {
         updateExtras();
@@ -742,6 +784,9 @@ const changeBowlerController = asyncHandler(async (req, res) => {
 
     currentInning.currentBowler = newBowler;
     match.isOverChangePending = false;
+    if (currentInning.currentOverBalls === 0) {
+        currentInning.currentOverTimeline = [];
+    }
     await match.save();
 
     res.status(200).json(
@@ -816,11 +861,140 @@ const changeStrikeController = asyncHandler(async (req, res) => {
     currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsmen => {
         return { ...batsmen, onStrike: !batsmen.onStrike };
     });
-
+    io.emit("scoreUpdated", match);
     await match.save();
 
     res.status(200).json(
         new ApiResponse(200, match, "bowler changed successfully")
+    );
+});
+
+//undo controller
+const undoScoreController = asyncHandler(async (req, res) => {
+    const matchId = req.params.matchId;
+    const { lastAction, previousOverTimeline } = req.body;
+
+    const user = req.user;
+
+    if (!lastAction) {
+        throw new ApiError(400, "no action to undo");
+    }
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    if (match.currentInning === 2 && match.isInningChangePending) {
+        match.currentInning = 1;
+        match.isInningChangePending = false;
+        match.targetScore = null;
+        match.matchStatus = "in progress";
+    }
+
+    if (match.matchStatus === "completed" && match.currentInning === 2) {
+        match.matchStatus = "in progress";
+
+        match.matchWinner.teamName = null;
+
+        match.matchWinner.wonBy = null;
+    }
+
+    const currentInning =
+        match.currentInning === 1 ? match.inning1 : match.inning2;
+
+    const strikeBatsman = currentInning.battingTeam.playing11.find(player =>
+        player._id.equals(lastAction.strikeBatsmanId)
+    );
+
+    const nonStrikeBatsman = currentInning.battingTeam.playing11.find(player =>
+        player._id.equals(lastAction.nonStrikeBatsmanId)
+    );
+
+    const currentBowler = currentInning.bowlingTeam.playing11.find(player =>
+        player._id.equals(lastAction.currentBowlerId)
+    );
+
+    // Update total score
+    currentInning.totalScore -= lastAction.runs || 0;
+
+    //update batsman states
+    strikeBatsman.runs -= lastAction.runs || 0;
+
+    strikeBatsman.balls -= lastAction.isWide || lastAction.isNoball ? 0 : 1;
+
+    if (lastAction.isFour) {
+        strikeBatsman.fours -= 1;
+    }
+    if (lastAction.isSix) {
+        strikeBatsman.sixes -= 1;
+    }
+
+    // Handle wicket undo
+    if (lastAction.isWicket) {
+        if (strikeBatsman.isOut) {
+            strikeBatsman.isOut = false;
+            strikeBatsman.outMethod = null;
+
+            strikeBatsman.caughtBy = null;
+
+            strikeBatsman.dismissBy = null;
+        }
+        if (nonStrikeBatsman.isOut) {
+            nonStrikeBatsman.isOut = false;
+            strikeBatsman.outMethod = null;
+
+            nonStrikeBatsman.caughtBy = null;
+
+            nonStrikeBatsman.dismissBy = null;
+        }
+
+        if (match.isSelectNewBatsmanPending) {
+            match.isSelectNewBatsmanPending = false;
+        }
+
+        currentInning.wicketsFallen -= 1;
+    }
+
+    currentInning.currentBatsmen = [
+        { ...strikeBatsman.toObject(), onStrike: true },
+        { ...nonStrikeBatsman.toObject(), onStrike: false }
+    ];
+
+    //update bowler start
+    currentBowler.runsConceded -= lastAction.runs || 0;
+
+    if (!lastAction.isWide && !lastAction.isNoball) {
+        currentBowler.ballsBowled -= 1;
+        if (currentInning.currentOverBalls <= 0) {
+            currentInning.currentOvers -= 1;
+            currentInning.currentOverBalls = 5;
+            currentInning.currentOverTimeline = previousOverTimeline;
+            if (match.isOverChangePending) {
+                match.isOverChangePending = false;
+            }
+        } else {
+            currentInning.currentOverBalls -= 1;
+        }
+    }
+
+    if (lastAction.isWicket && !lastAction.isNoball) {
+        currentBowler.wickets -= 1;
+    }
+
+    currentInning.currentBowler = currentBowler;
+
+    currentInning.currentOverTimeline.pop();
+    io.emit("scoreUpdated", match);
+    // Save the updated match
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "last action undo successfully")
     );
 });
 
@@ -861,6 +1035,7 @@ export {
     changeBowlerController,
     updateCurrentBatsmanController,
     changeStrikeController,
+    undoScoreController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,

@@ -12,7 +12,7 @@ import { setInningCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const InningCompletionModal = ({ matchDetails }) => {
+const InningCompletionModal = ({ matchDetails,handleUndoScore }) => {
     const inningCompleteModal = useSelector(
         state => state.modal.inningCompleteModal
     );
@@ -23,6 +23,11 @@ const InningCompletionModal = ({ matchDetails }) => {
         navigation.navigate("initial-players-assign-screen", {
             matchId: matchDetails?._id
         });
+        dispatch(setInningCompleteModal({ isShow: false }));
+    };
+
+    const handleContinueOver = () => {
+        handleUndoScore();
         dispatch(setInningCompleteModal({ isShow: false }));
     };
 
@@ -52,9 +57,10 @@ const InningCompletionModal = ({ matchDetails }) => {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Button to close the modal */}
-
-                        <TouchableOpacity style={styles.continue_over_btn}>
+                        <TouchableOpacity
+                            style={styles.continue_over_btn}
+                            onPress={handleContinueOver}
+                        >
                             <Text style={styles.continue_over_btn_text}>
                                 Continue This Over
                             </Text>
