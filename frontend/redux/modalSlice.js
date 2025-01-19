@@ -26,6 +26,9 @@ const initialState = {
     replaceBowlerModal: {
         isShow: false
     },
+    replaceBatsmanModal: {
+        isShow: false
+    },
     outMethodModal: {
         isShow: false
     },
@@ -80,6 +83,12 @@ const modalSlice = createSlice({
                 ...action.payload
             };
         },
+        setReplaceBatsmanModal: (state, action) => {
+            state.replaceBatsmanModal = {
+                ...state.replaceBatsmanModal,
+                ...action.payload
+            };
+        },
         setOutMethodModal: (state, action) => {
             state.outMethodModal = {
                 ...state.outMethodModal,
@@ -103,6 +112,7 @@ export const {
     setUndoModal,
     setChangeStrikeModal,
     setReplaceBowlerModal,
+    setReplaceBatsmanModal,
     setOutMethodModal,
     setCustomRunsModal
 } = modalSlice.actions;

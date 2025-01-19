@@ -11,7 +11,8 @@ import {
     updateInitialPlayersController,
     updateScoreController,
     changeBowlerController,
-    updateCurrentBatsmanController,
+    changeBatsmanController,
+    updateOutBatsmanController,
     changeStrikeController,
     undoScoreController,
     getAllTeamsController,
@@ -56,10 +57,12 @@ router.route("/update-score/:matchId").post(verifyToken, updateScoreController);
 router
     .route("/change-bowler/:matchId")
     .post(verifyToken, changeBowlerController);
+    
+router.route("/change-batsman/:matchId").post(verifyToken,changeBatsmanController);
 
 router
-    .route("/update-current-batsman/:matchId")
-    .post(verifyToken, updateCurrentBatsmanController);
+    .route("/update-out-batsman/:matchId")
+    .post(verifyToken, updateOutBatsmanController);
 
 router
     .route("/change-strike/:matchId")

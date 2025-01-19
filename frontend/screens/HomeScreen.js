@@ -31,7 +31,7 @@ import LoadingSpinner from "../components/LoadingSpinner.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);

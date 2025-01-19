@@ -26,6 +26,7 @@ import {
 import { setFielder, setUndoStack, popUndoStack } from "../redux/matchSlice.js";
 import { showAlert } from "../redux/alertSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import Sidebar from "../components/Sidebar.js";
 import Spinner from "../components/Spinner.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AlertToast from "../components/AlertToast.js";
@@ -35,6 +36,7 @@ import OverCompletionModal from "../components/OverCompletionModal.js";
 import InningCompletionModal from "../components/InningCompletionModal.js";
 import MatchCompletionModal from "../components/MatchCompletionModal.js";
 import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
+import ReplaceBatsmanModal from "../components/ReplaceBatsmanModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
 import OutMethodModal from "../components/OutMethodModal.js";
@@ -47,6 +49,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [showSpinner, setShowSpinner] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [isWicketFallen, setIsWicketFallen] = useState(false);
     const overTimeLineScrollRef = useRef(null);
@@ -616,8 +619,17 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             {currentInningDetails &&
                                 currentInningDetails.battingTeam.name}
                         </Text>
+                        <TouchableOpacity
+                            style={styles.settings_btn}
+                            onPress={() => setShowSidebar(!showSidebar)}
+                        >
+                            <Icon
+                                name="settings"
+                                size={normalize(26)}
+                                color="white"
+                            />
+                        </TouchableOpacity>
                     </View>
-
                     <View style={styles.batting_team_score_wrapper}>
                         <View style={styles.score_and_overs_wrapper}>
                             <View style={styles.score_wrapper}>
@@ -723,7 +735,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             )}
                         </View>
                     </View>
-
                     <View style={styles.bowling_team_name_wrapper}>
                         <Text style={styles.vs_text}>Vs</Text>
                         <Text style={styles.bowling_team_name}>
@@ -732,7 +743,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                 : matchDetails?.inning2.bowlingTeam.name}
                         </Text>
                     </View>
-
                     <View style={styles.current_bowler_wrapper}>
                         <Pressable
                             style={styles.current_bowler}
@@ -767,7 +777,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             </Text>
                         </View>
                     </View>
-
                     <ScrollView
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
@@ -798,7 +807,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             )}
                         </View>
                     </ScrollView>
-
                     <View style={styles.score_button_wrapper}>
                         <View style={styles.main_score_button_wrapper}>
                             <View
@@ -889,6 +897,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             ))}
                         </View>
                     </View>
+                    {/*Sidebar */}
+                    <Sidebar
+                        showSidebar={showSidebar}
+                        setShowSidebar={setShowSidebar}
+                    />
                     {/* Modal */}
                     <ExtraRunsModal
                         handleCloseModal={handleCloseModal}
@@ -899,31 +912,30 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         handleUpdateScore={handleUpdateScore}
                         showSpinner={showSpinner}
                     />
-
                     <OverCompletionModal
                         currentInningDetails={currentInningDetails}
                         matchId={matchDetails?._id}
                         handleUndoScore={handleUndoScore}
                     />
-
                     <InningCompletionModal
                         matchDetails={matchDetails}
                         handleUndoScore={handleUndoScore}
                     />
-
                     <MatchCompletionModal
                         matchDetails={matchDetails}
                         handleUndoScore={handleUndoScore}
                     />
-
                     <OutMethodModal
                         matchDetails={matchDetails}
                         handleUpdateScore={handleUpdateScore}
                     />
                     <ReplaceBowlerModal matchId={matchDetails?._id} />
+                    <ReplaceBatsmanModal
+                        matchId={matchDetails?._id}
+                        currentInningDetails={currentInningDetails}
+                    />
 
                     <UndoModal handleUndoScore={handleUndoScore} />
-
                     <ChangeStrikerModal
                         showSpinner={showSpinner}
                         matchDetails={matchDetails}
@@ -962,6 +974,11 @@ const styles = StyleSheet.create({
     back_btn: {
         position: "absolute",
         left: normalize(20),
+        top: normalizeVertical(42)
+    },
+    settings_btn: {
+        position: "absolute",
+        right: normalize(20),
         top: normalizeVertical(42)
     },
     label: {

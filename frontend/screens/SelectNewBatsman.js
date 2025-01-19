@@ -92,7 +92,7 @@ const SelectNewBatsman = ({ navigation, route }) => {
             }
 
             const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/update-current-batsman/${route.params?.matchId}`,
+                `${process.env.EXPO_PUBLIC_BASE_URL}/change-batsman/${route.params?.matchId}`,
 
                 {
                     method: "POST",
@@ -100,7 +100,48 @@ const SelectNewBatsman = ({ navigation, route }) => {
                         Authorization: `Bearer ${accessToken}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ newBatsmanId: selectedPlayer._id })
+                    body: JSON.stringify({
+                        replacedBatsmanId: route.params?.replacedBatsmanId,
+                        newBatsmanId: selectedPlayer._id
+                    })
+                }
+            );
+
+            const data = await response.json();
+            if (response.status === 200) {
+                navigation.navigate("manage-scoreboard", {
+                    matchId: route.params?.matchId
+                });
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setShowSpinner(false);
+        }
+    };
+
+    const handleChangeOutBatsman = async () => {
+        try {
+            setShowSpinner(true);
+
+            if (!selectedPlayer) {
+                throw new Error("plz select a batsman");
+            }
+
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_BASE_URL}/update-out-batsman/${route.params?.matchId}`,
+
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        newBatsmanId: selectedPlayer._id
+                    })
                 }
             );
 
@@ -182,7 +223,11 @@ const SelectNewBatsman = ({ navigation, route }) => {
                         <View style={styles.confirm_btn_wrapper}>
                             <TouchableOpacity
                                 style={styles.confirm_btn}
-                                onPress={handleChangeBatsman}
+                                onPress={
+                                    route.params?.replacedBatsmanId
+                                        ? handleChangeBatsman
+                                        : handleChangeOutBatsman
+                                }
                             >
                                 {!showSpinner ? (
                                     <Text style={styles.confirm_btn_text}>

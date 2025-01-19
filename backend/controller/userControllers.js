@@ -794,7 +794,7 @@ const changeBowlerController = asyncHandler(async (req, res) => {
     );
 });
 
-const updateCurrentBatsmanController = asyncHandler(async (req, res) => {
+const updateOutBatsmanController = asyncHandler(async (req, res) => {
     const newBatsmanId = req.body.newBatsmanId;
     const user = req.user;
     const matchId = req.params.matchId;
@@ -828,6 +828,53 @@ const updateCurrentBatsmanController = asyncHandler(async (req, res) => {
     const updatedCurrentBatsmen = currentInning.currentBatsmen.map(batsman =>
         batsman.isOut
             ? { ...newBatsman.toObject(), onStrike: outBatsman.onStrike }
+            : batsman
+    );
+
+    currentInning.currentBatsmen = updatedCurrentBatsmen;
+
+    match.isSelectNewBatsmanPending = false;
+
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "batsman changed successfully")
+    );
+});
+
+const changeBatsmanController = asyncHandler(async (req, res) => {
+    const { replacedBatsmanId, newBatsmanId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!replacedBatsmanId || !newBatsmanId) {
+        throw new ApiError(400, "plz provide all the required field");
+    }
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    const currentInning =
+        match.currentInning === 1 ? match.inning1 : match.inning2;
+
+    const battingTeam = currentInning.battingTeam;
+
+    const replacedBatsman = currentInning.currentBatsmen.find(player =>
+        player._id.equals(replacedBatsmanId)
+    );
+    const newBatsman = battingTeam.playing11.find(player =>
+        player._id.equals(newBatsmanId)
+    );
+
+    const updatedCurrentBatsmen = currentInning.currentBatsmen.map(batsman =>
+        batsman._id.equals(replacedBatsman._id)
+            ? { ...newBatsman.toObject(), onStrike: replacedBatsman.onStrike }
             : batsman
     );
 
@@ -1033,7 +1080,8 @@ export {
     updateInitialPlayersController,
     updateScoreController,
     changeBowlerController,
-    updateCurrentBatsmanController,
+    changeBatsmanController,
+    updateOutBatsmanController,
     changeStrikeController,
     undoScoreController,
     getAllTeamsController,
