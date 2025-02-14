@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    setExtrasModal,
+    setExtraRunsModal,
     setOverCompleteModal,
     setInningCompleteModal,
     setMatchCompleteModal,
@@ -30,6 +30,7 @@ import Sidebar from "../components/Sidebar.js";
 import Spinner from "../components/Spinner.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AlertToast from "../components/AlertToast.js";
+
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import CustomRunsModal from "../components/CustomRunsModal.js";
 import OverCompletionModal from "../components/OverCompletionModal.js";
@@ -37,6 +38,9 @@ import InningCompletionModal from "../components/InningCompletionModal.js";
 import MatchCompletionModal from "../components/MatchCompletionModal.js";
 import ReplaceBowlerModal from "../components/ReplaceBowlerModal.js";
 import ReplaceBatsmanModal from "../components/ReplaceBatsmanModal.js";
+import ChangeSquadModal from "../components/ChangeSquadModal.js";
+import EndInningModal from "../components/EndInningModal.js";
+import EndMatchModal from "../components/EndMatchModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
 import OutMethodModal from "../components/OutMethodModal.js";
@@ -55,7 +59,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const overTimeLineScrollRef = useRef(null);
     const dispatch = useDispatch();
 
-    const { extrasModal, customRunsModal } = useSelector(state => state.modal);
+    const { extraRunsModal, customRunsModal } = useSelector(
+        state => state.modal
+    );
     const { undoStack } = useSelector(state => state.match);
 
     const { accessToken } = useSelector(state => state.auth);
@@ -213,6 +219,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const formatOverTimeline = timeLine => {
         if (timeLine.isWicket) {
+            if (timeLine.outMethod === "retired hurt") {
+                return "REH";
+            }
             return "W";
         } else if (timeLine.isFour) {
             return "4";
@@ -234,40 +243,52 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const handleOpenModal = (modalType, payload) => {
         if (modalType === "WD") {
             dispatch(
-                setExtrasModal({
+                setExtraRunsModal({
                     title: "Wide Ball",
-                    inputLabel: "WD",
-                    inputValue: 0,
+                    runsInput: {
+                        isShow: true,
+                        value: 0,
+                        label: "WD"
+                    },
                     payload: payload,
                     isShow: true
                 })
             );
         } else if (modalType === "NB") {
             dispatch(
-                setExtrasModal({
+                setExtraRunsModal({
                     title: "No Ball",
-                    inputLabel: "NB",
-                    inputValue: 0,
+                    runsInput: {
+                        isShow: true,
+                        value: 0,
+                        label: "NB"
+                    },
                     payload: payload,
                     isShow: true
                 })
             );
         } else if (modalType === "BY") {
             dispatch(
-                setExtrasModal({
+                setExtraRunsModal({
                     title: "Bye",
-                    inputLabel: "BY",
-                    inputValue: 0,
+                    runsInput: {
+                        isShow: false,
+                        value: 0,
+                        label: "BY"
+                    },
                     payload: payload,
                     isShow: true
                 })
             );
         } else if (modalType === "LB") {
             dispatch(
-                setExtrasModal({
+                setExtraRunsModal({
                     title: "Leg Bye",
-                    inputLabel: "LB",
-                    inputValue: 0,
+                    runsInput: {
+                        isShow: false,
+                        value: 0,
+                        label: "LB"
+                    },
                     payload: payload,
                     isShow: true
                 })
@@ -275,8 +296,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         } else if (modalType === "5,7") {
             dispatch(
                 setCustomRunsModal({
-                    inputLabel: "5,7",
-                    inputValue: 0,
+                    runsInput: {
+                        isShow: true,
+                        value: 0,
+                        label: "5,7"
+                    },
                     payload: payload,
                     isShow: true
                 })
@@ -300,21 +324,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         }
     };
 
-    const handleCloseModal = () => {
-        dispatch(
-            setExtrasModal({
-                inputValue: 0,
-                isShow: false
-            })
-        );
-    };
-
-    const handleConfirmModal = () => {
-        handleUpdateScore(extrasModal.inputLabel, extrasModal.payload).then(
-            () => handleCloseModal()
-        );
-    };
-
     const primaryScoreButtons = [
         {
             label: "0",
@@ -324,7 +333,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -335,7 +345,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -346,7 +357,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -357,7 +369,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -369,7 +382,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -381,7 +395,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         }
     ];
@@ -395,7 +410,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -406,7 +422,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -417,7 +434,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: true
+                isWicket: true,
+                isDeadBall: false
             }
         }
     ];
@@ -431,7 +449,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -442,7 +461,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: true,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -453,7 +473,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: true,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -464,7 +485,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: true,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         },
         {
@@ -475,7 +497,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 isNoball: false,
                 isBye: false,
                 isLegBye: false,
-                isWicket: false
+                isWicket: false,
+                isDeadBall: false
             }
         }
     ];
@@ -491,11 +514,14 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 typeOfBall === "BY" ||
                 typeOfBall === "LB"
             ) {
-                payload = { ...payload, runs: extrasModal.inputValue };
+                payload = { ...payload, runs: extraRunsModal.runsInput?.value };
             }
 
             if (typeOfBall === "5,7") {
-                payload = { ...payload, runs: customRunsModal.inputValue };
+                payload = {
+                    ...payload,
+                    runs: customRunsModal.runsInput?.value
+                };
             }
 
             if (
@@ -504,7 +530,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 payload.isNoball === undefined ||
                 payload.isBye === undefined ||
                 payload.isLegBye === undefined ||
-                payload.isWicket === undefined
+                payload.isWicket === undefined ||
+                payload.isDeadBall === undefined
             ) {
                 throw new Error("plz provide all the required field");
             }
@@ -899,14 +926,14 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     </View>
                     {/*Sidebar */}
                     <Sidebar
+                        currentInning={matchDetails?.currentInning}
                         showSidebar={showSidebar}
                         setShowSidebar={setShowSidebar}
                     />
                     {/* Modal */}
                     <ExtraRunsModal
-                        handleCloseModal={handleCloseModal}
                         showSpinner={showSpinner}
-                        handleConfirmModal={handleConfirmModal}
+                        handleUpdateScore={handleUpdateScore}
                     />
                     <CustomRunsModal
                         handleUpdateScore={handleUpdateScore}
@@ -933,6 +960,22 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     <ReplaceBatsmanModal
                         matchId={matchDetails?._id}
                         currentInningDetails={currentInningDetails}
+                    />
+                    <ChangeSquadModal
+                        matchId={matchDetails?._id}
+                        matchDetails={matchDetails}
+                    />
+
+                    <EndInningModal
+                        matchId={matchDetails?._id}
+                        showSpinner={showSpinner}
+                        setShowSpinner={setShowSpinner}
+                    />
+                    <EndMatchModal
+                        matchId={matchDetails?._id}
+                        matchDetails={matchDetails}
+                        showSpinner={showSpinner}
+                        setShowSpinner={setShowSpinner}
                     />
 
                     <UndoModal handleUndoScore={handleUndoScore} />

@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 // Player Schema
 const PlayerSchema = new mongoose.Schema({
+    playerId: {
+        type: mongoose.Schema.Types.ObjectId
+    },
     name: String,
     runs: {
         type: Number,
@@ -55,8 +58,12 @@ const PlayerSchema = new mongoose.Schema({
 
 // Team Schema
 const TeamSchema = new mongoose.Schema({
+    teamId: {
+        type: mongoose.Schema.Types.ObjectId
+    },
     name: String,
     playing11: [PlayerSchema],
+    substitutes: [PlayerSchema],
     captain: String
 });
 
@@ -91,6 +98,7 @@ const InningSchema = new mongoose.Schema({
             isNoball: Boolean,
             isLegBye: Boolean,
             isBye: Boolean,
+            isDeadBall: Boolean,
             isWicket: Boolean,
             outMethod: String,
             currentBowlerId: mongoose.Schema.Types.ObjectId,
@@ -121,7 +129,7 @@ const MatchSchema = new mongoose.Schema({
     },
     targetScore: {
         type: Number,
-        default: 0
+        default: null
     },
     matchStatus: {
         type: String,

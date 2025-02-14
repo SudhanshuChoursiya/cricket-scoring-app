@@ -1,10 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-    extrasModal: {
-        title: "",
-        inputLabel: "",
-        inputValue: 0,
+    extraRunsModal: {
+        title: null,
+        runsInput: {
+            isShow: false,
+            value: null,
+            label: null
+        },
+        payload: null,
+        isShow: false
+    },
+    customRunsModal: {
+        runsInput: {
+            isShow: false,
+            value: null,
+            label: null
+        },
         payload: null,
         isShow: false
     },
@@ -29,13 +41,16 @@ const initialState = {
     replaceBatsmanModal: {
         isShow: false
     },
-    outMethodModal: {
+    changeSquadModal: {
         isShow: false
     },
-    customRunsModal: {
-        inputLabel: "",
-        inputValue: 0,
-        payload: null,
+    endInningModal: {
+        isShow: false
+    },
+    endMatchModal: {
+        isShow: false
+    },
+    outMethodModal: {
         isShow: false
     }
 };
@@ -44,8 +59,11 @@ const modalSlice = createSlice({
     name: "modal",
     initialState,
     reducers: {
-        setExtrasModal: (state, action) => {
-            state.extrasModal = { ...state.extrasModal, ...action.payload };
+        setExtraRunsModal: (state, action) => {
+            state.extraRunsModal = {
+                ...state.extraRunsModal,
+                ...action.payload
+            };
         },
         setOverCompleteModal: (state, action) => {
             state.overCompleteModal = {
@@ -89,6 +107,24 @@ const modalSlice = createSlice({
                 ...action.payload
             };
         },
+        setChangeSquadModal: (state, action) => {
+            state.changeSquadModal = {
+                ...state.changeSquadModal,
+                ...action.payload
+            };
+        },
+        setEndInningModal: (state, action) => {
+            state.endInningModal = {
+                ...state.endInningModal,
+                ...action.payload
+            };
+        },
+        setEndMatchModal: (state, action) => {
+            state.endMatchModal = {
+                ...state.endMatchModal,
+                ...action.payload
+            };
+        },
         setOutMethodModal: (state, action) => {
             state.outMethodModal = {
                 ...state.outMethodModal,
@@ -105,7 +141,7 @@ const modalSlice = createSlice({
 });
 
 export const {
-    setExtrasModal,
+    setExtraRunsModal,
     setOverCompleteModal,
     setInningCompleteModal,
     setMatchCompleteModal,
@@ -113,6 +149,9 @@ export const {
     setChangeStrikeModal,
     setReplaceBowlerModal,
     setReplaceBatsmanModal,
+    setChangeSquadModal,
+    setEndInningModal,
+    setEndMatchModal,
     setOutMethodModal,
     setCustomRunsModal
 } = modalSlice.actions;

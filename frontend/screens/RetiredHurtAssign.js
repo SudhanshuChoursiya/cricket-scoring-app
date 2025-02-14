@@ -16,11 +16,12 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import CheckBox from "../components/CheckBox.js";
 import { showAlert } from "../redux/alertSlice.js";
 import AlertToast from "../components/AlertToast.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const RunOutFielderAssign = ({ navigation, route }) => {
+const RetiredHurtAssign = ({ navigation, route }) => {
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
     const [outEnd, setOutEnd] = useState(null);
     const [deliveryType, setDeliveryType] = useState(null);
@@ -28,6 +29,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [showSpinner, setShowSpinner] = useState(false);
     const [runsInput, setRunsInput] = useState({ isShow: false, value: "" });
+    const [isDeadBall, setIsDeadBall] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
@@ -90,7 +92,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
             const payload = {
                 ...route.params?.payload,
                 outEnd: outEnd,
-                fielderId: fielder.playerId
+                isDeadBall: isDeadBall
             };
             if (runScored) {
                 payload.runs = Number(runScored);
@@ -120,8 +122,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                 payload.isBye === undefined ||
                 payload.isLegBye === undefined ||
                 payload.isWicket === undefined ||
-                !outEnd ||
-                !fielder.playerId
+                !outEnd
             ) {
                 throw new Error("plz provide all the required field");
             }
@@ -146,8 +147,6 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                 navigation.navigate("manage-scoreboard", {
                     matchId: route.params?.matchId
                 });
-
-                dispatch(setFielder({ playerId: null, name: null }));
             }
         } catch (error) {
             console.log(error);
@@ -169,10 +168,10 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>run out</Text>
+                <Text style={styles.label}>retired hurt</Text>
             </View>
             {!isLoading ? (
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <>
                     <View style={styles.select_out_batsman_wrapper}>
                         <Text style={styles.heading}>Who</Text>
                         <View style={styles.out_batsman_wrapper}>
@@ -219,121 +218,99 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                             )}
                         </View>
                     </View>
-
-                    <View style={styles.select_fielder_wrapper}>
-                        <Text style={styles.heading}>Select Fielder</Text>
-
-                        {!fielder.playerId ? (
-                            <TouchableOpacity
-                                style={styles.fielder}
-                                onPress={() =>
-                                    navigation.navigate("select-fielder", {
-                                        matchId: route.params?.matchId,
-
-                                        payload: route.params?.payload
-                                    })
-                                }
-                            >
-                                <View
-                                    style={[
-                                        styles.fielder_icon_wrapper,
-                                        !fielder.playerId &&
-                                            styles.bg_flash_white
-                                    ]}
-                                >
-                                    <Icon
-                                        name="add"
-                                        size={normalize(34)}
-                                        color="black"
-                                    />
-                                </View>
-                                <Text style={styles.fielder_name}>fielder</Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity
-                                style={styles.fielder}
-                                onPress={() =>
-                                    navigation.navigate("select-fielder", {
-                                        matchId: route.params?.matchId,
-                                        payload: route.params?.payload
-                                    })
-                                }
-                            >
-                                <View style={styles.fielder_icon_wrapper}>
-                                    <Text style={styles.fielder_icon_text}>
-                                        {fielder.name && fielder.name[0]}
-                                    </Text>
-                                </View>
-                                <Text style={styles.fielder_name}>
-                                    {fielder.name && fielder.name}
+                    {!isDeadBall && (
+                        <>
+                            <View style={styles.select_ball_type_wrapper}>
+                                <Text style={styles.heading}>
+                                    Delivery Type
                                 </Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    <View style={styles.select_ball_type_wrapper}>
-                        <Text style={styles.heading}>Delivery Type</Text>
-                        <View style={styles.ball_type_wrapper}>
-                            {["WD", "NB", "LB", "BY"].map((ball, index) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.ball_type,
-                                        deliveryType === ball && styles.selected
-                                    ]}
-                                    key={index}
-                                    onPress={() =>
-                                        setDeliveryType(
-                                            deliveryType === ball ? null : ball
+                                <View style={styles.ball_type_wrapper}>
+                                    {["WD", "NB", "LB", "BY"].map(
+                                        (ball, index) => (
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.ball_type,
+                                                    deliveryType === ball &&
+                                                        styles.selected
+                                                ]}
+                                                key={index}
+                                                onPress={() =>
+                                                    setDeliveryType(
+                                                        deliveryType === ball
+                                                            ? null
+                                                            : ball
+                                                    )
+                                                }
+                                            >
+                                                <Text style={styles.ball_name}>
+                                                    {ball}
+                                                </Text>
+                                            </TouchableOpacity>
                                         )
-                                    }
-                                >
-                                    <Text style={styles.ball_name}>{ball}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </View>
+                                    )}
+                                </View>
+                            </View>
 
-                    <View style={styles.select_runs_scored_wrapper}>
-                        <Text style={styles.heading}>Runs Scored</Text>
-                        <View style={styles.runs_scored_wrapper}>
-                            {[0, 1, 2, 3, 4, "+"].map((run, index) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.runs_scored,
-                                        runScored === run && styles.selected
-                                    ]}
-                                    key={index}
-                                    onPress={() => {
-                                        run === "+"
-                                            ? setRunsInput({ isShow: true })
-                                            : setRunsInput({
-                                                  isShow: false,
-                                                  value: ""
-                                              });
-                                        setRunScored(
-                                            runScored === run ? null : run
-                                        );
-                                    }}
-                                >
-                                    <Text style={styles.run_name}>{run}</Text>
-                                </TouchableOpacity>
-                            ))}
-                            {runsInput.isShow && (
-                                <TextInput
-                                    style={styles.runs_input}
-                                    keyboardType="numeric"
-                                    value={runsInput.value}
-                                    onChangeText={text =>
-                                        setRunsInput(preVal => ({
-                                            ...preVal,
-                                            value: text
-                                        }))
-                                    }
-                                />
-                            )}
-                        </View>
+                            <View style={styles.select_runs_scored_wrapper}>
+                                <Text style={styles.heading}>Runs Scored</Text>
+                                <View style={styles.runs_scored_wrapper}>
+                                    {[0, 1, 2, 3, 4, "+"].map((run, index) => (
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.runs_scored,
+                                                runScored === run &&
+                                                    styles.selected
+                                            ]}
+                                            key={index}
+                                            onPress={() => {
+                                                run === "+"
+                                                    ? setRunsInput({
+                                                          isShow: true
+                                                      })
+                                                    : setRunsInput({
+                                                          isShow: false,
+                                                          value: ""
+                                                      });
+                                                setRunScored(
+                                                    runScored === run
+                                                        ? null
+                                                        : run
+                                                );
+                                            }}
+                                        >
+                                            <Text style={styles.run_name}>
+                                                {run}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                    {runsInput.isShow && (
+                                        <TextInput
+                                            style={styles.runs_input}
+                                            keyboardType="numeric"
+                                            value={runsInput.value}
+                                            onChangeText={text =>
+                                                setRunsInput(preVal => ({
+                                                    ...preVal,
+                                                    value: text
+                                                }))
+                                            }
+                                        />
+                                    )}
+                                </View>
+                            </View>
+                        </>
+                    )}
+                    <View style={styles.checkbox_wrapper}>
+                        <CheckBox
+                            options={{
+                                label: "*ball don’t count",
+                                value: true
+                            }}
+                            checkedValue={isDeadBall}
+                            onCheck={setIsDeadBall}
+                        />
                     </View>
-                    {fielder.playerId && outEnd && (
+                    {outEnd && (
                         <View style={styles.confirm_btn_wrapper}>
                             <TouchableOpacity
                                 style={styles.confirm_btn}
@@ -356,7 +333,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                             </TouchableOpacity>
                         </View>
                     )}
-                </ScrollView>
+                </>
             ) : (
                 <LoadingSpinner />
             )}
@@ -444,45 +421,7 @@ const styles = StyleSheet.create({
         fontFamily: "robotoMedium",
         textTransform: "capitalize"
     },
-    select_fielder_wrapper: {
-        gap: normalizeVertical(20),
-        marginHorizontal: normalize(22),
-        marginVertical: normalizeVertical(25)
-    },
 
-    fielder: {
-        alignItems: "center",
-        justifyContent: "center",
-        gap: normalizeVertical(18),
-        backgroundColor: "#FFFFFF",
-        width: normalize(155),
-        height: normalizeVertical(210),
-        borderRadius: normalize(7),
-        borderWidth: 2,
-        borderColor: "white",
-        elevation: 2
-    },
-    fielder_icon_wrapper: {
-        height: normalize(90),
-        width: normalize(90),
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#F54133",
-        borderRadius: normalize(50),
-        elevation: 1
-    },
-    fielder_icon_text: {
-        fontSize: normalize(28),
-        color: "white",
-        fontFamily: "robotoMedium",
-        textTransform: "capitalize"
-    },
-    fielder_name: {
-        color: "black",
-        fontSize: normalize(18),
-        fontFamily: "robotoMedium",
-        textTransform: "capitalize"
-    },
     select_ball_type_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),
@@ -511,13 +450,11 @@ const styles = StyleSheet.create({
         fontSize: normalize(17),
         fontFamily: "robotoMedium"
     },
-
     select_runs_scored_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),
         marginHorizontal: normalize(22),
-        marginVertical: normalizeVertical(20),
-        paddingBottom: normalizeVertical(65)
+        marginVertical: normalizeVertical(20)
     },
     runs_scored_wrapper: {
         flexDirection: "row",
@@ -548,6 +485,10 @@ const styles = StyleSheet.create({
         borderRadius: normalize(5),
         paddingHorizontal: normalize(10)
     },
+    checkbox_wrapper: {
+        marginHorizontal: normalize(22),
+        marginVertical: normalizeVertical(20)
+    },
     confirm_btn_wrapper: {
         position: "absolute",
         bottom: 0,
@@ -576,4 +517,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default RunOutFielderAssign;
+export default RetiredHurtAssign;

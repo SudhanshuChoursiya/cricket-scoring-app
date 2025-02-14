@@ -10,7 +10,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { setTeamAName, setTeamBName } from "../redux/matchSlice.js";
+import {
+    setTeamAId,
+    setTeamBId,
+    setTeamAName,
+    setTeamBName
+} from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const ChooseTeamScreen = ({ navigation, route }) => {
@@ -88,6 +93,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
 
     const HandleSelectTeam = () => {
         if (route.params?.selectFor === "team A") {
+            dispatch(setTeamAId(selectedTeam._id));
             dispatch(setTeamAName(selectedTeam.team_name));
             navigation.navigate("team-squad", {
                 teamId: selectedTeam._id,
@@ -96,6 +102,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
         }
 
         if (route.params?.selectFor === "team B") {
+            dispatch(setTeamBId(selectedTeam._id));
             dispatch(setTeamBName(selectedTeam.team_name));
             navigation.navigate("team-squad", {
                 teamId: selectedTeam._id,
@@ -104,13 +111,16 @@ const ChooseTeamScreen = ({ navigation, route }) => {
         }
     };
 
-
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
             if (route.params?.selectFor === "team A") {
+                dispatch(setTeamAId(null));
+
                 dispatch(setTeamAName(null));
             }
             if (route.params?.selectFor === "team B") {
+                dispatch(setTeamBId(null));
+
                 dispatch(setTeamBName(null));
             }
             setSelectedTeam(null);

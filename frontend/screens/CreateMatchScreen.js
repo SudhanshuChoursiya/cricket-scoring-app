@@ -52,6 +52,8 @@ const CreateMatchScreen = ({ navigation, route }) => {
             setShowSpinner(true);
             Keyboard.dismiss();
             if (
+                !teamA.id ||
+                !teamB.id ||
                 !teamA.name ||
                 teamA.playing11.length !== 11 ||
                 !teamA.captain ||
@@ -143,7 +145,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
         return unsubscribe;
     }, [navigation]);
 
-    console.log(teamA);
     return (
         <View style={styles.wrapper}>
             <View style={styles.header}>
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#14B391",
         height: normalizeVertical(65),
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

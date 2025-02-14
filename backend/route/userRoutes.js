@@ -14,7 +14,10 @@ import {
     changeBatsmanController,
     updateOutBatsmanController,
     changeStrikeController,
+    replacePlayerController,
     undoScoreController,
+    endInningController,
+    endMatchController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
@@ -57,8 +60,10 @@ router.route("/update-score/:matchId").post(verifyToken, updateScoreController);
 router
     .route("/change-bowler/:matchId")
     .post(verifyToken, changeBowlerController);
-    
-router.route("/change-batsman/:matchId").post(verifyToken,changeBatsmanController);
+
+router
+    .route("/change-batsman/:matchId")
+    .post(verifyToken, changeBatsmanController);
 
 router
     .route("/update-out-batsman/:matchId")
@@ -67,7 +72,16 @@ router
 router
     .route("/change-strike/:matchId")
     .post(verifyToken, changeStrikeController);
+
+router
+    .route("/replace-player/:matchId")
+    .post(verifyToken, replacePlayerController);
+
 router.route("/undo-score/:matchId").post(verifyToken, undoScoreController);
+
+router.route("/end-inning/:matchId").post(verifyToken, endInningController);
+
+router.route("/end-match/:matchId").post(verifyToken, endMatchController);
 
 router.route("/get-all-matches").get(verifyToken, getAllMatchDetailsController);
 

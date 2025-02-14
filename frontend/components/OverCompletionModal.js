@@ -8,7 +8,6 @@ import {
     StatusBar
 } from "react-native";
 import { useState, useEffect, useCallback, useRef } from "react";
-
 import { useDispatch, useSelector } from "react-redux";
 import { setOverCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
@@ -122,7 +121,6 @@ const styles = StyleSheet.create({
     },
     modal_container: {
         width: normalize(300),
-
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),

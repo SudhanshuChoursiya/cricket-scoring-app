@@ -10,48 +10,95 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import Spinner from "../components/Spinner.js";
+import { showAlert } from "../redux/alertSlice.js";
+import AlertToast from "../components/AlertToast.js";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const TeamSquadScreen = ({ navigation, route }) => {
+const SelectReplacementPlayer = ({ navigation, route }) => {
     const [teamDetails, setTeamDetails] = useState([]);
-    const [teamPlaying11, setTeamPlaying11] = useState([]);
+    const [playingTeamDetails, setPlayingTeamDetails] = useState([]);
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-
+    const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
-    const { teamA, teamB } = useSelector(state => state.match);
+
     useEffect(() => {
         setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
     }, []);
 
     useFocusEffect(
         useCallback(() => {
-            const getTeamDetails = async () => {
+            const fetchDetails = async () => {
+                setIsLoading(true);
                 try {
-                    const response = await fetch(
-                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-single-team/${route.params.teamId}`,
+                    // Fetch match details
+                    const matchResponse = await fetch(
+                        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${accessToken}`
                             }
                         }
                     );
-                    const data = await response.json();
+                    const matchData = await matchResponse.json();
 
-                    if (response.status === 200) {
-                        setTeamDetails(data.data);
+                    if (matchResponse.status === 200) {
+                        const team = [
+                            matchData.data.teamA,
+                            matchData.data.teamB
+                        ].find(team => team.teamId === route.params?.teamId);
+                        setPlayingTeamDetails(team);
+
+                        // Fetch squad details
+                        const teamResponse = await fetch(
+                            `${process.env.EXPO_PUBLIC_BASE_URL}/get-single-team/${route.params?.teamId}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${accessToken}`
+                                }
+                            }
+                        );
+                        const teamData = await teamResponse.json();
+
+                        if (teamResponse.status === 200) {
+                            setTeamDetails(teamData.data);
+                        }
                     }
                 } catch (error) {
-                    console.log(error);
+                    console.error(error);
                 } finally {
                     setIsLoading(false);
                 }
             };
-            getTeamDetails();
+
+            fetchDetails();
         }, [isScreenFocused])
     );
+
+    const availablePlayers = () => {
+        if (
+            !teamDetails.players ||
+            !playingTeamDetails.playing11 ||
+            !playingTeamDetails.substitutes
+        ) {
+            return [];
+        }
+
+        return teamDetails?.players.filter(
+            player =>
+                !playingTeamDetails?.playing11.some(
+                    p => p.playerId === player.playerId
+                ) &&
+                !playingTeamDetails?.substitutes.some(
+                    p => p.playerId === player.playerId
+                )
+        );
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -67,52 +114,84 @@ const TeamSquadScreen = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
-    const handlePlayerSelect = selectedPlayer => {
-        const isSelected = teamPlaying11.some(
-            player => player.playerId === selectedPlayer.playerId
-        );
-
-        if (isSelected) {
-            setTeamPlaying11(
-                teamPlaying11.filter(
-                    player => player.playerId !== selectedPlayer.playerId
-                )
-            );
-        } else {
-            if (teamPlaying11.length < 11) {
-                setTeamPlaying11([...teamPlaying11, selectedPlayer]);
-            }
-        }
-    };
-
-    const HandleSelectSquad = () => {
-        if (route.params?.selectFor === "team A") {
-            dispatch(setTeamAPlaying11(teamPlaying11));
-        }
-
-        if (route.params?.selectFor === "team B") {
-            dispatch(setTeamBPlaying11(teamPlaying11));
-        }
-
-        navigation.navigate("select-captain", {
-            selectFor: route.params?.selectFor
-        });
-    };
-
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
-            if (route.params?.selectFor === "team A") {
-                dispatch(setTeamAPlaying11(null));
-            }
-
-            if (route.params?.selectFor === "team B") {
-                dispatch(setTeamBPlaying11(null));
-            }
-            setTeamPlaying11([]);
             setIsLoading(true);
         });
         return unsubscribe;
     }, [navigation]);
+
+    const handleReplacePlayer = async () => {
+        try {
+            setShowSpinner(true);
+            const { matchId, teamId, replacedPlayerId } = route.params;
+            if (!selectedPlayer || !matchId || !teamId || !replacedPlayerId) {
+                dispatch(
+                    showAlert({
+                        value: true,
+                        severity: "error",
+                        type: "normal_alert",
+                        msg: "plz provide all required field"
+                    })
+                );
+                return;
+            }
+
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_BASE_URL}/replace-player/${matchId}`,
+
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        teamId,
+                        replacedPlayerId,
+                        newPlayerId: selectedPlayer.playerId
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.status !== 200) {
+                dispatch(
+                    showAlert({
+                        value: true,
+                        severity: "error",
+                        type: "normal_alert",
+                        msg: data.message
+                    })
+                );
+            } else {
+                dispatch(
+                    showAlert({
+                        value: true,
+                        severity: "success",
+                        type: "normal_alert",
+                        msg: data.message
+                    })
+                );
+
+                navigation.navigate("change-squad", { matchId, teamId });
+                setSelectedPlayer(null);
+            }
+        } catch (error) {
+            console.log(error);
+            dispatch(
+                showAlert({
+                    value: true,
+                    severity: "error",
+                    type: "normal_alert",
+                    msg: "unexpected error occured,please try again latter"
+                })
+            );
+        } finally {
+            setShowSpinner(false);
+        }
+    };
 
     return (
         <View style={styles.wrapper}>
@@ -127,13 +206,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>
-                    select{" "}
-                    {route.params?.selectFor === "team A"
-                        ? teamA.name
-                        : teamB.name}{" "}
-                    playing 11
-                </Text>
+                <Text style={styles.label}>select replacement player</Text>
             </View>
             <View style={styles.add_player_btn_wrapper}>
                 <TouchableOpacity
@@ -151,28 +224,22 @@ const TeamSquadScreen = ({ navigation, route }) => {
             </View>
             {!isLoading ? (
                 <>
-                    <View style={styles.squad_size_and_selected_count_wrapper}>
-                        <Text style={styles.squad_size}>
-                            squad ({teamDetails.players?.length})
+                    <View style={styles.heading_wrapper}>
+                        <Text style={styles.heading}>
+                            Team : {playingTeamDetails?.name}
                         </Text>
-                        {teamPlaying11.length > 0 && (
-                            <Text style={styles.selected_count}>
-                                selected ({teamPlaying11?.length})
-                            </Text>
-                        )}
                     </View>
                     <FlatList
-                        data={teamDetails.players}
+                        data={availablePlayers()}
                         renderItem={({ item }) => (
                             <TouchableOpacity
                                 style={[
                                     styles.player,
-                                    teamPlaying11.some(
-                                        player =>
-                                            player.playerId === item.playerId
-                                    ) && styles.selected
+
+                                    selectedPlayer?.playerId ===
+                                        item.playerId && styles.selected
                                 ]}
-                                onPress={() => handlePlayerSelect(item)}
+                                onPress={() => setSelectedPlayer(item)}
                             >
                                 <View style={styles.player_icon}>
                                     <Text style={styles.player_icon_text}>
@@ -190,15 +257,27 @@ const TeamSquadScreen = ({ navigation, route }) => {
                         keyExtractor={item => item._id}
                         contentContainerStyle={styles.choose_players_wrapper}
                     />
-                    {teamPlaying11.length === 11 && (
-                        <View style={styles.confirm_squad_btn_wrapper}>
+
+                    {selectedPlayer && (
+                        <View style={styles.confirm_btn_wrapper}>
                             <TouchableOpacity
-                                style={styles.confirm_squad_btn}
-                                onPress={HandleSelectSquad}
+                                style={styles.confirm_btn}
+                                onPress={handleReplacePlayer}
                             >
-                                <Text style={styles.confirm_squad_btn_text}>
-                                    confirm playing 11
-                                </Text>
+                                {!showSpinner ? (
+                                    <Text style={styles.confirm_btn_text}>
+                                        Confirm
+                                    </Text>
+                                ) : (
+                                    <Spinner
+                                        isLoading={showSpinner}
+                                        label="progressing..."
+                                        spinnerColor="white"
+                                        labelColor="white"
+                                        labelSize={19}
+                                        spinnerSize={28}
+                                    />
+                                )}
                             </TouchableOpacity>
                         </View>
                     )}
@@ -206,6 +285,11 @@ const TeamSquadScreen = ({ navigation, route }) => {
             ) : (
                 <LoadingSpinner />
             )}
+            <AlertToast
+                topOffSet={15}
+                successToastStyle={{ borderLeftColor: "green" }}
+                errorToastStyle={{ borderLeftColor: "red" }}
+            />
         </View>
     );
 };
@@ -232,26 +316,18 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },
-    squad_size_and_selected_count_wrapper: {
+    heading_wrapper: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         marginHorizontal: normalize(18),
         marginTop: normalizeVertical(25)
     },
-    squad_size: {
-        fontSize: normalize(19),
-        color: "#474646",
-        textTransform: "capitalize",
-        fontFamily: "robotoBold"
-    },
-    selected_count: {
-        fontSize: normalize(18),
-        color: "#474646",
-        textTransform: "capitalize",
+    heading: {
+        fontSize: normalize(20),
+        color: "black",
         fontFamily: "robotoMedium"
     },
-
     add_player_btn: {
         backgroundColor: "#1A4DA1",
         marginTop: normalizeVertical(25),
@@ -307,17 +383,17 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
     },
-    confirm_squad_btn_wrapper: {
+    confirm_btn_wrapper: {
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0
     },
-    confirm_squad_btn: {
+    confirm_btn: {
         backgroundColor: "#14B391",
         paddingVertical: normalizeVertical(18)
     },
-    confirm_squad_btn_text: {
+    confirm_btn_text: {
         fontSize: normalize(19),
         textAlign: "center",
         color: "white",
@@ -330,4 +406,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default TeamSquadScreen;
+export default SelectReplacementPlayer;

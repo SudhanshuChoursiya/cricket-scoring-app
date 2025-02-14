@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 //action
 export const fetchAuth = createAsyncThunk("fetchAuth", async () => {
     try {
@@ -55,6 +55,10 @@ export const fetchAuth = createAsyncThunk("fetchAuth", async () => {
                     data: newData,
                     accessToken: refreshData.data.accessToken
                 };
+            } else {
+                return {
+                    data: refreshData
+                };
             }
         } else {
             return {
@@ -66,6 +70,21 @@ export const fetchAuth = createAsyncThunk("fetchAuth", async () => {
         throw new Error(error.message);
     }
 });
+
+const configureSignIn = () => {
+    GoogleSignin.configure({
+        webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+        iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
+        androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+        offlineAccess: true
+    });
+};
+
+const logout = async () => {
+    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("refreshToken");
+    await GoogleSignin.signOut();
+};
 
 const initialState = {
     isLoading: true,
@@ -92,6 +111,8 @@ const authSlice = createSlice({
                 state.user = null;
                 state.isLoggedin = false;
                 state.accessToken = null;
+                configureSignIn();
+                logout();
             }
         });
         builder.addCase(fetchAuth.rejected, (state, action) => {

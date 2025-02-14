@@ -1,6 +1,5 @@
 import "react-native-gesture-handler";
 import * as React from "react";
-
 import {
     Text,
     View,
@@ -11,7 +10,6 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 //fonts imports
-
 import kittenBold from "./assets/KittenBold.ttf";
 import ubuntuRegular from "./assets/Ubuntu-Regular.ttf";
 import ubuntuMedium from "./assets/Ubuntu-Medium.ttf";
@@ -37,6 +35,7 @@ const Tab = createBottomTabNavigator();
 const TopTab = createMaterialTopTabNavigator();
 import Icon from "react-native-vector-icons/MaterialIcons";
 
+import ToastAlert from "./components/ToastAlert.js";
 import HomeScreen from "./screens/HomeScreen.js";
 
 import ProfileScreen from "./screens/ProfileScreen.js";
@@ -60,8 +59,12 @@ import SelectNewBowler from "./screens/SelectNewBowler.js";
 import SelectNewBatsman from "./screens/SelectNewBatsman.js";
 import CaughtOutFielderAssign from "./screens/CaughtOutFielderAssign.js";
 import RunOutFielderAssign from "./screens/RunOutFielderAssign.js";
+import RetiredHurtAssign from "./screens/RetiredHurtAssign.js";
+import RetiredOutAssign from "./screens/RetiredOutAssign.js";
 import SelectFielder from "./screens/SelectFielder.js";
 import SelectCaptain from "./screens/SelectCaptain.js";
+import ChangeSquad from "./screens/ChangeSquad.js";
+import SelectReplacementPlayer from "./screens/SelectReplacementPlayer.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
@@ -171,7 +174,20 @@ function StackNavigator() {
                 name="run-out-fielder-assign"
                 component={RunOutFielderAssign}
             />
+            <Stack.Screen
+                name="retired-hurt-assign"
+                component={RetiredHurtAssign}
+            />
+            <Stack.Screen
+                name="retired-out-assign"
+                component={RetiredOutAssign}
+            />
             <Stack.Screen name="select-fielder" component={SelectFielder} />
+            <Stack.Screen name="change-squad" component={ChangeSquad} />
+            <Stack.Screen
+                name="select-replacement-player"
+                component={SelectReplacementPlayer}
+            />
         </Stack.Navigator>
     );
 }
@@ -270,6 +286,7 @@ export const Layout = () => {
                 backgroundColor="transparent"
                 translucent={true}
             />
+
             <NavigationContainer>
                 {!isLoggedin ? (
                     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -289,6 +306,7 @@ export const Layout = () => {
 export default function App() {
     return (
         <ReduxProvider>
+            <ToastAlert />
             <Layout />
         </ReduxProvider>
     );

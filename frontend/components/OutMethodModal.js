@@ -28,6 +28,8 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+
+                isDeadBall: false,
                 outMethod: "bowled"
             }
         },
@@ -41,6 +43,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "caught"
             }
         },
@@ -54,6 +57,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "caught behind"
             }
         },
@@ -67,6 +71,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "caught & bowled"
             }
         },
@@ -80,6 +85,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "run out"
             }
         },
@@ -93,6 +99,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "lbw"
             }
         },
@@ -106,6 +113,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "stumped"
             }
         },
@@ -119,7 +127,22 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
                 isBye: false,
                 isLegBye: false,
                 isWicket: true,
+                isDeadBall: false,
                 outMethod: "retired hurt"
+            }
+        },
+        {
+            name: "retired out",
+            img: outMethodImg,
+            payload: {
+                runs: 0,
+                isWide: false,
+                isNoball: false,
+                isBye: false,
+                isLegBye: false,
+                isWicket: true,
+                isDeadBall: false,
+                outMethod: "retired out"
             }
         }
     ];
@@ -128,8 +151,7 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
         if (
             outMethod.name === "bowled" ||
             outMethod.name === "lbw" ||
-            outMethod.name === "caught & bowled" ||
-            outMethod.name === "retired hurt"
+            outMethod.name === "caught & bowled"
         ) {
             handleUpdateScore("OUT", outMethod.payload);
             dispatch(setOutMethodModal({ isShow: false }));
@@ -146,6 +168,20 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
             dispatch(setOutMethodModal({ isShow: false }));
         } else if (outMethod.name === "run out") {
             navigation.navigate("run-out-fielder-assign", {
+                matchId: matchDetails?._id,
+                payload: outMethod.payload
+            });
+
+            dispatch(setOutMethodModal({ isShow: false }));
+        } else if (outMethod.name === "retired hurt") {
+            navigation.navigate("retired-hurt-assign", {
+                matchId: matchDetails?._id,
+                payload: outMethod.payload
+            });
+
+            dispatch(setOutMethodModal({ isShow: false }));
+        } else if (outMethod.name === "retired out") {
+            navigation.navigate("retired-out-assign", {
                 matchId: matchDetails?._id,
                 payload: outMethod.payload
             });
@@ -218,7 +254,7 @@ const styles = StyleSheet.create({
     },
     modal_container: {
         width: "100%",
-        height: normalizeVertical(450),
+        height: normalizeVertical(600),
         alignItems: "center",
         justifyContent: "space-between",
         backgroundColor: "white",

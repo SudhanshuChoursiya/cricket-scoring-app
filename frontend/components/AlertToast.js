@@ -54,9 +54,8 @@ const AlertToast = ({ topOffSet, successToastStyle, errorToastStyle }) => {
                 {...props}
                 style={errorToastStyle}
                 contentContainerStyle={{
-                
-
-                paddingHorizontal: normalize(15) }}
+                    paddingHorizontal: normalize(15)
+                }}
                 text1Style={{
                     fontSize: normalize(15),
                     textTransform: "capitalize"

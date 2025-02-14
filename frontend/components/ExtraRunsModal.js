@@ -4,48 +4,88 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
+import Modal from "react-native-modal";
 import { useDispatch, useSelector } from "react-redux";
-import { setExtrasModal } from "../redux/modalSlice.js";
+import { setExtraRunsModal } from "../redux/modalSlice.js";
+import { showToast } from "../redux/toastSlice.js";
+
 import Spinner from "./Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const ExtraRunsModal = ({
-    handleCloseModal,
-    showSpinner,
-    handleConfirmModal
-}) => {
-    const extrasModal = useSelector(state => state.modal.extrasModal);
-    const dispatch = useDispatch();
-    return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={extrasModal.isShow}
-                onRequestClose={handleCloseModal}
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>
-                            {extrasModal.title}
-                        </Text>
+const ExtraRunsModal = ({ showSpinner, handleUpdateScore }) => {
+    const [selected, setSelected] = useState(null);
 
-                        <View style={styles.modal_content}>
+    const extraRunsModal = useSelector(state => state.modal.extraRunsModal);
+    const dispatch = useDispatch();
+
+    const deviceWidth = Dimensions.get("window").width;
+    const deviceHeight = Dimensions.get("window").height;
+    console.log(deviceHeight);
+    const handleCloseModal = () => {
+        dispatch(
+            setExtraRunsModal({
+                title: null,
+                runsInput: { isShow: false, value: null, label: null },
+                payload: null,
+                isShow: false
+            })
+        );
+        setSelected(null);
+    };
+    const handleConfirmModal = () => {
+        if (["LB", "BY"].includes(extraRunsModal.runsInput?.label)) {
+            if (extraRunsModal.runsInput?.value <= 0) {
+                dispatch(showToast("Please select runs"));
+                return;
+            }
+        }
+        handleUpdateScore(
+            extraRunsModal.runsInput?.label,
+            extraRunsModal.payload
+        ).then(() => handleCloseModal());
+    };
+
+    return (
+        <Modal
+            isVisible={extraRunsModal.isShow}
+            coverScreen={false}
+            deviceWidth={deviceWidth}
+            deviceHeight={1000}
+            backdropOpacity={0.4}
+            backdropTransitionOutTiming={0}
+            style={{
+                margin: 0
+            }}
+        >
+            <View style={styles.modal_wrapper}>
+                <View style={styles.modal_container}>
+                    <Text style={styles.modal_title}>
+                        {extraRunsModal.title}
+                    </Text>
+
+                    <View style={styles.modal_content}>
+                        {extraRunsModal.title !== "Bye" &&
+                        extraRunsModal.title !== "Leg Bye" ? (
                             <View style={styles.modal_input_wrapper}>
                                 <Text style={styles.modal_input_label}>
-                                    {extrasModal.inputLabel}
+                                    {extraRunsModal.runsInput?.label}
                                 </Text>
                                 <Text style={styles.operator_sign}>+</Text>
                                 <TextInput
                                     style={styles.modal_input}
-                                    value={extrasModal.inputValue}
+                                    value={extraRunsModal.runsInput?.value}
                                     onChangeText={text =>
                                         dispatch(
-                                            setExtrasModal({
-                                                inputValue: Number(text)
+                                            setExtraRunsModal({
+                                                ...extraRunsModal,
+                                                runsInput: {
+                                                    ...extraRunsModal.runsInput,
+                                                    value: Number(text)
+                                                }
                                             })
                                         )
                                     }
@@ -53,67 +93,129 @@ const ExtraRunsModal = ({
                                 />
                                 <Text style={styles.operator_sign}>=</Text>
                                 <Text style={styles.modal_input_sum}>
-                                    {extrasModal.inputValue === 0
+                                    {extraRunsModal.runsInput?.value === 0
                                         ? 1
-                                        : 1 + Number(extrasModal.inputValue)}
+                                        : 1 +
+                                          Number(
+                                              extraRunsModal.runsInput?.value
+                                          )}
                                 </Text>
                             </View>
-                        </View>
-
-                        {/* Button to close the modal */}
-                        <View style={styles.modal_btn_wrapper}>
-                            <TouchableOpacity
-                                style={styles.cancel_button}
-                                onPress={handleCloseModal}
-                            >
-                                <Text style={styles.cancel_button_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.ok_button}
-                                onPress={handleConfirmModal}
-                            >
-                                <Text style={styles.ok_button_text}>ok</Text>
-                                {showSpinner && (
-                                    <Spinner
-                                        isLoading={showSpinner}
-                                        spinnerColor="white"
-                                        spinnerSize={28}
+                        ) : (
+                            <View style={styles.runs_scored_wrapper}>
+                                {[1, 2, 3, 4, "+"].map((run, index) => (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.runs_scored,
+                                            run === selected &&
+                                                styles.selected_bg
+                                        ]}
+                                        key={index}
+                                        onPress={() => {
+                                            setSelected(run);
+                                            dispatch(
+                                                setExtraRunsModal({
+                                                    ...extraRunsModal,
+                                                    runsInput: {
+                                                        ...extraRunsModal.runsInput,
+                                                        isShow: run === "+",
+                                                        value:
+                                                            extraRunsModal
+                                                                .runsInput
+                                                                ?.value === run
+                                                                ? null
+                                                                : run !== "+" &&
+                                                                  run
+                                                    }
+                                                })
+                                            );
+                                        }}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.run_name,
+                                                run === selected &&
+                                                    styles.selected_text
+                                            ]}
+                                        >
+                                            {run}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                                {extraRunsModal.runsInput?.isShow && (
+                                    <TextInput
+                                        style={styles.runs_input}
+                                        keyboardType="numeric"
+                                        value={extraRunsModal.runsInput?.value}
+                                        onChangeText={text =>
+                                            dispatch(
+                                                setExtraRunsModal({
+                                                    ...extraRunsModal,
+                                                    runsInput: {
+                                                        ...extraRunsModal.runsInput,
+                                                        value: Number(text)
+                                                    }
+                                                })
+                                            )
+                                        }
                                     />
                                 )}
-                            </TouchableOpacity>
-                        </View>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Buttons */}
+                    <View style={styles.modal_btn_wrapper}>
+                        <TouchableOpacity
+                            style={styles.cancel_button}
+                            onPress={handleCloseModal}
+                        >
+                            <Text style={styles.cancel_button_text}>
+                                cancel
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.ok_button}
+                            onPress={handleConfirmModal}
+                        >
+                            <Text style={styles.ok_button_text}>ok</Text>
+                            {showSpinner && (
+                                <Spinner
+                                    isLoading={showSpinner}
+                                    spinnerColor="white"
+                                    spinnerSize={28}
+                                />
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         position: "relative"
     },
     modal_container: {
         width: "100%",
-        height: normalizeVertical(230),
+        height: normalizeVertical(250),
         alignItems: "center",
         justifyContent: "space-between",
         backgroundColor: "white",
         borderTopLeftRadius: normalize(25),
         borderTopRightRadius: normalize(25),
         position: "absolute",
-        bottom: 0,
         left: 0,
         right: 0,
+        bottom: 50,
         elevation: 1
     },
     modal_title: {
-        paddingTop: normalizeVertical(10),
-        fontSize: normalize(21),
+        paddingTop: normalizeVertical(20),
+        fontSize: normalize(22),
         fontFamily: "robotoBold"
     },
     modal_input_wrapper: {
@@ -121,7 +223,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: normalize(7)
     },
-
     modal_input_label: {
         color: "#474646",
         fontSize: normalize(20),
@@ -143,6 +244,35 @@ const styles = StyleSheet.create({
         fontSize: normalize(20),
         fontFamily: "robotoMedium"
     },
+    runs_scored_wrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: normalize(15)
+    },
+    runs_scored: {
+        height: normalize(42),
+        width: normalize(42),
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
+        borderRadius: normalize(5),
+        borderWidth: 1,
+        borderColor: "#14B492",
+        elevation: 1
+    },
+    run_name: {
+        color: "#14B492",
+        fontSize: normalize(18),
+        fontFamily: "robotoRegular"
+    },
+    runs_input: {
+        width: normalize(42),
+        height: normalize(42),
+        borderWidth: 1.1,
+        borderColor: "#6d6d6d",
+        borderRadius: normalize(5),
+        paddingHorizontal: normalize(10)
+    },
     modal_btn_wrapper: {
         flexDirection: "row",
         alignContent: "center"
@@ -154,7 +284,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F2F2F2",
-
         marginTop: normalizeVertical(20)
     },
     ok_button: {
@@ -180,6 +309,15 @@ const styles = StyleSheet.create({
         fontFamily: "robotoBold",
         textTransform: "uppercase",
         textAlign: "center"
+    },
+    selected_bg: {
+        backgroundColor: "#14B492",
+        borderWidth: 1,
+        borderColor: "#14B492"
+    },
+    selected_text: {
+        color: "#FFFFFF"
     }
 });
+
 export default ExtraRunsModal;

@@ -12,11 +12,14 @@ import React, { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
     setReplaceBatsmanModal,
-    setReplaceBowlerModal
+    setReplaceBowlerModal,
+    setChangeSquadModal,
+    setEndInningModal,
+    setEndMatchModal
 } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const Sidebar = ({ showSidebar, setShowSidebar }) => {
+const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
     const dispatch = useDispatch();
     const sidebarAnim = useRef(new Animated.Value(-250)).current;
     const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -42,6 +45,15 @@ const Sidebar = ({ showSidebar, setShowSidebar }) => {
         }
         if (link === "replaceBowler") {
             dispatch(setReplaceBowlerModal({ isShow: true }));
+        }
+        if (link === "changeSquad") {
+            dispatch(setChangeSquadModal({ isShow: true }));
+        }
+        if (link === "endInning") {
+            dispatch(setEndInningModal({ isShow: true }));
+        }
+        if (link === "endMatch") {
+            dispatch(setEndMatchModal({ isShow: true }));
         }
     };
 
@@ -86,6 +98,22 @@ const Sidebar = ({ showSidebar, setShowSidebar }) => {
                     onPress={() => handleLinkPress("changeSquad")}
                 >
                     <Text style={styles.sidebar_link_text}>change squad</Text>
+                </TouchableOpacity>
+                {currentInning !== 2 && (
+                    <TouchableOpacity
+                        style={styles.sidebar_link}
+                        onPress={() => handleLinkPress("endInning")}
+                    >
+                        <Text style={styles.sidebar_link_text}>
+                            end innings
+                        </Text>
+                    </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                    style={styles.sidebar_link}
+                    onPress={() => handleLinkPress("endMatch")}
+                >
+                    <Text style={styles.sidebar_link_text}>end match</Text>
                 </TouchableOpacity>
             </Animated.View>
         </>
@@ -137,7 +165,8 @@ const styles = StyleSheet.create({
     sidebar_link_text: {
         fontSize: normalize(19),
         color: "#333",
-        textTransform: "capitalize",
+        fontFamily: "robotoMedium",
+        textTransform: "capitalize"
     }
 });
 

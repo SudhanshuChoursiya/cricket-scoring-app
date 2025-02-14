@@ -13,7 +13,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
     setStrikeBatsman,
     setNonStrikeBatsman,
-    setCurrentBowler
+    setCurrentBowler,
+    clearUndoStack
 } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
@@ -133,7 +134,9 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 dispatch(setStrikeBatsman({ _id: null, name: null }));
                 dispatch(setNonStrikeBatsman({ _id: null, name: null }));
                 dispatch(setCurrentBowler({ _id: null, name: null }));
-
+                if (data.data.currentInning === 2) {
+                    dispatch(clearUndoStack());
+                }
                 navigation.navigate("manage-scoreboard", {
                     matchId: route.params?.matchId
                 });

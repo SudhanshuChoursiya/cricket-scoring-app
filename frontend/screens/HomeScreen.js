@@ -11,6 +11,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
 import {
+    setTeamAId,
+    setTeamBId,
     setTeamAName,
     setTeamBName,
     setTeamAPlaying11,
@@ -75,7 +77,10 @@ const HomeScreen = ({ navigation, route }) => {
     );
 
     const handleNavigate = match => {
-        if (match.matchStatus !== "completed") {
+        if (
+            match.matchStatus !== "completed" &&
+            match.matchStatus !== "abandoned"
+        ) {
             if (match.matchStatus === "no toss") {
                 navigation.navigate("toss-screen", {
                     matchId: match._id
@@ -107,6 +112,8 @@ const HomeScreen = ({ navigation, route }) => {
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
             setIsLoading(true);
+            dispatch(setTeamAId(null));
+            dispatch(setTeamBId(null));
             dispatch(setTeamAName(null));
             dispatch(setTeamBName(null));
             dispatch(setTeamAPlaying11([]));
@@ -172,6 +179,9 @@ const HomeScreen = ({ navigation, route }) => {
                                                 match.matchStatus ===
                                                 "completed"
                                                     ? styles.bg_green
+                                                    : match.matchStatus ===
+                                                      "abandoned"
+                                                    ? styles.bg_red
                                                     : styles.bg_orange
                                             ]}
                                         >
@@ -179,6 +189,9 @@ const HomeScreen = ({ navigation, route }) => {
                                                 {match.matchStatus ===
                                                 "completed"
                                                     ? "Completed"
+                                                    : match.matchStatus ===
+                                                      "abandoned"
+                                                    ? "Abandoned"
                                                     : "in progress"}
                                             </Text>
                                         </View>
@@ -199,6 +212,7 @@ const HomeScreen = ({ navigation, route }) => {
                                         <Text style={styles.match_info}>
                                             {match.matchStatus === "no toss" &&
                                                 "toss will commence shortly"}
+
                                             {(match.matchStatus ===
                                                 "toss happend" ||
                                                 match.matchStatus ===
@@ -207,6 +221,10 @@ const HomeScreen = ({ navigation, route }) => {
                                             {match.matchStatus ===
                                                 "completed" &&
                                                 `${match.matchWinner.teamName} won by ${match.matchWinner.wonBy}`}
+
+                                            {match.matchStatus ===
+                                                "abandoned" &&
+                                                "match abandoned"}
                                         </Text>
                                     </View>
                                 </TouchableOpacity>
@@ -331,6 +349,9 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: normalize(16),
         fontFamily: "latoBold"
+    },
+    bg_red: {
+        backgroundColor: "#E21F26"
     },
     bg_orange: {
         backgroundColor: "#f48441"

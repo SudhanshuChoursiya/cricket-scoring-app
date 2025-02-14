@@ -2,11 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     teamA: {
+        id: null,
         name: null,
         playing11: [],
         captain: null
     },
     teamB: {
+        id: null,
         name: null,
         playing11: [],
         captain: null
@@ -41,6 +43,12 @@ const matchSlice = createSlice({
     name: "match",
     initialState,
     reducers: {
+        setTeamAId: (state, action) => {
+            state.teamA.id = action.payload;
+        },
+        setTeamBId: (state, action) => {
+            state.teamB.id = action.payload;
+        },
         setTeamAName: (state, action) => {
             state.teamA.name = action.payload;
         },
@@ -103,11 +111,16 @@ const matchSlice = createSlice({
         },
         popUndoStack: (state, action) => {
             state.undoStack.pop();
+        },
+        clearUndoStack: (state, action) => {
+            state.undoStack = [];
         }
     }
 });
 
 export const {
+    setTeamAId,
+    setTeamBId,
     setTeamAName,
     setTeamBName,
     setTeamAPlaying11,
@@ -124,7 +137,8 @@ export const {
     setCurrentBowler,
     setFielder,
     setUndoStack,
-    popUndoStack
+    popUndoStack,
+    clearUndoStack
 } = matchSlice.actions;
 
 export default matchSlice.reducer;

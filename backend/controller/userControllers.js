@@ -233,8 +233,12 @@ const addPlayersController = asyncHandler(async (req, res) => {
 
 const createMatchController = asyncHandler(async (req, res) => {
     const { teamA, teamB, totalOvers, matchPlace } = req.body;
+
     const user = req.user;
+
     const isEmpty = [
+        teamA.id,
+        teamB.id,
         teamA.name,
         teamB.name,
         teamA.playing11,
@@ -261,14 +265,15 @@ const createMatchController = asyncHandler(async (req, res) => {
     if (isNaN(totalOvers) || Number(totalOvers) <= 0) {
         throw new ApiError(400, "total over should be greater then 0");
     }
-
     const initialInningDetails = {
         battingTeam: {
+            teamId: null,
             name: null,
             playing11: null,
             captain: null
         },
         bowlingTeam: {
+            teamId: null,
             name: null,
             playing11: null,
             captain: null
@@ -279,8 +284,18 @@ const createMatchController = asyncHandler(async (req, res) => {
     const match = await MatchModel.create({
         inning1: initialInningDetails,
         inning2: initialInningDetails,
-        teamA,
-        teamB,
+        teamA: {
+            teamId: teamA.id,
+            name: teamA.name,
+            playing11: teamA.playing11,
+            captain: teamA.captain
+        },
+        teamB: {
+            teamId: teamB.id,
+            name: teamB.name,
+            playing11: teamB.playing11,
+            captain: teamB.captain
+        },
         matchPlace,
         createdBy: user._id
     });
@@ -410,6 +425,7 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
         match.matchStatus = "in progress";
     }
     if (match.currentInning === 2) {
+        match.matchStatus = "in progress";
         match.isInningChangePending = false;
         match.isSecondInningStarted = true;
     }
@@ -429,10 +445,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
         isNoball,
         isLegBye,
         isBye,
+        isDeadBall,
         isWicket,
         outMethod,
         fielderId,
-        runoutEnd
+        outEnd
     } = req.body;
 
     const user = req.user;
@@ -537,7 +554,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
         bowler.runsConceded += runs;
 
         if (isWicket) {
-            if (outMethod === "run out" && runoutEnd === "striker") {
+            if (outMethod === "run out" && outEnd === "striker") {
                 strikeBatsman.isOut = true;
                 strikeBatsman.outMethod = outMethod;
                 strikeBatsman.caughtBy = currentFielder.name;
@@ -545,13 +562,36 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 batter.outMethod = outMethod;
                 batter.caughtBy = currentFielder.name;
                 currentInning.wicketsFallen += 1;
-            } else if (outMethod === "run out" && runoutEnd === "nonStriker") {
+            } else if (outMethod === "run out" && outEnd === "nonStriker") {
                 nonStrikeBatsman.isOut = true;
                 nonStrikeBatsman.outMethod = outMethod;
                 nonStrikeBatsman.caughtBy = currentFielder.name;
                 batter.isOut = true;
                 batter.outMethod = outMethod;
                 batter.caughtBy = currentFielder.name;
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired hurt" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (
+                outMethod === "retired hurt" &&
+                outEnd === "nonStriker"
+            ) {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (outMethod === "retired out" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                batter.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired out" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                batter.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
                 currentInning.wicketsFallen += 1;
             } else {
                 strikeBatsman.isOut = true;
@@ -592,6 +632,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             isNoball,
             isLegBye,
             isBye,
+            isDeadBall,
             isWicket,
             outMethod,
             currentBowlerId: currentBowler._id,
@@ -602,10 +643,16 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
     // Helper function to handle extras (wide, no-ball, leg-bye, bye)
     const updateExtras = () => {
-        currentInning.totalScore += 1 + runs;
         if (isLegBye || isBye) {
+            currentInning.totalScore += runs;
             currentInning.currentOverBalls += 1;
+            strikeBatsman.balls += 1;
+            batter.balls += 1;
+
+            currentBowler.ballsBowled += 1;
+            bowler.ballsBowled += 1;
         } else if (isNoball) {
+            currentInning.totalScore += 1 + runs;
             strikeBatsman.runs += runs;
 
             batter.runs += runs;
@@ -622,12 +669,13 @@ const updateScoreController = asyncHandler(async (req, res) => {
             currentBowler.runsConceded += 1 + runs;
             bowler.runsConceded += 1 + runs;
         } else if (isWide) {
+            currentInning.totalScore += 1 + runs;
             currentBowler.runsConceded += 1 + runs;
             bowler.runsConceded += 1 + runs;
         }
 
         if (isWicket) {
-            if (outMethod === "runout" && runoutEnd === "striker") {
+            if (outMethod === "runout" && outEnd === "striker") {
                 strikeBatsman.isOut = true;
                 strikeBatsman.outMethod = outMethod;
                 strikeBatsman.caughtBy = currentFielder.name;
@@ -635,13 +683,36 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 batter.outMethod = outMethod;
                 batter.caughtBy = currentFielder.name;
                 currentInning.wicketsFallen += 1;
-            } else if (outMethod === "runout" && runoutEnd === "nonStriker") {
+            } else if (outMethod === "runout" && outEnd === "nonStriker") {
                 nonStrikeBatsman.isOut = true;
                 nonStrikeBatsman.outMethod = outMethod;
                 nonStrikeBatsman.caughtBy = currentFielder.name;
                 batter.isOut = true;
                 batter.outMethod = outMethod;
                 batter.caughtBy = currentFielder.name;
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired hurt" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (
+                outMethod === "retired hurt" &&
+                outEnd === "nonStriker"
+            ) {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (outMethod === "retired out" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                batter.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired out" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                batter.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
                 currentInning.wicketsFallen += 1;
             } else {
                 strikeBatsman.isOut = true;
@@ -682,6 +753,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             isNoball,
             isLegBye,
             isBye,
+            isDeadBall,
             isWicket,
             outMethod,
             currentBowlerId: currentBowler._id,
@@ -692,7 +764,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
     // Helper function to switch strike
     const switchStrike = () => {
-        if (runs % 2 !== 0 && !isWide && !isNoball && !isLegBye && !isBye) {
+        if (runs % 2 !== 0) {
             currentInning.currentBatsmen.forEach(
                 batsman => (batsman.onStrike = !batsman.onStrike)
             );
@@ -729,11 +801,9 @@ const updateScoreController = asyncHandler(async (req, res) => {
         }
     };
 
-    // Helper function to switch innings
-
     // Run updates based on the type of ball
 
-    if (!isWide && !isNoball && !isLegBye && !isBye) {
+    if (!isWide && !isNoball && !isLegBye && !isBye && !isDeadBall) {
         updateRegularBall();
     } else {
         updateExtras();
@@ -848,7 +918,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
     const matchId = req.params.matchId;
 
     if (!replacedBatsmanId || !newBatsmanId) {
-        throw new ApiError(400, "plz provide all the required field");
+        throw new ApiError(400, "Please provide all the required fields");
     }
 
     const match = await MatchModel.findOne({
@@ -857,7 +927,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
     });
 
     if (!match) {
-        throw new ApiError(404, "match not found");
+        throw new ApiError(404, "Match not found");
     }
 
     const currentInning =
@@ -868,24 +938,52 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
     const replacedBatsman = currentInning.currentBatsmen.find(player =>
         player._id.equals(replacedBatsmanId)
     );
+
     const newBatsman = battingTeam.playing11.find(player =>
         player._id.equals(newBatsmanId)
     );
 
-    const updatedCurrentBatsmen = currentInning.currentBatsmen.map(batsman =>
-        batsman._id.equals(replacedBatsman._id)
-            ? { ...newBatsman.toObject(), onStrike: replacedBatsman.onStrike }
-            : batsman
+    if (!replacedBatsman || !newBatsman) {
+        throw new ApiError(404, "Batsman not found");
+    }
+
+    const updatedBatsman = {
+        ...newBatsman.toObject(),
+        _id: replacedBatsman._id,
+        runs: replacedBatsman.runs,
+        balls: replacedBatsman.balls,
+        onStrike: replacedBatsman.onStrike
+    };
+
+    currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsman =>
+        batsman._id.equals(replacedBatsman._id) ? updatedBatsman : batsman
     );
 
-    currentInning.currentBatsmen = updatedCurrentBatsmen;
+    battingTeam.playing11 = battingTeam.playing11.map(player => {
+        if (player._id.equals(newBatsmanId)) {
+            return {
+                ...player.toObject(),
+                _id: replacedBatsman._id,
+                runs: replacedBatsman.runs,
+                balls: replacedBatsman.balls
+            };
+        } else if (player._id.equals(replacedBatsmanId)) {
+            return {
+                ...player.toObject(),
+                _id: newBatsman._id,
+                runs: 0,
+                balls: 0
+            };
+        }
+        return player;
+    });
 
     match.isSelectNewBatsmanPending = false;
 
     await match.save();
 
     res.status(200).json(
-        new ApiResponse(200, match, "batsman changed successfully")
+        new ApiResponse(200, match, "Batsman changed successfully")
     );
 });
 
@@ -913,6 +1011,148 @@ const changeStrikeController = asyncHandler(async (req, res) => {
 
     res.status(200).json(
         new ApiResponse(200, match, "bowler changed successfully")
+    );
+});
+
+const replacePlayerController = asyncHandler(async (req, res) => {
+    const { replacedPlayerId, newPlayerId, teamId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!replacedPlayerId || !newPlayerId || !teamId) {
+        throw new ApiError(400, "Please provide all required fields");
+    }
+
+    // Find the match details
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "Match not found");
+    }
+
+    // Check if the new player is already in the playing 11
+    const isPlayerAlreadyInPlaying11 = team =>
+        team.playing11.some(
+            player => player.playerId.toString() === newPlayerId
+        );
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        isPlayerAlreadyInPlaying11(match.teamA)
+    ) {
+        throw new ApiError(400, "New player is already in the playing 11");
+    }
+
+    if (
+        match.teamB.teamId.toString() === teamId &&
+        isPlayerAlreadyInPlaying11(match.teamB)
+    ) {
+        throw new ApiError(400, "New player is already in the playing 11");
+    }
+
+    // Find the team details
+    const teamDetails = await TeamModel.findOne({
+        _id: teamId,
+        createdBy: user._id
+    });
+
+    if (!teamDetails) {
+        throw new ApiError(404, "Team details not found");
+    }
+
+    // Get the new player details
+    const newPlayer = teamDetails.players.find(
+        player => player.playerId.toString() === newPlayerId
+    );
+
+    if (!newPlayer) {
+        throw new ApiError(404, "New player not found in team");
+    }
+
+    // Convert newPlayer to match player structure
+    const newPlayerData = {
+        ...newPlayer.toObject(),
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        isOut: false,
+        ballsBowled: 0,
+        wickets: 0,
+        overs: 0,
+        runsConceded: 0
+    };
+
+    // Replace player in teamA or teamB
+    const replacePlayerInTeam = team => {
+        team.playing11 = team.playing11.map(player =>
+            player.playerId.toString() === replacedPlayerId
+                ? newPlayerData
+                : player
+        );
+        return team;
+    };
+
+    if (match.teamA.teamId.toString() === teamId) {
+        match.teamA = replacePlayerInTeam(match.teamA);
+    } else if (match.teamB.teamId.toString() === teamId) {
+        match.teamB = replacePlayerInTeam(match.teamB);
+    } else {
+        throw new ApiError(400, "Team not part of this match");
+    }
+
+    // Update player in both innings (batting and bowling teams)
+    const replacePlayerInInning = inning => {
+        if (inning.battingTeam.teamId.toString() === teamId) {
+            inning.battingTeam = replacePlayerInTeam(inning.battingTeam);
+        }
+        if (inning.bowlingTeam.teamId.toString() === teamId) {
+            inning.bowlingTeam = replacePlayerInTeam(inning.bowlingTeam);
+        }
+    };
+
+    replacePlayerInInning(match.inning1);
+    replacePlayerInInning(match.inning2);
+
+    // Replace in current batsmen
+    const replacePlayerInBatsmen = inning => {
+        const isCurrentBatsman = inning.currentBatsmen?.some(
+            batsman => batsman.playerId.toString() === replacedPlayerId
+        );
+
+        if (isCurrentBatsman) {
+            inning.currentBatsmen = inning.currentBatsmen.map(batsman =>
+                batsman.playerId.toString() === replacedPlayerId
+                    ? { ...newPlayerData, onStrike: batsman.onStrike }
+                    : batsman
+            );
+        }
+    };
+
+    replacePlayerInBatsmen(match.inning1);
+    replacePlayerInBatsmen(match.inning2);
+
+    // Replace in current bowler
+    const replacePlayerInBowler = inning => {
+        const isCurrentBowler =
+            inning.currentBowler?.playerId.toString() === replacedPlayerId;
+
+        if (isCurrentBowler) {
+            inning.currentBowler = newPlayerData;
+        }
+    };
+
+    replacePlayerInBowler(match.inning1);
+    replacePlayerInBowler(match.inning2);
+
+    // Save changes
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "Player replaced successfully")
     );
 });
 
@@ -967,12 +1207,27 @@ const undoScoreController = asyncHandler(async (req, res) => {
     );
 
     // Update total score
-    currentInning.totalScore -= lastAction.runs || 0;
+    currentInning.totalScore -=
+        lastAction.isWide ||
+        lastAction.isNoball ||
+        lastAction.isLegBye ||
+        lastAction.isBye
+            ? 1 + lastAction.runs
+            : lastAction.runs;
 
     //update batsman states
-    strikeBatsman.runs -= lastAction.runs || 0;
+    strikeBatsman.runs -=
+        lastAction.isWide ||
+        lastAction.isLegBye ||
+        lastAction.isBye ||
+        lastAction.isDeadBall
+            ? 0
+            : lastAction.runs;
 
-    strikeBatsman.balls -= lastAction.isWide || lastAction.isNoball ? 0 : 1;
+    strikeBatsman.balls -=
+        lastAction.isWide || lastAction.isNoball || lastAction.isDeadBall
+            ? 0
+            : 1;
 
     if (lastAction.isFour) {
         strikeBatsman.fours -= 1;
@@ -991,20 +1246,23 @@ const undoScoreController = asyncHandler(async (req, res) => {
 
             strikeBatsman.dismissBy = null;
         }
+
         if (nonStrikeBatsman.isOut) {
             nonStrikeBatsman.isOut = false;
-            strikeBatsman.outMethod = null;
+            nonStrikeBatsman.outMethod = null;
 
             nonStrikeBatsman.caughtBy = null;
 
             nonStrikeBatsman.dismissBy = null;
         }
 
+        if (lastAction.outMethod !== "retired hurt") {
+            currentInning.wicketsFallen -= 1;
+        }
+
         if (match.isSelectNewBatsmanPending) {
             match.isSelectNewBatsmanPending = false;
         }
-
-        currentInning.wicketsFallen -= 1;
     }
 
     currentInning.currentBatsmen = [
@@ -1013,9 +1271,14 @@ const undoScoreController = asyncHandler(async (req, res) => {
     ];
 
     //update bowler start
-    currentBowler.runsConceded -= lastAction.runs || 0;
+    currentBowler.runsConceded -=
+        lastAction.isLegBye || lastAction.isBye || lastAction.isDeadBall
+            ? 0
+            : lastAction.isWide || lastAction.isNoball
+            ? 1 + lastAction.runs
+            : lastAction.runs;
 
-    if (!lastAction.isWide && !lastAction.isNoball) {
+    if (!lastAction.isWide && !lastAction.isNoball && !lastAction.isDeadBall) {
         currentBowler.ballsBowled -= 1;
         if (currentInning.currentOverBalls <= 0) {
             currentInning.currentOvers -= 1;
@@ -1029,7 +1292,12 @@ const undoScoreController = asyncHandler(async (req, res) => {
         }
     }
 
-    if (lastAction.isWicket && !lastAction.isNoball) {
+    if (
+        lastAction.isWicket &&
+        !lastAction.isNoball &&
+        lastAction.outMethod !== "retired hurt" &&
+        lastAction.outMethod !== "retired out"
+    ) {
         currentBowler.wickets -= 1;
     }
 
@@ -1043,6 +1311,69 @@ const undoScoreController = asyncHandler(async (req, res) => {
     res.status(200).json(
         new ApiResponse(200, match, "last action undo successfully")
     );
+});
+
+const endInningController = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const matchId = req.params.matchId;
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "no match has been found");
+    }
+
+    match.currentInning = 2;
+    match.targetScore = match.inning1.totalScore + 1;
+    match.isInningChangePending = true;
+    match.matchStatus = "inning break";
+    await match.save();
+    res.status(200).json(new ApiResponse(200, match));
+});
+const endMatchController = asyncHandler(async (req, res) => {
+    const { isMatchAbandoned, winningTeamId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "no match has been found");
+    }
+
+    const currentInning =
+        match.currentInning === 1 ? match.inning1 : match.inning2;
+
+    if (isMatchAbandoned) {
+        match.matchStatus = "abandoned";
+    } else {
+        if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
+            match.matchStatus = "completed";
+
+            match.matchWinner.teamName = currentInning.battingTeam.name;
+
+            match.matchWinner.wonBy = `${
+                10 - currentInning.wicketsFallen
+            } wickets`;
+        } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
+            match.matchStatus = "completed";
+            match.matchWinner.teamName = currentInning.bowlingTeam.name;
+
+            match.matchWinner.wonBy = `${
+                match.targetScore - currentInning.totalScore
+            } runs`;
+        }
+    }
+    if (match.isInningChangePending === true) {
+        match.isInningChangePending = false;
+    }
+
+    await match.save();
+    res.status(200).json(new ApiResponse(200, match));
 });
 
 const getAllMatchDetailsController = asyncHandler(async (req, res) => {
@@ -1083,7 +1414,10 @@ export {
     changeBatsmanController,
     updateOutBatsmanController,
     changeStrikeController,
+    replacePlayerController,
     undoScoreController,
+    endInningController,
+    endMatchController,
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
