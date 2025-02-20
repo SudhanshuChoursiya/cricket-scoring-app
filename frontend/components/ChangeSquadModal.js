@@ -4,19 +4,32 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setChangeSquadModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ChangeSquadModal = ({ matchId, matchDetails }) => {
     const changeSquadModal = useSelector(state => state.modal.changeSquadModal);
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+
+    const handleCloseModal = () => {
+        dispatch(setChangeSquadModal({ isShow: false }));
+    };
     const handleNavigate = teamId => {
         navigation.navigate("change-squad", {
             matchId,
@@ -24,78 +37,66 @@ const ChangeSquadModal = ({ matchId, matchDetails }) => {
         });
         dispatch(setChangeSquadModal({ isShow: false }));
     };
+
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={changeSquadModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setChangeSquadModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <Text style={styles.modal_title}>
-                                Which team squad you want to change?
-                            </Text>
-                            <View style={styles.select_team_wrapper}>
-                                {[matchDetails?.teamA, matchDetails?.teamB].map(
-                                    team => (
-                                        <TouchableOpacity
-                                            style={styles.team}
-                                            onPress={() =>
-                                                handleNavigate(team.teamId)
-                                            }
-                                            key={team.teamId}
-                                        >
-                                            <View
-                                                style={styles.team_icon_wrapper}
-                                            >
-                                                <Text
-                                                    style={
-                                                        styles.team_icon_text
-                                                    }
-                                                >
-                                                    {team.name[0]}
-                                                </Text>
-                                            </View>
-                                            <Text style={styles.team_name}>
-                                                {team.name}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    )
-                                )}
-                            </View>
-                            <TouchableOpacity
-                                style={styles.close_btn}
-                                onPress={() =>
-                                    dispatch(
-                                        setChangeSquadModal({
-                                            isShow: false
-                                        })
-                                    )
-                                }
-                            >
-                                <Text style={styles.close_btn_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+        <Modal
+            isVisible={changeSquadModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <Text style={styles.modal_title}>
+                        Which team squad you want to change?
+                    </Text>
+                    <View style={styles.select_team_wrapper}>
+                        {[matchDetails?.teamA, matchDetails?.teamB].map(
+                            team => (
+                                <TouchableOpacity
+                                    style={styles.team}
+                                    onPress={() => handleNavigate(team?.teamId)}
+                                    key={team?.teamId}
+                                >
+                                    <View style={styles.team_icon_wrapper}>
+                                        <Text style={styles.team_icon_text}>
+                                            {team?.name[0]}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.team_name}>
+                                        {team?.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                        )}
                     </View>
+                    <TouchableOpacity
+                        style={styles.close_btn}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.close_btn_text}>cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

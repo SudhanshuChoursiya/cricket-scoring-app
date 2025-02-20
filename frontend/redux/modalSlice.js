@@ -44,6 +44,9 @@ const initialState = {
     changeSquadModal: {
         isShow: false
     },
+    changeCaptainModal: {
+        isShow: false,
+    },
     endInningModal: {
         isShow: false
     },
@@ -52,6 +55,12 @@ const initialState = {
     },
     outMethodModal: {
         isShow: false
+    },
+    confirmModal: {
+        isShow: false,
+        actionType: null,
+        title: null,
+        description: null,
     }
 };
 
@@ -113,6 +122,12 @@ const modalSlice = createSlice({
                 ...action.payload
             };
         },
+        setChangeCaptainModal: (state, action) => {
+            state.changeCaptainModal = {
+                ...state.changeCaptainModal,
+                ...action.payload
+            };
+        },
         setEndInningModal: (state, action) => {
             state.endInningModal = {
                 ...state.endInningModal,
@@ -136,6 +151,12 @@ const modalSlice = createSlice({
                 ...state.customRunsModal,
                 ...action.payload
             };
+        },
+        setConfirmModal: (state, action) => {
+            state.confirmModal = {
+                ...state.confirmModal,
+                ...action.payload
+            };
         }
     }
 });
@@ -150,10 +171,12 @@ export const {
     setReplaceBowlerModal,
     setReplaceBatsmanModal,
     setChangeSquadModal,
+    setChangeCaptainModal,
     setEndInningModal,
     setEndMatchModal,
     setOutMethodModal,
-    setCustomRunsModal
+    setCustomRunsModal,
+    setConfirmModal
 } = modalSlice.actions;
 
 export default modalSlice.reducer;

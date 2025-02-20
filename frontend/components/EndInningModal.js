@@ -4,26 +4,39 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setEndInningModal } from "../redux/modalSlice.js";
-import Spinner from "./Spinner.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import Spinner from "./Spinner.js";
 import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
     const endInningModal = useSelector(state => state.modal.endInningModal);
     const { accessToken } = useSelector(state => state.auth);
 
-    const handleConfirm = async () => {
+    const handleCloseModal = () => {
+        dispatch(setEndInningModal({ isShow: false }));
+        setShowSpinner(false);
+    };
+
+    const handleConfirmModal = async () => {
         try {
             setShowSpinner(true);
-
             if (!matchId) {
                 throw new Error("plz provide all the required field");
             }
@@ -47,81 +60,78 @@ const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
                 navigation.navigate("initial-players-assign-screen", {
                     matchId
                 });
+                dispatch(setEndInningModal({ isShow: false }));
             }
         } catch (error) {
             console.log(error);
         } finally {
-            dispatch(setEndInningModal({ isShow: false }));
             setShowSpinner(false);
         }
     };
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={endInningModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setEndInningModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <View style={styles.icon_wrapper}>
-                                {!showSpinner ? (
-                                    <Icon
-                                        name="error-outline"
-                                        size={normalize(45)}
-                                        color="#F99F0D"
-                                    />
-                                ) : (
-                                    <Spinner
-                                        isLoading={showSpinner}
-                                        spinnerColor="#F99F0D"
-                                        spinnerSize={45}
-                                    />
-                                )}
-                            </View>
-                            <Text style={styles.modal_title}>End Innings?</Text>
-                            <Text style={styles.modal_desc}>
-                                Are you sure to end 1st innings?
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.confirm_btn}
-                                onPress={handleConfirm}
-                            >
-                                <Text style={styles.confirm_btn_text}>
-                                    yes, i’m sure
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.close_btn}
-                                onPress={() =>
-                                    dispatch(
-                                        setEndInningModal({ isShow: false })
-                                    )
-                                }
-                            >
-                                <Text style={styles.close_btn_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+        <Modal
+            isVisible={endInningModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <View style={styles.icon_wrapper}>
+                        {!showSpinner ? (
+                            <Icon
+                                name="error-outline"
+                                size={normalize(45)}
+                                color="#F99F0D"
+                            />
+                        ) : (
+                            <Spinner
+                                isLoading={showSpinner}
+                                spinnerColor="#F99F0D"
+                                spinnerSize={45}
+                            />
+                        )}
                     </View>
+                    <Text style={styles.modal_title}>End Innings?</Text>
+                    <Text style={styles.modal_desc}>
+                        Are you sure to end 1st innings?
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.confirm_btn}
+                        onPress={handleConfirmModal}
+                    >
+                        <Text style={styles.confirm_btn_text}>
+                            yes, i’m sure
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.close_btn}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.close_btn_text}>cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

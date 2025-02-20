@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
         bottom: normalizeVertical(70),
         alignSelf: "center",
         backgroundColor: "#B43427",
-        paddingVertical: normalizeVertical(10),
-        paddingHorizontal: normalize(20),
+        paddingVertical: normalizeVertical(11),
+        paddingHorizontal: normalize(22),
         borderRadius: normalize(8),
         elevation: 1,
         zIndex: 9999

@@ -15,6 +15,9 @@ import {
     updateOutBatsmanController,
     changeStrikeController,
     replacePlayerController,
+    changeCaptainController,
+    addSubstitutesController,
+    removeSubstitutesController,
     undoScoreController,
     endInningController,
     endMatchController,
@@ -76,6 +79,16 @@ router
 router
     .route("/replace-player/:matchId")
     .post(verifyToken, replacePlayerController);
+
+router
+    .route("/change-captain/:matchId")
+    .post(verifyToken, changeCaptainController);
+
+router.route("/add-substitutes/:matchId").post(verifyToken,addSubstitutesController);
+
+router
+    .route("/remove-substitutes/:matchId")
+    .post(verifyToken, removeSubstitutesController);
 
 router.route("/undo-score/:matchId").post(verifyToken, undoScoreController);
 

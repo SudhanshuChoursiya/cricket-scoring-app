@@ -12,8 +12,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
+import { showToast } from "../redux/toastSlice.js";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const AddTeamScreen = ({ navigation, route }) => {
     const [teamName, setTeamName] = useState(null);
@@ -33,14 +33,7 @@ const AddTeamScreen = ({ navigation, route }) => {
             setShowSpinner(true);
             Keyboard.dismiss();
             if (!teamName || !city) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "plz fill all required field"
-                    })
-                );
+                dispatch(showToast("plz fill all required field"));
                 return;
             }
 
@@ -59,24 +52,9 @@ const AddTeamScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                dispatch(showToast(data.message));
             } else {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
-
+                navigation.navigate("select-teams");
                 setTeamName(null);
                 setCity(null);
                 setCaptainName(null);
@@ -84,12 +62,7 @@ const AddTeamScreen = ({ navigation, route }) => {
         } catch (error) {
             console.log(error);
             dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
+                showToast("unexpected error occured,please try again latter")
             );
         } finally {
             setShowSpinner(false);
@@ -159,11 +132,6 @@ const AddTeamScreen = ({ navigation, route }) => {
                     )}
                 </TouchableOpacity>
             </View>
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
         </View>
     );
 };

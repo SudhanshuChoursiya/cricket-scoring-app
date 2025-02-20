@@ -11,8 +11,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
+import { showToast } from "../redux/toastSlice.js";
+
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
@@ -126,14 +126,7 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             setShowSpinner(true);
             const { matchId, teamId, replacedPlayerId } = route.params;
             if (!selectedPlayer || !matchId || !teamId || !replacedPlayerId) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "plz provide all required field"
-                    })
-                );
+                dispatch(showToast("plz provide all required field"));
                 return;
             }
 
@@ -157,37 +150,14 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                dispatch(showToast(data.message));
             } else {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
-
                 navigation.navigate("change-squad", { matchId, teamId });
                 setSelectedPlayer(null);
             }
         } catch (error) {
             console.log(error);
-            dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
-            );
+            dispatch(showToast("unexpected error occured, try again latter"));
         } finally {
             setShowSpinner(false);
         }
@@ -285,11 +255,6 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             ) : (
                 <LoadingSpinner />
             )}
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
         </View>
     );
 };
@@ -391,7 +356,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(60),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

@@ -4,12 +4,16 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setEndMatchModal } from "../redux/modalSlice.js";
-import { showAlert } from "../redux/alertSlice.js";
+import { showToast } from "../redux/toastSlice.js";
 
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -25,29 +29,33 @@ const EndMatchModal = ({
 }) => {
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [isMatchAbandoned, setIsMatchAbandoned] = useState(false);
-    const [showError, setShowError] = useState({ isShow: false, msg: null });
+
     const endMatchModal = useSelector(state => state.modal.endMatchModal);
     const { accessToken } = useSelector(state => state.auth);
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const deviceWidth = Dimensions.get("window").width;
 
-    const handleClose = () => {
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    const handleCloseModal = () => {
         dispatch(setEndMatchModal({ isShow: false }));
         setIsMatchAbandoned(false);
         setSelectedTeam(null);
-        setShowError({ isShow: false, msg: null });
     };
 
-    const handleConfirm = async () => {
+    const handleConfirmModal = async () => {
         try {
             setShowSpinner(true);
-            setShowError({ isShow: false, msg: null });
             let payload = {};
             if (!selectedTeam && !isMatchAbandoned) {
-                setShowError({
-                    isShow: true,
-                    msg: "Note: please select wining team or check match Abandoned"
-                });
+                dispatch(
+                    showToast(
+                        "please select wining team or check match Abandoned"
+                    )
+                );
                 return;
             }
 
@@ -73,7 +81,7 @@ const EndMatchModal = ({
             const data = await response.json();
 
             if (response.status !== 200) {
-                setShowError({ isShow: true, msg: data.message });
+                dispatch(showToast(data.message));
             } else {
                 navigation.navigate("home-screen");
 
@@ -88,115 +96,102 @@ const EndMatchModal = ({
         }
     };
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={endMatchModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setEndMatchModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <Text style={styles.modal_title}>
-                                Which Team won the match?
-                            </Text>
-                            <View style={styles.select_team_wrapper}>
-                                {[matchDetails?.teamA, matchDetails?.teamB].map(
-                                    team => (
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.team,
-                                                selectedTeam?.teamId ===
-                                                    team?.teamId &&
-                                                    styles.selected
-                                            ]}
-                                            onPress={() => {
-                                                setSelectedTeam(team);
-                                                isMatchAbandoned &&
-                                                    setIsMatchAbandoned(false);
-                                            }}
-                                            key={team?.teamId}
-                                        >
-                                            <View
-                                                style={styles.team_icon_wrapper}
-                                            >
-                                                <Text
-                                                    style={
-                                                        styles.team_icon_text
-                                                    }
-                                                >
-                                                    {team?.name[0]}
-                                                </Text>
-                                            </View>
-                                            <Text style={styles.team_name}>
-                                                {team?.name}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    )
-                                )}
-                            </View>
-                            <View style={styles.checkbox_wrapper}>
-                                <CheckBox
-                                    options={{
-                                        label: "Match Abandoned",
-                                        value: true
+        <Modal
+            isVisible={endMatchModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <Text style={styles.modal_title}>
+                        Which Team won the match?
+                    </Text>
+                    <View style={styles.select_team_wrapper}>
+                        {[matchDetails?.teamA, matchDetails?.teamB].map(
+                            team => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.team,
+                                        selectedTeam?.teamId === team?.teamId &&
+                                            styles.selected
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedTeam(team);
+                                        isMatchAbandoned &&
+                                            setIsMatchAbandoned(false);
                                     }}
-                                    checkedValue={isMatchAbandoned}
-                                    onCheck={value => {
-                                        setIsMatchAbandoned(value);
-                                        if (value) {
-                                            setSelectedTeam(null);
-                                        }
-                                    }}
-                                />
-                            </View>
-                            {showError.isShow && (
-                                <View style={styles.error_msg_wrapper}>
-                                    <Text style={styles.error_msg}>
-                                        {showError.msg}
+                                    key={team?.teamId}
+                                >
+                                    <View style={styles.team_icon_wrapper}>
+                                        <Text style={styles.team_icon_text}>
+                                            {team?.name[0]}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.team_name}>
+                                        {team?.name}
                                     </Text>
-                                </View>
-                            )}
-                        </View>
-                        <View style={styles.modal_btn_wrapper}>
-                            <TouchableOpacity
-                                style={styles.cancel_button}
-                                onPress={handleClose}
-                            >
-                                <Text style={styles.cancel_button_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.ok_button}
-                                onPress={handleConfirm}
-                            >
-                                <Text style={styles.ok_button_text}>ok</Text>
-                                {showSpinner && (
-                                    <Spinner
-                                        isLoading={showSpinner}
-                                        spinnerColor="white"
-                                        spinnerSize={28}
-                                    />
-                                )}
-                            </TouchableOpacity>
-                        </View>
+                                </TouchableOpacity>
+                            )
+                        )}
+                    </View>
+                    <View style={styles.checkbox_wrapper}>
+                        <CheckBox
+                            options={{
+                                label: "Match Abandoned",
+                                value: true
+                            }}
+                            checkedValue={isMatchAbandoned}
+                            onCheck={value => {
+                                setIsMatchAbandoned(value);
+                                if (value) {
+                                    setSelectedTeam(null);
+                                }
+                            }}
+                        />
                     </View>
                 </View>
-            </Modal>
-        </View>
+                <View style={styles.modal_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.cancel_button}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.cancel_button_text}>cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.ok_button}
+                        onPress={handleConfirmModal}
+                    >
+                        <Text style={styles.ok_button_text}>ok</Text>
+                        {showSpinner && (
+                            <Spinner
+                                isLoading={showSpinner}
+                                spinnerColor="white"
+                                spinnerSize={28}
+                            />
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(320),
@@ -305,15 +300,6 @@ const styles = StyleSheet.create({
     selected: {
         borderWidth: 2,
         borderColor: "#14B391"
-    },
-    error_msg_wrapper: {
-        marginHorizontal: normalize(20)
-    },
-    error_msg: {
-        color: "#9a0c0c",
-        fontSize: normalize(17),
-        fontFamily: "robotoMedium",
-        textTransform: "capitalize"
     }
 });
 export default EndMatchModal;

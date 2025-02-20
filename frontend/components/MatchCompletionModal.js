@@ -4,9 +4,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setMatchCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
@@ -18,7 +21,12 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
     );
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const deviceWidth = Dimensions.get("window").width;
 
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
     const handleNavigate = () => {
         navigation.navigate("home-screen", {
             matchId: matchDetails?._id
@@ -33,52 +41,55 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
     };
 
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={matchCompleteModal.isShow}
-                onRequestClose={() => {}}
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>Match Completed</Text>
-                        <View style={styles.modal_content}>
-                            <Text style={styles.inning_info}>
-                                {matchDetails?.matchWinner?.teamName} won by{" "}
-                                {matchDetails?.matchWinner?.wonBy}
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.start_new_inning_btn}
-                                onPress={handleNavigate}
-                            >
-                                <Text style={styles.start_new_inning_btn_text}>
-                                    End Match
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.continue_over_btn}
-                            onPress={handleContinueOver}
-                        >
-                            <Text style={styles.continue_over_btn_text}>
-                                Continue This Over
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+        <Modal
+            isVisible={matchCompleteModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <Text style={styles.modal_title}>Match Completed</Text>
+                <View style={styles.modal_content}>
+                    <Text style={styles.inning_info}>
+                        {matchDetails?.matchWinner?.teamName} won by{" "}
+                        {matchDetails?.matchWinner?.wonBy}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.start_new_inning_btn}
+                        onPress={handleNavigate}
+                    >
+                        <Text style={styles.start_new_inning_btn_text}>
+                            End Match
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+
+                <TouchableOpacity
+                    style={styles.continue_over_btn}
+                    onPress={handleContinueOver}
+                >
+                    <Text style={styles.continue_over_btn_text}>
+                        Continue This Over
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

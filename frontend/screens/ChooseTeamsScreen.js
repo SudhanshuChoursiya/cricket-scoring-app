@@ -332,7 +332,9 @@ const styles = StyleSheet.create({
     },
     confirm_team_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(60),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_team_btn_text: {
         fontSize: normalize(19),

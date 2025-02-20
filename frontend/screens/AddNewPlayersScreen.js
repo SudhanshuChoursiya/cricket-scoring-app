@@ -12,9 +12,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { useDispatch, useSelector } from "react-redux";
-import { showAlert } from "../redux/alertSlice.js";
-
-import AlertToast from "../components/AlertToast.js";
+import { showToast } from "../redux/toastSlice.js";
+("../components/AlertToast.js");
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const AddNewPlayersScreen = ({ navigation, route }) => {
@@ -26,7 +25,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
     const playersRefs = useRef([]);
-    const scrollViewRef = useRef();
 
     const { accessToken } = useSelector(state => state.auth);
 
@@ -45,10 +43,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
 
         updatedInputs[index].name = text;
         setPlayers(updatedInputs);
-    };
-
-    const removeEmptyValueFromArray = array => {
-        return array.filter(item => item.name.trim() !== "");
     };
 
     useEffect(() => {
@@ -81,21 +75,17 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
         }, [isScreenFocused])
     );
 
+    const removeEmptyValueFromArray = array => {
+        return array.filter(item => item.name.trim() !== "");
+    };
+
     const HandleAddPlayers = async () => {
         try {
             setShowSpinner(true);
             const filteredPlayers = await removeEmptyValueFromArray(players);
 
             if (filteredPlayers.length === 0) {
-                scrollViewRef.current.scrollTo({ y: 0, animated: true });
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "add atleast one player"
-                    })
-                );
+                dispatch(showToast("add atleast one player"));
                 return;
             }
 
@@ -113,39 +103,14 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
-
             if (response.status !== 200) {
-                scrollViewRef.current.scrollTo({ y: 0, animated: true });
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                dispatch(showToast(data.message));
             } else {
-                scrollViewRef.current.scrollTo({ y: 0, animated: true });
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                navigation.goBack();
             }
         } catch (error) {
             console.log(error);
-            scrollViewRef.current.scrollTo({ y: 0, animated: true });
-            dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
-            );
+            dispatch(showToast("unexpected error occured,try again latter"));
         } finally {
             setShowSpinner(false);
         }
@@ -153,26 +118,25 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.wrapper}>
+            <View style={styles.header}>
+                <TouchableOpacity
+                    style={styles.back_btn}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Icon
+                        name="arrow-back"
+                        size={normalize(26)}
+                        color="white"
+                    />
+                </TouchableOpacity>
+                <Text style={styles.label}>add new players</Text>
+            </View>
+
             <ScrollView
                 vertical={true}
                 showsVerticalScrollIndicator={true}
-                ref={scrollViewRef}
                 keyboardShouldPersistTaps={"handled"}
             >
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.back_btn}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Icon
-                            name="arrow-back"
-                            size={normalize(26)}
-                            color="white"
-                        />
-                    </TouchableOpacity>
-                    <Text style={styles.label}>add new players</Text>
-                </View>
-
                 <View style={styles.add_players_wrapper}>
                     {players.map((player, index) => (
                         <View style={styles.dynamic_input_wrapper} key={index}>
@@ -238,11 +202,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
                     )}
                 </TouchableOpacity>
             </View>
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
         </View>
     );
 };
@@ -271,7 +230,8 @@ const styles = StyleSheet.create({
     },
 
     add_players_wrapper: {
-        marginVertical: normalizeVertical(30)
+        marginTop: normalizeVertical(30),
+        marginBottom: normalizeVertical(80)
     },
     dynamic_input_wrapper: {
         width: "88%",
@@ -343,7 +303,7 @@ const styles = StyleSheet.create({
     },
     add_to_team_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
+        height: normalizeVertical(60),
         justifyContent: "center",
         alignItems: "center"
     },

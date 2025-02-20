@@ -129,6 +129,7 @@ const HomeScreen = ({ navigation, route }) => {
             dispatch(setNonStrikeBatsman({ _id: null, name: null }));
             dispatch(setCurrentBowler({ _id: null, name: null }));
         });
+
         return unsubscribe;
     }, [navigation]);
 

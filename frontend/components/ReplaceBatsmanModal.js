@@ -4,13 +4,17 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setReplaceBatsmanModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ReplaceBatsmanModal = ({ matchId, currentInningDetails }) => {
@@ -19,6 +23,16 @@ const ReplaceBatsmanModal = ({ matchId, currentInningDetails }) => {
     );
     const dispatch = useDispatch();
     const navigation = useNavigation();
+
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    const handleCloseModal = () => {
+        dispatch(setReplaceBatsmanModal({ isShow: false }));
+    };
     const handleNavigate = replacedBatsmanId => {
         navigation.navigate("select-new-batsman", {
             matchId,
@@ -27,77 +41,62 @@ const ReplaceBatsmanModal = ({ matchId, currentInningDetails }) => {
         dispatch(setReplaceBatsmanModal({ isShow: false }));
     };
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={replaceBatsmanModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setReplaceBatsmanModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <Text style={styles.modal_title}>
-                                Whom do you want to replace?
-                            </Text>
-                            <View style={styles.select_batsman_wrapper}>
-                                {currentInningDetails?.currentBatsmen.map(
-                                    batsman => (
-                                        <TouchableOpacity
-                                            style={styles.batsman}
-                                            onPress={() => handleNavigate(batsman._id)}
-                                            key={batsman._id}
-                                        >
-                                            <View
-                                                style={
-                                                    styles.batsman_icon_wrapper
-                                                }
-                                            >
-                                                <Text
-                                                    style={
-                                                        styles.batsman_icon_text
-                                                    }
-                                                >
-                                                    {batsman.name[0]}
-                                                </Text>
-                                            </View>
-                                            <Text style={styles.batsman_name}>
-                                                {batsman.name}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    )
-                                )}
-                            </View>
+        <Modal
+            isVisible={replaceBatsmanModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <Text style={styles.modal_title}>
+                        Whom do you want to replace?
+                    </Text>
+                    <View style={styles.select_batsman_wrapper}>
+                        {currentInningDetails?.currentBatsmen.map(batsman => (
                             <TouchableOpacity
-                                style={styles.close_btn}
-                                onPress={() =>
-                                    dispatch(
-                                        setReplaceBatsmanModal({
-                                            isShow: false
-                                        })
-                                    )
-                                }
+                                style={styles.batsman}
+                                onPress={() => handleNavigate(batsman._id)}
+                                key={batsman._id}
                             >
-                                <Text style={styles.close_btn_text}>
-                                    cancel
+                                <View style={styles.batsman_icon_wrapper}>
+                                    <Text style={styles.batsman_icon_text}>
+                                        {batsman.name[0]}
+                                    </Text>
+                                </View>
+                                <Text style={styles.batsman_name}>
+                                    {batsman.name}
                                 </Text>
                             </TouchableOpacity>
-                        </View>
+                        ))}
                     </View>
+                    <TouchableOpacity
+                        style={styles.close_btn}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.close_btn_text}>cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

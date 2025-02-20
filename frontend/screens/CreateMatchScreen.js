@@ -13,8 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { setTotalOvers, setCity, setGround } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
+import { showToast } from "../redux/toastSlice.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CreateMatchScreen = ({ navigation, route }) => {
@@ -64,14 +63,7 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 !matchPlace.city ||
                 !matchPlace.ground
             ) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "plz fill all required field"
-                    })
-                );
+                dispatch(showToast("plz fill all required field"));
                 return;
             }
 
@@ -96,24 +88,8 @@ const CreateMatchScreen = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                dispatch(showToast(data.message));
             } else {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
-
                 navigation.navigate("toss-screen", { matchId: data.data._id });
 
                 dispatch(setTotalOvers(null));
@@ -122,14 +98,7 @@ const CreateMatchScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
-            );
+            dispatch(showToast("unexpected error occured,try again latter"));
         } finally {
             setShowSpinner(false);
         }
@@ -228,11 +197,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
                     )}
                 </TouchableOpacity>
             </View>
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
         </View>
     );
 };
@@ -326,7 +290,7 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
+        height: normalizeVertical(60),
         justifyContent: "center",
         alignItems: "center"
     },

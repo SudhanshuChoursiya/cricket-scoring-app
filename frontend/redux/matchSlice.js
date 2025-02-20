@@ -5,13 +5,19 @@ const initialState = {
         id: null,
         name: null,
         playing11: [],
-        captain: null
+        captain: {
+            name: null,
+            captainId: null
+        }
     },
     teamB: {
         id: null,
         name: null,
         playing11: [],
-        captain: null
+        captain: {
+            name: null,
+            captainId: null
+        }
     },
     totalOvers: null,
     matchPlace: {

@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
+        height: normalizeVertical(60),
         justifyContent: "center",
         alignItems: "center"
     },

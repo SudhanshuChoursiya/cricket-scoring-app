@@ -4,10 +4,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Animated,
-    StatusBar
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback, useRef } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setOverCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
@@ -25,31 +27,12 @@ const OverCompletionModal = ({
     const dispatch = useDispatch();
     const navigation = useNavigation();
 
-    const slideAnim = useRef(new Animated.Value(500)).current;
+    const deviceWidth = Dimensions.get("window").width;
 
-    useEffect(() => {
-        if (overCompleteModal.isShow) {
-            slideIn();
-        } else {
-            slideOut();
-        }
-    }, [overCompleteModal.isShow]);
-
-    const slideIn = () => {
-        Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 150,
-            useNativeDriver: true
-        }).start();
-    };
-
-    const slideOut = () => {
-        Animated.timing(slideAnim, {
-            toValue: 500,
-            duration: 150,
-            useNativeDriver: true
-        }).start();
-    };
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleNavigate = () => {
         navigation.navigate("select-new-bowler", {
@@ -64,45 +47,46 @@ const OverCompletionModal = ({
     };
 
     return (
-        <>
-            {overCompleteModal.isShow && (
-                <Animated.View
-                    style={[
-                        styles.modal_wrapper,
-                        { transform: [{ translateY: slideAnim }] }
-                    ]}
+        <Modal
+            isVisible={overCompleteModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <Text style={styles.modal_title}>Over Complete</Text>
+                <View style={styles.modal_content}>
+                    <Text style={styles.over_info}>
+                        End of over {currentInningDetails?.currentOvers} by{" "}
+                        {currentInningDetails?.currentBowler?.name}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.start_new_over_btn}
+                        onPress={handleNavigate}
+                    >
+                        <Text style={styles.start_new_over_btn_text}>
+                            start next over
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Button to close the modal */}
+
+                <TouchableOpacity
+                    style={styles.continue_over_btn}
+                    onPress={handleContinueOver}
                 >
-                    <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>Over Complete</Text>
-                        <View style={styles.modal_content}>
-                            <Text style={styles.over_info}>
-                                End of over {currentInningDetails?.currentOvers}{" "}
-                                by {currentInningDetails?.currentBowler?.name}
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.start_new_over_btn}
-                                onPress={handleNavigate}
-                            >
-                                <Text style={styles.start_new_over_btn_text}>
-                                    start next over
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Button to close the modal */}
-
-                        <TouchableOpacity
-                            style={styles.continue_over_btn}
-                            onPress={handleContinueOver}
-                        >
-                            <Text style={styles.continue_over_btn_text}>
-                                Continue This Over
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
-            )}
-        </>
+                    <Text style={styles.continue_over_btn_text}>
+                        Continue This Over
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </Modal>
     );
 };
 
@@ -111,13 +95,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        marginTop: StatusBar.currentHeight
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

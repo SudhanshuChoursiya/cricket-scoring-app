@@ -4,10 +4,11 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Animated,
-    TouchableWithoutFeedback
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setCustomRunsModal } from "../redux/modalSlice.js";
 import Spinner from "./Spinner.js";
@@ -19,53 +20,25 @@ const CustomRunsModal = ({ showSpinner, handleUpdateScore }) => {
     const customRunsModal = useSelector(state => state.modal.customRunsModal);
     const dispatch = useDispatch();
 
-    const slideAnim = useRef(
-        new Animated.Value(normalizeVertical(250))
-    ).current;
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const deviceWidth = Dimensions.get("window").width;
 
-    useEffect(() => {
-        if (customRunsModal.isShow) {
-            Animated.parallel([
-                Animated.timing(slideAnim, {
-                    toValue: 0,
-                    duration: 100,
-                    useNativeDriver: true
-                }),
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 100,
-                    useNativeDriver: true
-                })
-            ]).start();
-        }
-    }, [customRunsModal.isShow]);
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleCloseModal = () => {
-        Animated.parallel([
-            Animated.timing(slideAnim, {
-                toValue: normalizeVertical(250),
-                duration: 100,
-                useNativeDriver: true
-            }),
-            Animated.timing(fadeAnim, {
-                toValue: 0,
-                duration: 100,
-                useNativeDriver: true
+        dispatch(
+            setCustomRunsModal({
+                runsInput: {
+                    isShow: false,
+                    value: null,
+                    label: null
+                },
+                payload: null,
+                isShow: false
             })
-        ]).start(() => {
-            dispatch(
-                setCustomRunsModal({
-                    runsInput: {
-                        isShow: false,
-                        value: null,
-                        label: null
-                    },
-                    payload: null,
-                    isShow: false
-                })
-            );
-        });
+        );
     };
 
     const handleConfirmModal = () => {
@@ -81,85 +54,79 @@ const CustomRunsModal = ({ showSpinner, handleUpdateScore }) => {
         ).then(() => handleCloseModal());
     };
 
-    if (!customRunsModal.isShow) return null;
-
     return (
-        <TouchableWithoutFeedback onPress={handleCloseModal}>
-            <Animated.View
-                style={[styles.modal_wrapper, { opacity: fadeAnim }]}
-            >
-                <Animated.View
-                    style={[
-                        styles.modal_container,
-                        { transform: [{ translateY: slideAnim }] }
-                    ]}
-                >
-                    <Text style={styles.modal_title}>
-                        Runs Scored by runnning
+        <Modal
+            isVisible={customRunsModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <Text style={styles.modal_title}>Runs Scored by runnning</Text>
+
+                <View style={styles.modal_content}>
+                    <View style={styles.modal_input_wrapper}>
+                        <TextInput
+                            style={styles.modal_input}
+                            value={customRunsModal.runsInput?.value}
+                            onChangeText={text =>
+                                dispatch(
+                                    setCustomRunsModal({
+                                        ...customRunsModal,
+                                        runsInput: {
+                                            ...customRunsModal.runsInput,
+                                            value: Number(text)
+                                        }
+                                    })
+                                )
+                            }
+                            keyboardType="numeric"
+                        />
+                    </View>
+                    <Text style={styles.modal_desc}>
+                        *4 and 6 will not be considered boundaries
                     </Text>
+                </View>
 
-                    <View style={styles.modal_content}>
-                        <View style={styles.modal_input_wrapper}>
-                            <TextInput
-                                style={styles.modal_input}
-                                value={customRunsModal.runsInput?.value}
-                                onChangeText={text =>
-                                    dispatch(
-                                        setCustomRunsModal({
-                                            ...customRunsModal,
-                                            runsInput: {
-                                                ...customRunsModal.runsInput,
-                                                value: Number(text)
-                                            }
-                                        })
-                                    )
-                                }
-                                keyboardType="numeric"
+                {/* Button to close the modal */}
+                <View style={styles.modal_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.cancel_button}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.cancel_button_text}>cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.ok_button}
+                        onPress={handleConfirmModal}
+                    >
+                        <Text style={styles.ok_button_text}>ok</Text>
+                        {showSpinner && (
+                            <Spinner
+                                isLoading={showSpinner}
+                                spinnerColor="white"
+                                spinnerSize={28}
                             />
-                        </View>
-                        <Text style={styles.modal_desc}>
-                            *4 and 6 will not be considered boundaries
-                        </Text>
-                    </View>
-
-                    {/* Button to close the modal */}
-                    <View style={styles.modal_btn_wrapper}>
-                        <TouchableOpacity
-                            style={styles.cancel_button}
-                            onPress={handleCloseModal}
-                        >
-                            <Text style={styles.cancel_button_text}>
-                                cancel
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.ok_button}
-                            onPress={handleConfirmModal}
-                        >
-                            <Text style={styles.ok_button_text}>ok</Text>
-                            {showSpinner && (
-                                <Spinner
-                                    isLoading={showSpinner}
-                                    spinnerColor="white"
-                                    spinnerSize={28}
-                                />
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
-            </Animated.View>
-        </TouchableWithoutFeedback>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
     modal_wrapper: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)"
+        flex: 1,
+        position: "relative",
+        margin: 0
     },
     modal_container: {
         width: "100%",

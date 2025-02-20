@@ -4,9 +4,13 @@ import {
     StyleSheet,
     Image,
     TouchableOpacity,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setOutMethodModal } from "../redux/modalSlice.js";
 import outMethodImg from "../assets/icon.png";
@@ -17,6 +21,17 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
     const outMethodModal = useSelector(state => state.modal.outMethodModal);
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+
+    const handleCloseModal = () => {
+        dispatch(setOutMethodModal({ isShow: false }));
+    };
+
     const outMedthodList = [
         {
             name: "bowled",
@@ -191,66 +206,62 @@ const OutMethodModal = ({ matchDetails, handleUpdateScore }) => {
     };
 
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={outMethodModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setOutMethodModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <Text style={styles.modal_title}>select out type</Text>
+        <Modal
+            isVisible={outMethodModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <Text style={styles.modal_title}>select out type</Text>
 
-                        <View style={styles.modal_content}>
-                            {outMedthodList.map((outMethod, index) => (
-                                <TouchableOpacity
-                                    style={styles.out_method}
-                                    key={index}
-                                    onPress={() => handlePress(outMethod)}
-                                >
-                                    <View style={styles.out_method_img_wrapper}>
-                                        <Image
-                                            style={styles.out_method_img}
-                                            resizeMode="cover"
-                                            source={outMethod.img}
-                                        />
-                                    </View>
-                                    <Text style={styles.out_method_text}>
-                                        {outMethod.name}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        <View style={styles.modal_btn_wrapper}>
-                            <TouchableOpacity
-                                style={styles.cancel_button}
-                                onPress={() =>
-                                    dispatch(
-                                        setOutMethodModal({ isShow: false })
-                                    )
-                                }
-                            >
-                                <Text style={styles.cancel_button_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                <View style={styles.modal_content}>
+                    {outMedthodList.map((outMethod, index) => (
+                        <TouchableOpacity
+                            style={styles.out_method}
+                            key={index}
+                            onPress={() => handlePress(outMethod)}
+                        >
+                            <View style={styles.out_method_img_wrapper}>
+                                <Image
+                                    style={styles.out_method_img}
+                                    resizeMode="cover"
+                                    source={outMethod.img}
+                                />
+                            </View>
+                            <Text style={styles.out_method_text}>
+                                {outMethod.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
-            </Modal>
-        </View>
+
+                <View style={styles.modal_btn_wrapper}>
+                    <TouchableOpacity
+                        style={styles.cancel_button}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.cancel_button_text}>cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        position: "relative"
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: "100%",

@@ -14,8 +14,6 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CaughtOutFielderAssign = ({ navigation, route }) => {
@@ -365,7 +363,7 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
+        height: normalizeVertical(60),
         justifyContent: "center",
         alignItems: "center"
     },

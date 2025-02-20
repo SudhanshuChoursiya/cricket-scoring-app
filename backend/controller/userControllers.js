@@ -243,8 +243,8 @@ const createMatchController = asyncHandler(async (req, res) => {
         teamB.name,
         teamA.playing11,
         teamB.playing11,
-        teamA.captain,
-        teamB.captain,
+        teamA.captain.name,
+        teamB.captain.captainId,
         totalOvers,
         matchPlace.city,
         matchPlace.ground
@@ -281,7 +281,7 @@ const createMatchController = asyncHandler(async (req, res) => {
         totalOvers
     };
 
-    const match = await MatchModel.create({
+    const match = new MatchModel({
         inning1: initialInningDetails,
         inning2: initialInningDetails,
         teamA: {
@@ -299,6 +299,8 @@ const createMatchController = asyncHandler(async (req, res) => {
         matchPlace,
         createdBy: user._id
     });
+
+    await match.save();
 
     if (!match) {
         throw new ApiError(
@@ -351,12 +353,51 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
         battingTeam =
             tossWinner === match.teamA.name ? match.teamB : match.teamA;
     }
+    const batsmanInitialStats = {
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        isOut: false
+    };
 
-    match.inning1.battingTeam = battingTeam;
-    match.inning1.bowlingTeam = bowlingTeam;
+    const bowlerInitialStats = {
+        ballsBowled: 0,
+        wickets: 0,
+        overs: 0,
+        runsConceded: 0
+    };
 
-    match.inning2.battingTeam = bowlingTeam;
-    match.inning2.bowlingTeam = battingTeam;
+    match.inning1.battingTeam = {
+        ...battingTeam,
+        playing11: battingTeam.playing11.map(player => ({
+            ...player,
+            ...batsmanInitialStats
+        }))
+    };
+
+    match.inning1.bowlingTeam = {
+        ...bowlingTeam,
+        playing11: bowlingTeam.playing11.map(player => ({
+            ...player,
+            ...bowlerInitialStats
+        }))
+    };
+
+    match.inning2.battingTeam = {
+        ...bowlingTeam,
+        playing11: bowlingTeam.playing11.map(player => ({
+            ...player,
+            ...batsmanInitialStats
+        }))
+    };
+    match.inning2.bowlingTeam = {
+        ...battingTeam,
+        playing11: battingTeam.playing11.map(player => ({
+            ...player,
+            ...bowlerInitialStats
+        }))
+    };
 
     match.matchStatus = "toss happend";
     match.toss.tossWinner = tossWinner;
@@ -812,7 +853,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
     switchStrike();
     endOver();
     checkGameProgress();
-    io.emit("scoreUpdated", match);
+    io.emit("scoreUpdated", {match});
     // Save match details
     await match.save();
 
@@ -942,7 +983,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
     const newBatsman = battingTeam.playing11.find(player =>
         player._id.equals(newBatsmanId)
     );
-
+    
     if (!replacedBatsman || !newBatsman) {
         throw new ApiError(404, "Batsman not found");
     }
@@ -952,6 +993,8 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
         _id: replacedBatsman._id,
         runs: replacedBatsman.runs,
         balls: replacedBatsman.balls,
+        fours: replacedBatsman.fours,
+        sixes: replacedBatsman.sixes,
         onStrike: replacedBatsman.onStrike
     };
 
@@ -965,14 +1008,18 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
                 ...player.toObject(),
                 _id: replacedBatsman._id,
                 runs: replacedBatsman.runs,
-                balls: replacedBatsman.balls
+                balls: replacedBatsman.balls,
+                fours: replacedBatsman.fours,
+                sixes: replacedBatsman.sixes
             };
         } else if (player._id.equals(replacedBatsmanId)) {
             return {
                 ...player.toObject(),
                 _id: newBatsman._id,
                 runs: 0,
-                balls: 0
+                balls: 0,
+                fours: 0,
+                sixes: 0
             };
         }
         return player;
@@ -1006,7 +1053,7 @@ const changeStrikeController = asyncHandler(async (req, res) => {
     currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsmen => {
         return { ...batsmen, onStrike: !batsmen.onStrike };
     });
-    io.emit("scoreUpdated", match);
+    io.emit("scoreUpdated", {match});
     await match.save();
 
     res.status(200).json(
@@ -1023,36 +1070,6 @@ const replacePlayerController = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all required fields");
     }
 
-    // Find the match details
-    const match = await MatchModel.findOne({
-        _id: matchId,
-        createdBy: user._id
-    });
-
-    if (!match) {
-        throw new ApiError(404, "Match not found");
-    }
-
-    // Check if the new player is already in the playing 11
-    const isPlayerAlreadyInPlaying11 = team =>
-        team.playing11.some(
-            player => player.playerId.toString() === newPlayerId
-        );
-
-    if (
-        match.teamA.teamId.toString() === teamId &&
-        isPlayerAlreadyInPlaying11(match.teamA)
-    ) {
-        throw new ApiError(400, "New player is already in the playing 11");
-    }
-
-    if (
-        match.teamB.teamId.toString() === teamId &&
-        isPlayerAlreadyInPlaying11(match.teamB)
-    ) {
-        throw new ApiError(400, "New player is already in the playing 11");
-    }
-
     // Find the team details
     const teamDetails = await TeamModel.findOne({
         _id: teamId,
@@ -1060,7 +1077,7 @@ const replacePlayerController = asyncHandler(async (req, res) => {
     });
 
     if (!teamDetails) {
-        throw new ApiError(404, "Team details not found");
+        throw new ApiError(404, "team not found");
     }
 
     // Get the new player details
@@ -1069,48 +1086,117 @@ const replacePlayerController = asyncHandler(async (req, res) => {
     );
 
     if (!newPlayer) {
-        throw new ApiError(404, "New player not found in team");
+        throw new ApiError(404, "new player not found in team");
     }
 
-    // Convert newPlayer to match player structure
-    const newPlayerData = {
-        ...newPlayer.toObject(),
-        runs: 0,
-        balls: 0,
-        fours: 0,
-        sixes: 0,
-        isOut: false,
-        ballsBowled: 0,
-        wickets: 0,
-        overs: 0,
-        runsConceded: 0
-    };
+    // Find the match details
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    // Check replaced player exist in playing11
+    const isReplacedPlayerExist = team =>
+        team.playing11.some(
+            player => player.playerId.toString() === replacedPlayerId
+        );
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        !isReplacedPlayerExist(match.teamA)
+    ) {
+        throw new ApiError(400, "replaced player not found in the playing 11");
+    } else if (
+        match.teamB.teamId.toString() === teamId &&
+        !isReplacedPlayerExist(match.teamB)
+    ) {
+        throw new ApiError(400, "replaced player not found in the playing 11");
+    }
+
+    // Check if the new player is already in the playing 11
+    const isNewPlayerAlreadyInPlaying11 = team =>
+        team.playing11.some(
+            player => player.playerId.toString() === newPlayerId
+        );
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        isNewPlayerAlreadyInPlaying11(match.teamA)
+    ) {
+        throw new ApiError(400, "new player is already in the playing 11");
+    } else if (
+        match.teamB.teamId.toString() === teamId &&
+        isNewPlayerAlreadyInPlaying11(match.teamB)
+    ) {
+        throw new ApiError(400, "new player is already in the playing 11");
+    }
 
     // Replace player in teamA or teamB
-    const replacePlayerInTeam = team => {
-        team.playing11 = team.playing11.map(player =>
-            player.playerId.toString() === replacedPlayerId
-                ? newPlayerData
-                : player
+    const replacePlayerInTeam = playing11 => {
+        playing11 = playing11.map(player =>
+            player.playerId.toString() === replacedPlayerId ? newPlayer : player
         );
-        return team;
+        return playing11;
     };
 
     if (match.teamA.teamId.toString() === teamId) {
-        match.teamA = replacePlayerInTeam(match.teamA);
+        match.teamA.playing11 = replacePlayerInTeam(match.teamA.playing11);
     } else if (match.teamB.teamId.toString() === teamId) {
-        match.teamB = replacePlayerInTeam(match.teamB);
+        match.teamB.playing11 = replacePlayerInTeam(match.teamB.playing11);
     } else {
         throw new ApiError(400, "Team not part of this match");
     }
 
     // Update player in both innings (batting and bowling teams)
+    let newBatsmanData;
+    let newBowlerData;
     const replacePlayerInInning = inning => {
         if (inning.battingTeam.teamId.toString() === teamId) {
-            inning.battingTeam = replacePlayerInTeam(inning.battingTeam);
+            const replacedPlayer = inning.battingTeam.playing11.find(player =>
+                player.playerId.equals(replacedPlayerId)
+            );
+
+            newBatsmanData = {
+                ...newPlayer.toObject(),
+                _id: replacedPlayer._id,
+                runs: replacedPlayer.runs,
+                balls: replacedPlayer.balls,
+                fours: replacedPlayer.fours,
+                sixes: replacedPlayer.sixes,
+                isOut: replacedPlayer.isOut
+            };
+
+            inning.battingTeam.playing11 = inning.battingTeam.playing11.map(
+                player =>
+                    player.playerId.toString() === replacedPlayerId
+                        ? newBatsmanData
+                        : player
+            );
         }
         if (inning.bowlingTeam.teamId.toString() === teamId) {
-            inning.bowlingTeam = replacePlayerInTeam(inning.bowlingTeam);
+            const replacedPlayer = inning.bowlingTeam.playing11.find(player =>
+                player.playerId.equals(replacedPlayerId)
+            );
+
+            newBowlerData = {
+                ...newPlayer.toObject(),
+                _id: replacedPlayer._id,
+                ballsBowled: replacedPlayer.ballsBowled,
+                wickets: replacedPlayer.wickets,
+                overs: replacedPlayer.overs,
+                runsConceded: replacedPlayer.runsConceded
+            };
+
+            inning.bowlingTeam.playing11 = inning.bowlingTeam.playing11.map(
+                player =>
+                    player.playerId.toString() === replacedPlayerId
+                        ? newBowlerData
+                        : player
+            );
         }
     };
 
@@ -1126,7 +1212,7 @@ const replacePlayerController = asyncHandler(async (req, res) => {
         if (isCurrentBatsman) {
             inning.currentBatsmen = inning.currentBatsmen.map(batsman =>
                 batsman.playerId.toString() === replacedPlayerId
-                    ? { ...newPlayerData, onStrike: batsman.onStrike }
+                    ? { ...newBatsmanData, onStrike: batsman.onStrike }
                     : batsman
             );
         }
@@ -1141,7 +1227,7 @@ const replacePlayerController = asyncHandler(async (req, res) => {
             inning.currentBowler?.playerId.toString() === replacedPlayerId;
 
         if (isCurrentBowler) {
-            inning.currentBowler = newPlayerData;
+            inning.currentBowler = newBowlerData;
         }
     };
 
@@ -1152,7 +1238,283 @@ const replacePlayerController = asyncHandler(async (req, res) => {
     await match.save();
 
     res.status(200).json(
-        new ApiResponse(200, match, "Player replaced successfully")
+        new ApiResponse(200, match, "player replaced successfully")
+    );
+});
+
+const changeCaptainController = asyncHandler(async (req, res) => {
+    const { teamId, captainId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!captainId || !teamId) {
+        throw new ApiError(400, "Please provide all required fields");
+    }
+
+    // Find the match details
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "Match not found");
+    }
+
+    // Check if the new player is already in the playing 11
+    const isPlayerAlreadyCaptain = team =>
+        team.captain.captainId.equals(captainId);
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        isPlayerAlreadyCaptain(match.teamA)
+    ) {
+        throw new ApiError(400, " player is already captain");
+    }
+
+    if (
+        match.teamB.teamId.toString() === teamId &&
+        isPlayerAlreadyCaptain(match.teamB)
+    ) {
+        throw new ApiError(400, " player is already captain");
+    }
+
+    let captainDetails;
+    if (match.teamA.teamId.toString() === teamId) {
+        captainDetails = match.teamA.playing11.find(player =>
+            player.playerId.equals(captainId)
+        );
+    } else if (match.teamB.teamId.toString() === teamId) {
+        captainDetails = match.teamB.playing11.find(player =>
+            player.playerId.equals(captainId)
+        );
+    }
+
+    // Replace player in teamA or teamB
+    const changeCaptainInTeam = team => {
+        team.captain.captainId = captainDetails.playerId;
+        team.captain.name = captainDetails.name;
+    };
+
+    if (match.teamA.teamId.toString() === teamId) {
+        changeCaptainInTeam(match.teamA);
+    } else if (match.teamB.teamId.toString() === teamId) {
+        changeCaptainInTeam(match.teamB);
+    } else {
+        throw new ApiError(400, "Team not part of this match");
+    }
+
+    // change captain in both innings (batting and bowling team)
+    const changeCaptainInInning = inning => {
+        if (inning.battingTeam.teamId.toString() === teamId) {
+            inning.battingTeam.captain.captainId = captainDetails.playerId;
+            inning.battingTeam.captain.name = captainDetails.name;
+        }
+        if (inning.bowlingTeam.teamId.toString() === teamId) {
+            inning.bowlingTeam.captain.captainId = captainDetails.playerId;
+            inning.bowlingTeam.captain.name = captainDetails.name;
+        }
+    };
+
+    changeCaptainInInning(match.inning1);
+    changeCaptainInInning(match.inning2);
+
+    io.emit("scoreUpdated", { match });
+    // Save changes
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "captain changed successfully")
+    );
+});
+
+const addSubstitutesController = asyncHandler(async (req, res) => {
+    const { teamId, playerId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!matchId || !playerId || !teamId) {
+        throw new ApiError(400, "please provide all required fields");
+    }
+
+    // Find the match details
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    // Check if the player is already in the substitutes
+    const isPlayerAlreadyInSubstitutes = team =>
+        team.substitutes.some(substitute =>
+            substitute.playerId.equals(playerId)
+        );
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        isPlayerAlreadyInSubstitutes(match.teamA)
+    ) {
+        throw new ApiError(400, " player is already in substitutes");
+    } else if (
+        match.teamB.teamId.toString() === teamId &&
+        isPlayerAlreadyInSubstitutes(match.teamB)
+    ) {
+        throw new ApiError(400, " player is already in substitutes");
+    }
+
+    // Find the team details
+    const team = await TeamModel.findOne({
+        _id: teamId,
+        createdBy: user._id
+    });
+
+    if (!team) {
+        throw new ApiError(404, "team not found");
+    }
+
+    const player = team.players.find(player =>
+        player.playerId.equals(playerId)
+    );
+
+    if (!player) {
+        throw new ApiError(404, "player not found");
+    }
+
+    // add substitutes in teamA or teamB
+    const addSubstituteInTeam = team => {
+        team.substitutes.push(player);
+    };
+
+    if (match.teamA.teamId.toString() === teamId) {
+        addSubstituteInTeam(match.teamA);
+    } else if (match.teamB.teamId.toString() === teamId) {
+        addSubstituteInTeam(match.teamB);
+    } else {
+        throw new ApiError(400, "Team not part of this match");
+    }
+
+    // add substitutes in both innings (batting and bowling team)
+    const addSubstituteInInning = inning => {
+        if (inning.battingTeam.teamId.toString() === teamId) {
+            inning.battingTeam.substitutes.push(player);
+        }
+        if (inning.bowlingTeam.teamId.toString() === teamId) {
+            inning.bowlingTeam.substitutes.push(player);
+        }
+    };
+
+    addSubstituteInInning(match.inning1);
+    addSubstituteInInning(match.inning2);
+
+    io.emit("scoreUpdated", { match, squadDetails: team });
+    // Save changes
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(200, match, "player added in substitutes successfully")
+    );
+});
+
+const removeSubstitutesController = asyncHandler(async (req, res) => {
+    const { teamId, playerId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!matchId || !playerId || !teamId) {
+        throw new ApiError(400, "please provide all required fields");
+    }
+
+    // Find the match details
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    // Check if the player is already in the substitutes
+    const isPlayerInSubstitutes = team =>
+        team.substitutes.some(player => player.playerId.equals(playerId));
+
+    if (
+        match.teamA.teamId.toString() === teamId &&
+        !isPlayerInSubstitutes(match.teamA)
+    ) {
+        throw new ApiError(400, " player not found in substitutes");
+    } else if (
+        match.teamB.teamId.toString() === teamId &&
+        !isPlayerInSubstitutes(match.teamB)
+    ) {
+        throw new ApiError(400, " player not found in substitutes");
+    }
+
+    // Find the team details
+    const team = await TeamModel.findOne({
+        _id: teamId,
+        createdBy: user._id
+    });
+
+    if (!team) {
+        throw new ApiError(404, "team not found");
+    }
+
+    const player = team.players.find(player =>
+        player.playerId.equals(playerId)
+    );
+
+    if (!player) {
+        throw new ApiError(404, "player not found");
+    }
+
+    // add substitutes in teamA or teamB
+    const removeSubstituteInTeam = team => {
+        team.substitutes = team.substitutes.filter(
+            substitute => !substitute.playerId.equals(player.playerId)
+        );
+    };
+
+    if (match.teamA.teamId.toString() === teamId) {
+        removeSubstituteInTeam(match.teamA);
+    } else if (match.teamB.teamId.toString() === teamId) {
+        removeSubstituteInTeam(match.teamB);
+    } else {
+        throw new ApiError(400, "team not part of this match");
+    }
+
+    // add substitutes in both innings (batting and bowling team)
+    const removeSubstituteInInning = inning => {
+        if (inning.battingTeam.teamId.toString() === teamId) {
+            inning.battingTeam.substitutes =
+                inning.battingTeam.substitutes.filter(
+                    substitute => !substitute.playerId.equals(player.playerId)
+                );
+        }
+        if (inning.bowlingTeam.teamId.toString() === teamId) {
+            inning.bowlingTeam.substitutes =
+                inning.bowlingTeam.substitutes.filter(
+                    substitute => !substitute.playerId.equals(player.playerId)
+                );
+        }
+    };
+
+    removeSubstituteInInning(match.inning1);
+    removeSubstituteInInning(match.inning2);
+
+    io.emit("scoreUpdated", { match, squadDetails: team });
+    // Save changes
+    await match.save();
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            match,
+            "player removed from substitutes successfully"
+        )
     );
 });
 
@@ -1304,7 +1666,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     currentInning.currentBowler = currentBowler;
 
     currentInning.currentOverTimeline.pop();
-    io.emit("scoreUpdated", match);
+    io.emit("scoreUpdated", {match});
     // Save the updated match
     await match.save();
 
@@ -1415,6 +1777,9 @@ export {
     updateOutBatsmanController,
     changeStrikeController,
     replacePlayerController,
+    changeCaptainController,
+    addSubstitutesController,
+    removeSubstitutesController,
     undoScoreController,
     endInningController,
     endMatchController,

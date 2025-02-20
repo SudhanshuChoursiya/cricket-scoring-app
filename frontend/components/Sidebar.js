@@ -3,12 +3,13 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Animated,
-    Dimensions,
     StatusBar,
-    TouchableWithoutFeedback
+    Dimensions,
+    Platform
 } from "react-native";
 import React, { useEffect, useRef } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch } from "react-redux";
 import {
     setReplaceBatsmanModal,
@@ -21,22 +22,16 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
     const dispatch = useDispatch();
-    const sidebarAnim = useRef(new Animated.Value(-250)).current;
-    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const deviceWidth = Dimensions.get("window").width;
 
-    useEffect(() => {
-        Animated.timing(sidebarAnim, {
-            toValue: showSidebar ? 0 : -250,
-            duration: 200,
-            useNativeDriver: false
-        }).start();
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
-        Animated.timing(overlayOpacity, {
-            toValue: showSidebar ? 1 : 0,
-            duration: 200,
-            useNativeDriver: false
-        }).start();
-    }, [showSidebar]);
+    const handleCloseSideBar = () => {
+        setShowSidebar(false);
+    };
 
     const handleLinkPress = link => {
         setShowSidebar(false);
@@ -58,18 +53,22 @@ const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
     };
 
     return (
-        <>
-            {/* Overlay */}
-            {showSidebar && (
-                <TouchableWithoutFeedback onPress={() => setShowSidebar(false)}>
-                    <Animated.View
-                        style={[styles.overlay, { opacity: overlayOpacity }]}
-                    />
-                </TouchableWithoutFeedback>
-            )}
-
-            {/* Sidebar */}
-            <Animated.View style={[styles.sidebar, { right: sidebarAnim }]}>
+        <Modal
+            isVisible={showSidebar}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationIn="slideInRight"
+            animationOut="slideOutRight"
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseSideBar}
+            onBackButtonPress={handleCloseSideBar}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.sidebar_container}>
                 <View style={styles.cross_btn_wrapper}>
                     <TouchableOpacity
                         style={styles.cross_btn}
@@ -115,32 +114,28 @@ const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
                 >
                     <Text style={styles.sidebar_link_text}>end match</Text>
                 </TouchableOpacity>
-            </Animated.View>
-        </>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        zIndex: 9
+    modal_wrapper: {
+        flex: 1,
+        position: "relative",
+        margin: 0,
+        marginTop: StatusBar.currentHeight
     },
-    sidebar: {
-        marginTop: StatusBar.currentHeight,
-        position: "absolute",
-        top: 0,
-        right: normalize(-250),
+    sidebar_container: {
         width: normalize(250),
         height: "100%",
-        backgroundColor: "#fff",
-        elevation: 5,
+        backgroundColor: "#FFFFFF",
+        position: "absolute",
+        top: 0,
+        right: 0,
         paddingVertical: normalizeVertical(20),
         paddingHorizontal: normalize(20),
+        elevation: 5,
         zIndex: 10
     },
     cross_btn_wrapper: {

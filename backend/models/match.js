@@ -7,24 +7,19 @@ const PlayerSchema = new mongoose.Schema({
     },
     name: String,
     runs: {
-        type: Number,
-        default: 0
+        type: Number
     },
     balls: {
-        type: Number,
-        default: 0
+        type: Number
     },
     fours: {
-        type: Number,
-        default: 0
+        type: Number
     },
     sixes: {
-        type: Number,
-        default: 0
+        type: Number
     },
     isOut: {
-        type: Boolean,
-        default: false
+        type: Boolean
     },
     outMethod: {
         type: String
@@ -36,20 +31,16 @@ const PlayerSchema = new mongoose.Schema({
         type: String
     },
     ballsBowled: {
-        type: Number,
-        default: 0
+        type: Number
     },
     wickets: {
-        type: Number,
-        default: 0
+        type: Number
     },
     overs: {
-        type: Number,
-        default: 0
+        type: Number
     },
     runsConceded: {
-        type: Number,
-        default: 0
+        type: Number
     },
     onStrike: {
         type: Boolean
@@ -64,7 +55,10 @@ const TeamSchema = new mongoose.Schema({
     name: String,
     playing11: [PlayerSchema],
     substitutes: [PlayerSchema],
-    captain: String
+    captain: {
+        name: String,
+        captainId: mongoose.Schema.Types.ObjectId
+    }
 });
 
 // Inning Schema

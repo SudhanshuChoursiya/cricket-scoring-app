@@ -84,9 +84,12 @@ const SelectFielder = ({ navigation, route }) => {
     );
 
     const availablePlayers = () => {
-        return bowlingTeam.playing11.filter(player => {
-            return player._id !== currentBowler._id;
-        });
+        return [
+            ...bowlingTeam?.playing11.filter(player => {
+                return player._id !== currentBowler._id;
+            }),
+            ...bowlingTeam?.substitutes
+        ];
     };
 
     const handleSelectPlayer = () => {
@@ -140,17 +143,29 @@ const SelectFielder = ({ navigation, route }) => {
                                 ]}
                                 onPress={() => setSelectedPlayer(item)}
                             >
-                                <View style={styles.player_icon}>
-                                    <Text style={styles.player_icon_text}>
-                                        {item.name[0]}
-                                    </Text>
+                                <View style={styles.player_details}>
+                                    <View style={styles.player_icon}>
+                                        <Text style={styles.player_icon_text}>
+                                            {item.name[0]}
+                                        </Text>
+                                    </View>
+                                    <View
+                                        style={styles.other_player_info_wrapper}
+                                    >
+                                        <Text style={styles.player_name}>
+                                            {item.name}
+                                        </Text>
+                                    </View>
                                 </View>
-
-                                <View style={styles.other_player_info_wrapper}>
-                                    <Text style={styles.player_name}>
-                                        {item.name}
-                                    </Text>
-                                </View>
+                                {bowlingTeam?.substitutes.includes(item) && (
+                                    <View style={styles.substitute_sign}>
+                                        <Text
+                                            style={styles.substitute_sign_text}
+                                        >
+                                            sub
+                                        </Text>
+                                    </View>
+                                )}
                             </TouchableOpacity>
                         )}
                         keyExtractor={item => item._id}
@@ -221,6 +236,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: normalize(18),
         alignItems: "center",
+        justifyContent: "space-between",
         backgroundColor: "white",
         marginHorizontal: "auto",
         paddingHorizontal: normalize(10),
@@ -229,6 +245,11 @@ const styles = StyleSheet.create({
         elevation: 2,
         borderWidth: 2,
         borderColor: "white"
+    },
+    player_details: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: normalize(18)
     },
     player_icon: {
         backgroundColor: "#f75454",
@@ -251,6 +272,13 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
     },
+    substitute_sign: {},
+    substitute_sign_text: {
+        fontSize: normalize(17),
+        color: "#ad0c0c",
+        fontFamily: "robotoMedium",
+        textTransform: "capitalize"
+    },
     confirm_btn_wrapper: {
         position: "absolute",
         bottom: 0,
@@ -259,7 +287,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(60),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

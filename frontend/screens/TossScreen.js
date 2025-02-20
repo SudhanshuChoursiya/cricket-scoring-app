@@ -16,8 +16,7 @@ import batLogo from "../assets/cricket-bat.png";
 import ballLogo from "../assets/cricket-ball.png";
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
+import { showToast } from "../redux/toastSlice.js";
 
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TossScreen = ({ navigation, route }) => {
@@ -96,14 +95,7 @@ const TossScreen = ({ navigation, route }) => {
         try {
             setShowSpinner(true);
             if (!tossWinner || !tossDecision) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "plz select all required field"
-                    })
-                );
+                dispatch(showToast("plz select all required field"));
                 return;
             }
 
@@ -125,24 +117,8 @@ const TossScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                dispatch(showToast(data.message));
             } else {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "success",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
-
                 navigation.navigate("initial-players-assign-screen", {
                     matchId: route.params?.matchId
                 });
@@ -151,14 +127,7 @@ const TossScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(
-                showAlert({
-                    value: true,
-                    severity: "error",
-                    type: "normal_alert",
-                    msg: "unexpected error occured,please try again latter"
-                })
-            );
+            dispatch(showToast("unexpected error occured, try again latter"));
         } finally {
             setShowSpinner(false);
         }
@@ -304,11 +273,6 @@ const TossScreen = ({ navigation, route }) => {
                             )}
                         </TouchableOpacity>
                     </View>
-                    <AlertToast
-                        topOffSet={15}
-                        successToastStyle={{ borderLeftColor: "green" }}
-                        errorToastStyle={{ borderLeftColor: "red" }}
-                    />
                 </>
             ) : (
                 <LoadingSpinner />
@@ -435,7 +399,7 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        height: normalizeVertical(65),
+        height: normalizeVertical(60),
         justifyContent: "center",
         alignItems: "center"
     },

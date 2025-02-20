@@ -4,9 +4,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    StatusBar,
+    Dimensions,
+    Platform
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setReplaceBowlerModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
@@ -19,6 +22,15 @@ const ReplaceBowlerModal = ({ matchId }) => {
     );
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    const handleCloseModal = () => {
+        dispatch(setReplaceBowlerModal({ isShow: false }));
+    };
     const handleNavigate = () => {
         navigation.navigate("select-new-bowler", {
             matchId
@@ -26,66 +38,63 @@ const ReplaceBowlerModal = ({ matchId }) => {
         dispatch(setReplaceBowlerModal({ isShow: false }));
     };
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={replaceBowlerModal.isShow}
-                onRequestClose={() =>
-                    dispatch(setReplaceBowlerModal({ isShow: false }))
-                }
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <View style={styles.icon_wrapper}>
-                                <Icon
-                                    name="error-outline"
-                                    size={normalize(45)}
-                                    color="#F99F0D"
-                                />
-                            </View>
-                            <Text style={styles.modal_title}>
-                                Replace bowler?
-                            </Text>
-                            <Text style={styles.modal_desc}>
-                                Are u sure to replace current bowler?
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.confirm_btn}
-                                onPress={handleNavigate}
-                            >
-                                <Text style={styles.confirm_btn_text}>
-                                    yes, i’m sure
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.close_btn}
-                                onPress={() =>
-                                    dispatch(
-                                        setReplaceBowlerModal({ isShow: false })
-                                    )
-                                }
-                            >
-                                <Text style={styles.close_btn_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+        <Modal
+            isVisible={replaceBowlerModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <View style={styles.icon_wrapper}>
+                        <Icon
+                            name="error-outline"
+                            size={normalize(45)}
+                            color="#F99F0D"
+                        />
                     </View>
+                    <Text style={styles.modal_title}>Replace bowler?</Text>
+                    <Text style={styles.modal_desc}>
+                        Are u sure to replace current bowler?
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.confirm_btn}
+                        onPress={handleNavigate}
+                    >
+                        <Text style={styles.confirm_btn_text}>
+                            yes, i’m sure
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.close_btn}
+                        onPress={() =>
+                            dispatch(setReplaceBowlerModal({ isShow: false }))
+                        }
+                    >
+                        <Text style={styles.close_btn_text}>cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        position: "relative",
+        margin: 0,
+        paddingTop: StatusBar.currentHeight
     },
     modal_container: {
         width: normalize(300),

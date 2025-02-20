@@ -83,7 +83,7 @@ const SelectNewBowler = ({ navigation, route }) => {
     );
 
     const availablePlayers = () => {
-        return bowlingTeam.playing11.filter(player => {
+        return bowlingTeam?.playing11.filter(player => {
             return player._id !== currentBowler._id;
         });
     };

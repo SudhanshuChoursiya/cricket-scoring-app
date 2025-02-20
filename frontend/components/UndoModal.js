@@ -4,9 +4,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    Modal
+    Dimensions,
+    Platform,
+    StatusBar
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import Modal from "react-native-modal";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setUndoModal } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -16,65 +19,77 @@ import { normalize, normalizeVertical } from "../utils/responsive.js";
 const UndoModal = ({ handleUndoScore }) => {
     const undoModal = useSelector(state => state.modal.undoModal);
     const dispatch = useDispatch();
-    const handleUndo = () => {
+    const deviceWidth = Dimensions.get("window").width;
+
+    const deviceHeight =
+        Platform.OS === "ios"
+            ? Dimensions.get("window").height
+            : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+
+    const handleCloseModal = () => {
+        dispatch(setUndoModal({ isShow: false }));
+    };
+
+    const handleConfirmModal = () => {
         handleUndoScore();
         dispatch(setUndoModal({ isShow: false }));
     };
     return (
-        <View style={styles.modal_wrapper}>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={undoModal.isShow}
-                onRequestClose={() => dispatch(setUndoModal({ isShow: false }))}
-            >
-                <View style={styles.modal_overlay}>
-                    <View style={styles.modal_container}>
-                        <View style={styles.modal_content}>
-                            <View style={styles.icon_wrapper}>
-                                <Icon
-                                    name="error-outline"
-                                    size={normalize(45)}
-                                    color="#F99F0D"
-                                />
-                            </View>
-                            <Text style={styles.modal_title}>Undo?</Text>
-                            <Text style={styles.modal_desc}>
-                                Confirmed undo last ball?
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.confirm_btn}
-                                onPress={handleUndo}
-                            >
-                                <Text style={styles.confirm_btn_text}>
-                                    yes, i’m sure
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.close_btn}
-                                onPress={() =>
-                                    dispatch(setUndoModal({ isShow: false }))
-                                }
-                            >
-                                <Text style={styles.close_btn_text}>
-                                    cancel
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+        <Modal
+            isVisible={undoModal.isShow}
+            deviceWidth={deviceWidth}
+            deviceHeight={deviceHeight}
+            backdropOpacity={0.6}
+            animationInTiming={200}
+            animationOutTiming={200}
+            onBackdropPress={handleCloseModal}
+            onBackButtonPress={handleCloseModal}
+            backdropTransitionOutTiming={0}
+            coverScreen={false}
+            style={styles.modal_wrapper}
+        >
+            <View style={styles.modal_container}>
+                <View style={styles.modal_content}>
+                    <View style={styles.icon_wrapper}>
+                        <Icon
+                            name="error-outline"
+                            size={normalize(45)}
+                            color="#F99F0D"
+                        />
                     </View>
+                    <Text style={styles.modal_title}>Undo?</Text>
+                    <Text style={styles.modal_desc}>
+                        Confirmed undo last ball?
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.confirm_btn}
+                        onPress={handleConfirmModal}
+                    >
+                        <Text style={styles.confirm_btn_text}>
+                            yes, i’m sure
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.close_btn}
+                        onPress={handleCloseModal}
+                    >
+                        <Text style={styles.close_btn_text}>cancel</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
-        </View>
+            </View>
+        </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modal_overlay: {
+    modal_wrapper: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        position: "relative",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        paddingTop: StatusBar.currentHeight,
+        margin: 0
     },
     modal_container: {
         width: normalize(300),

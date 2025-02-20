@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, StatusBar } from "react-native";
 
 import Spinner from "./Spinner.js";
 
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     loading_spinner_wrapper: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     }
 });
 

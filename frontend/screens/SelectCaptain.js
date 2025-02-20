@@ -51,11 +51,21 @@ const SelectCaptain = ({ navigation, route }) => {
 
     const HandleSelectCaptain = () => {
         if (route.params?.selectFor === "team A") {
-            dispatch(setTeamACaptain(selectedPlayer.name));
+            dispatch(
+                setTeamACaptain({
+                    name: selectedPlayer?.name,
+                    captainId: selectedPlayer?.playerId
+                })
+            );
         }
 
         if (route.params?.selectFor === "team B") {
-            dispatch(setTeamBCaptain(selectedPlayer.name));
+            dispatch(
+                setTeamBCaptain({
+                    name: selectedPlayer?.name,
+                    captainId: selectedPlayer?.playerId
+                })
+            );
         }
 
         navigation.navigate("select-teams");
@@ -224,7 +234,9 @@ const styles = StyleSheet.create({
     },
     confirm_btn: {
         backgroundColor: "#14B391",
-        paddingVertical: normalizeVertical(18)
+        height: normalizeVertical(60),
+        justifyContent: "center",
+        alignItems: "center"
     },
     confirm_btn_text: {
         fontSize: normalize(19),

@@ -2,7 +2,7 @@ import {
     StyleSheet,
     Text,
     View,
-    FlatList,
+    Pressable,
     TouchableOpacity,
     StatusBar,
     ScrollView
@@ -11,18 +11,27 @@ import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import AlertToast from "../components/AlertToast.js";
-import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
+import { showToast } from "../redux/toastSlice.js";
+import { setChangeCaptainModal, setConfirmModal } from "../redux/modalSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import ChangeCaptainModal from "../components/ChangeCaptainModal.js";
+import ConfirmModal from "../components/ConfirmModal.js";
+import { io } from "socket.io-client";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const ChangeSquadScreen = ({ navigation, route }) => {
-    const [matchDetails, setMatchDetails] = useState([]);
-    const [teamDetails, setTeamDetails] = useState([]);
+    const [matchDetails, setMatchDetails] = useState(null);
+    const [teamDetails, setTeamDetails] = useState(null);
+    const [substitutes, setSubstitutes] = useState([]);
     const [restOfSquad, setRestOfSquad] = useState([]);
+    const [player, setPlayer] = useState(null);
+
     const [isLoading, setIsLoading] = useState(true);
+    const [showSpinner, setShowSpinner] = useState(false);
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const dispatch = useDispatch();
+    const { confirmModal } = useSelector(state => state.modal);
+
     const { accessToken } = useSelector(state => state.auth);
 
     useEffect(() => {
@@ -54,6 +63,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                             matchData.data.teamB
                         ].find(team => team.teamId === route.params?.teamId);
                         setTeamDetails(team);
+                        setSubstitutes(team.substitutes);
 
                         // Fetch squad details
                         const squadResponse = await fetch(
@@ -67,14 +77,20 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                         const squadData = await squadResponse.json();
 
                         if (squadResponse.status === 200) {
+                            const playing11Ids = team.playing11.map(
+                                player => player.playerId
+                            );
+                            const substituteIds = team.substitutes.map(
+                                player => player.playerId
+                            );
+
                             setRestOfSquad(
                                 squadData.data.players.filter(
                                     player =>
-                                        !team.playing11.some(
-                                            selectedPlayer =>
-                                                player.playerId ===
-                                                selectedPlayer.playerId
-                                        )
+                                        !playing11Ids.includes(
+                                            player.playerId
+                                        ) &&
+                                        !substituteIds.includes(player.playerId)
                                 )
                             );
                         }
@@ -89,6 +105,34 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             fetchDetails();
         }, [isScreenFocused])
     );
+
+    useEffect(() => {
+        const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
+        socket.on("scoreUpdated", ({ match, squadDetails }) => {
+            setMatchDetails(match);
+            const team = [match.teamA, match.teamB].find(
+                team => team.teamId === route.params?.teamId
+            );
+            setTeamDetails(team);
+            setSubstitutes(team.substitutes);
+            const playing11Ids = team.playing11.map(player => player.playerId);
+            const substituteIds = team.substitutes.map(
+                player => player.playerId
+            );
+
+            setRestOfSquad(
+                squadDetails?.players.filter(
+                    player =>
+                        !playing11Ids.includes(player.playerId) &&
+                        !substituteIds.includes(player.playerId)
+                )
+            );
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -107,10 +151,158 @@ const ChangeSquadScreen = ({ navigation, route }) => {
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
             setIsLoading(true);
+            setPlayer(null);
+            dispatch(
+                setConfirmModal({
+                    isShow: false,
+                    actionType: null,
+                    title: null,
+                    description: null
+                })
+            );
         });
         return unsubscribe;
     }, [navigation]);
 
+    const handleOpenChangeCaptainModal = player => {
+        setPlayer(player);
+        dispatch(setChangeCaptainModal({ isShow: true }));
+    };
+    const handleOpenConfirmModal = ({
+        actionType,
+        title,
+        description,
+        player
+    }) => {
+        setPlayer(player);
+        dispatch(
+            setConfirmModal({ isShow: true, actionType, title, description })
+        );
+    };
+
+    const handleAddSubstitute = async () => {
+        try {
+            setShowSpinner(true);
+            if (
+                !matchDetails?._id ||
+                !teamDetails?.teamId ||
+                !player.playerId
+            ) {
+                dispatch(showToast("please provide all required field"));
+                return;
+            }
+
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_BASE_URL}/add-substitutes/${matchDetails?._id}`,
+
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        teamId: teamDetails?.teamId,
+                        playerId: player.playerId
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.status !== 200) {
+                dispatch(showToast(data.message));
+            } else {
+                dispatch(
+                    setConfirmModal({
+                        isShow: false,
+                        actionType: null,
+                        title: null,
+                        description: null
+                    })
+                );
+            }
+        } catch (error) {
+            console.log(error);
+            dispatch(showToast("unexpected error occured, try again latter"));
+        } finally {
+            setShowSpinner(false);
+        }
+    };
+
+    const handleRemoveSubstitute = async () => {
+        try {
+            setShowSpinner(true);
+
+            if (
+                !matchDetails?._id ||
+                !teamDetails?.teamId ||
+                !player.playerId
+            ) {
+                dispatch(showToast("please provide all required field"));
+                return;
+            }
+
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_BASE_URL}/remove-substitutes/${matchDetails?._id}`,
+
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        teamId: teamDetails?.teamId,
+                        playerId: player.playerId
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.status !== 200) {
+                dispatch(showToast(data.message));
+            } else {
+                dispatch(
+                    setConfirmModal({
+                        isShow: false,
+                        actionType: null,
+                        title: null,
+                        description: null
+                    })
+                );
+            }
+        } catch (error) {
+            console.log(error);
+            dispatch(showToast("unexpected error occured, try again latter"));
+        } finally {
+            setShowSpinner(false);
+        }
+    };
+
+    const handleConfirmModal = () => {
+        if (confirmModal.actionType === "REPLACE") {
+            navigation.navigate("select-replacement-player", {
+                matchId: route.params?.matchId,
+                teamId: route.params?.teamId,
+                replacedPlayerId: player.playerId
+            });
+            dispatch(
+                setConfirmModal({
+                    isShow: false,
+                    actionType: null,
+                    title: null,
+                    description: null,
+                    player: null
+                })
+            );
+        } else if (confirmModal.actionType === "ADD") {
+            handleAddSubstitute();
+        } else if (confirmModal.actionType === "REMOVE") {
+            handleRemoveSubstitute();
+        }
+    };
     return (
         <View style={styles.wrapper}>
             <View style={styles.header}>
@@ -149,7 +341,13 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                             <Text style={styles.heading}>Playing 11</Text>
                             <View style={styles.players_wrapper}>
                                 {teamDetails?.playing11?.map(item => (
-                                    <View style={styles.player} key={item._id}>
+                                    <Pressable
+                                        style={styles.player}
+                                        key={item._id}
+                                        onPress={() =>
+                                            handleOpenChangeCaptainModal(item)
+                                        }
+                                    >
                                         <View style={styles.player_details}>
                                             <View style={styles.player_icon}>
                                                 <Text
@@ -159,6 +357,23 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                 >
                                                     {item.name[0]}
                                                 </Text>
+                                                {teamDetails?.captain
+                                                    .captainId ===
+                                                    item.playerId && (
+                                                    <View
+                                                        style={
+                                                            styles.captain_icon_wrapper
+                                                        }
+                                                    >
+                                                        <Text
+                                                            style={
+                                                                styles.captain_icon
+                                                            }
+                                                        >
+                                                            C
+                                                        </Text>
+                                                    </View>
+                                                )}
                                             </View>
 
                                             <View
@@ -173,33 +388,94 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                 </Text>
                                             </View>
                                         </View>
-                                        <TouchableOpacity
-                                            style={styles.replace_btn}
-                                            onPress={() =>
-                                                navigation.navigate(
-                                                    "select-replacement-player",
-                                                    {
-                                                        matchId:
-                                                            route.params
-                                                                ?.matchId,
-                                                        teamId: route.params
-                                                            ?.teamId,
-                                                        replacedPlayerId:
-                                                            item.playerId
-                                                    }
-                                                )
-                                            }
-                                        >
-                                            <Text
-                                                style={styles.replace_btn_text}
+                                        {teamDetails?.captain.captainId !==
+                                            item.playerId && (
+                                            <TouchableOpacity
+                                                style={styles.replace_btn}
+                                                onPress={() =>
+                                                    handleOpenConfirmModal({
+                                                        actionType: "REPLACE",
+                                                        title: "Replace player",
+                                                        description: `Are you sure to replace ${item.name}?`,
+                                                        player: item
+                                                    })
+                                                }
                                             >
-                                                replace
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
+                                                <Text
+                                                    style={
+                                                        styles.replace_btn_text
+                                                    }
+                                                >
+                                                    replace
+                                                </Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </Pressable>
                                 ))}
                             </View>
                         </View>
+
+                        {substitutes?.length > 0 && (
+                            <View style={styles.substitutes_wrapper}>
+                                <Text style={styles.heading}>Substitutes</Text>
+                                <View style={styles.players_wrapper}>
+                                    {substitutes?.map(item => (
+                                        <View
+                                            style={styles.player}
+                                            key={item._id}
+                                        >
+                                            <View style={styles.player_details}>
+                                                <View
+                                                    style={styles.player_icon}
+                                                >
+                                                    <Text
+                                                        style={
+                                                            styles.player_icon_text
+                                                        }
+                                                    >
+                                                        {item.name[0]}
+                                                    </Text>
+                                                </View>
+
+                                                <View
+                                                    style={
+                                                        styles.other_player_info_wrapper
+                                                    }
+                                                >
+                                                    <Text
+                                                        style={
+                                                            styles.player_name
+                                                        }
+                                                    >
+                                                        {item.name}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <TouchableOpacity
+                                                style={styles.remove_btn}
+                                                onPress={() =>
+                                                    handleOpenConfirmModal({
+                                                        actionType: "REMOVE",
+                                                        title: "Remove player",
+                                                        description: `Are you sure to remove ${item.name} from substitutes ?`,
+                                                        player: item
+                                                    })
+                                                }
+                                            >
+                                                <Text
+                                                    style={
+                                                        styles.remove_btn_text
+                                                    }
+                                                >
+                                                    remove
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+
                         {restOfSquad?.length > 0 && (
                             <View style={styles.rest_team_wrapper}>
                                 <Text style={styles.heading}>
@@ -243,6 +519,14 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                             >
                                                 <Text
                                                     style={styles.add_btn_text}
+                                                    onPress={() =>
+                                                        handleOpenConfirmModal({
+                                                            actionType: "ADD",
+                                                            title: "Add player",
+                                                            description: `Are you sure to add ${item.name} in substitutes ?`,
+                                                            player: item
+                                                        })
+                                                    }
                                                 >
                                                     add
                                                 </Text>
@@ -253,15 +537,22 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                             </View>
                         )}
                     </ScrollView>
+                    <ChangeCaptainModal
+                        matchId={matchDetails?._id}
+                        teamId={teamDetails?.teamId}
+                        player={player}
+                        showSpinner={showSpinner}
+                        setShowSpinner={setShowSpinner}
+                    />
+                    <ConfirmModal
+                        showSpinner={showSpinner}
+                        player={player}
+                        handleConfirm={handleConfirmModal}
+                    />
                 </>
             ) : (
                 <LoadingSpinner />
             )}
-            <AlertToast
-                topOffSet={15}
-                successToastStyle={{ borderLeftColor: "green" }}
-                errorToastStyle={{ borderLeftColor: "red" }}
-            />
         </View>
     );
 };
@@ -314,6 +605,9 @@ const styles = StyleSheet.create({
     rest_team_wrapper: {
         marginHorizontal: normalize(20)
     },
+    substitutes_wrapper: {
+        marginHorizontal: normalize(20)
+    },
     players_wrapper: {
         gap: normalizeVertical(22),
         paddingTop: normalizeVertical(25),
@@ -342,9 +636,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(60),
-        borderRadius: normalize(100),
+        borderRadius: normalize(30),
         justifyContent: "center",
         alignItems: "center",
+        position: "relative",
         elevation: 1
     },
     player_icon_text: {
@@ -352,6 +647,23 @@ const styles = StyleSheet.create({
         color: "white",
         fontFamily: "robotoMedium",
         textTransform: "capitalize"
+    },
+    captain_icon_wrapper: {
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#4d4d4d",
+        height: normalize(24),
+        width: normalize(24),
+        borderRadius: normalize(12),
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        elevation: 1
+    },
+    captain_icon: {
+        fontSize: normalize(14),
+        color: "white",
+        fontFamily: "robotoBold"
     },
     player_name: {
         fontSize: normalize(18),
@@ -361,13 +673,26 @@ const styles = StyleSheet.create({
     },
     replace_btn: {
         backgroundColor: "#f5f5f5",
-
         paddingVertical: normalizeVertical(8),
         width: normalize(80),
         borderRadius: normalize(8),
         elevation: 1
     },
     replace_btn_text: {
+        color: "#676767",
+        fontSize: normalize(14),
+        fontFamily: "robotoMedium",
+        textTransform: "uppercase",
+        textAlign: "center"
+    },
+    remove_btn: {
+        backgroundColor: "#f5f5f5",
+        paddingVertical: normalizeVertical(8),
+        width: normalize(80),
+        borderRadius: normalize(8),
+        elevation: 1
+    },
+    remove_btn_text: {
         color: "#676767",
         fontSize: normalize(14),
         fontFamily: "robotoMedium",

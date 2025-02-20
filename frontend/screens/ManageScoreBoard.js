@@ -24,12 +24,12 @@ import {
     setCustomRunsModal
 } from "../redux/modalSlice.js";
 import { setFielder, setUndoStack, popUndoStack } from "../redux/matchSlice.js";
-import { showAlert } from "../redux/alertSlice.js";
+
+import { showToast } from "../redux/toastSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import Sidebar from "../components/Sidebar.js";
 import Spinner from "../components/Spinner.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import AlertToast from "../components/AlertToast.js";
 
 import ExtraRunsModal from "../components/ExtraRunsModal.js";
 import CustomRunsModal from "../components/CustomRunsModal.js";
@@ -112,7 +112,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     }, []);
 
     const handleBackPress = useCallback(() => {
-        if (matchDetails?.matchStatus === "in progress") {
+        if (
+            matchDetails?.matchStatus === "in progress" &&
+            !matchDetails?.isOverChangePending
+        ) {
             navigation.navigate("home-screen");
         }
         return true;
@@ -130,7 +133,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
-        socket.on("scoreUpdated", match => {
+        socket.on("scoreUpdated", ({ match }) => {
             setMatchDetails(match);
             if (match.currentInning === 2 && !match.isSecondInningStarted) {
                 setCurrentInningDetails(match.inning1);
@@ -190,11 +193,15 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     useFocusEffect(
         useCallback(() => {
-            StatusBar.setBarStyle("light-content");
+            if (!isLoading) {
+                StatusBar.setBarStyle("light-content");
+            } else {
+                StatusBar.setBarStyle("dark-content");
+            }
             return () => {
                 StatusBar.setBarStyle("default");
             };
-        }, [isScreenFocused])
+        }, [isScreenFocused, isLoading])
     );
 
     useFocusEffect(
@@ -307,14 +314,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
         } else if (modalType === "UNDO") {
             if (undoStack.length === 0) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: "no more undo operation"
-                    })
-                );
+                dispatch(showToast("no more undo operation"));
                 return;
             }
 
@@ -577,11 +577,12 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             const data = await response.json();
             if (response.status !== 200) {
                 throw new Error(data.message);
+            } else {
+                dispatch(setChangeStrikeModal({ isShow: false }));
             }
         } catch (error) {
             console.log(error);
         } finally {
-            dispatch(setChangeStrikeModal({ isShow: false }));
             setShowSpinner(false);
         }
     };
@@ -611,14 +612,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(
-                    showAlert({
-                        value: true,
-                        severity: "error",
-                        type: "normal_alert",
-                        msg: data.message
-                    })
-                );
+                throw new Error(data.message);
             }
         } catch (error) {
             console.log(error);
@@ -628,9 +622,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     };
 
     return (
-        <View style={styles.wrapper}>
+        <>
             {!isLoading ? (
-                <>
+                <View style={styles.wrapper}>
                     <View style={styles.header}>
                         <TouchableOpacity
                             style={styles.back_btn}
@@ -657,6 +651,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             />
                         </TouchableOpacity>
                     </View>
+
                     <View style={styles.batting_team_score_wrapper}>
                         <View style={styles.score_and_overs_wrapper}>
                             <View style={styles.score_wrapper}>
@@ -984,17 +979,13 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         matchDetails={matchDetails}
                         handleChangeStrike={handleChangeStrike}
                     />
-
-                    <AlertToast
-                        topOffSet={15}
-                        successToastStyle={{ borderLeftColor: "green" }}
-                        errorToastStyle={{ borderLeftColor: "red" }}
-                    />
-                </>
+                </View>
             ) : (
-                <LoadingSpinner />
+                <View style={styles.loading_spinner_wrapper}>
+                    <LoadingSpinner />
+                </View>
             )}
-        </View>
+        </>
     );
 };
 
@@ -1231,6 +1222,10 @@ const styles = StyleSheet.create({
     },
     six_text: {
         color: "#27ae60"
+    },
+    loading_spinner_wrapper: {
+        flex: 1,
+        paddingTop: StatusBar.currentHeight
     }
 });
 
