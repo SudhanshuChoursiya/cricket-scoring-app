@@ -5,55 +5,35 @@ import {
     Image,
     TextInput,
     TouchableOpacity,
-    StatusBar
+    StatusBar,
+    Keyboard
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import appLogo from "../assets/icon.png";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const Header = ({ showSuggestions, setShowSuggestions }) => {
-    const [query, setQuery] = useState("");
-    const [suggestions, setSuggestions] = useState([]);
-
+const Header = ({ searchQuery, setSearchQuery }) => {
     const navigation = useNavigation();
-    const isFocused = useIsFocused();
+    const searchInputRef = useRef(null);
 
-    const getSuggestions = async text => {
-        try {
-            setQuery(text);
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/get-searched-cakes?searched=${text}`
-            );
-            const data = await response.json();
-
-            if (response.status === 200) {
-                const titles = data.data.cakesDetails
-                    .map(item => item.name.toLowerCase())
-                    .filter(item => item.includes(text.toLowerCase()));
-                setSuggestions(titles);
-                setShowSuggestions(true);
-            } else {
-                setSuggestions([]);
-                setShowSuggestions(false);
+    useEffect(() => {
+        const keyboardDidHideListener = Keyboard.addListener(
+            "keyboardDidHide",
+            () => {
+                if (
+                    searchInputRef.current &&
+                    searchInputRef.current.isFocused()
+                ) {
+                    searchInputRef.current.blur();
+                }
             }
-        } catch (error) {
-            console.log(error);
-        }
-    };
+        );
 
-    useEffect(() => {
-        if (query === "" || query === undefined) {
-            setShowSuggestions(false);
-        }
-    }, [query, suggestions]);
-
-    useEffect(() => {
-        if (!isFocused) {
-            setQuery("");
-            setShowSuggestions(false);
-        }
-    }, [isFocused]);
+        return () => {
+            keyboardDidHideListener.remove();
+        };
+    }, []);
     return (
         <View style={styles.wrapper}>
             <View style={styles.top_container}>
@@ -79,36 +59,14 @@ const Header = ({ showSuggestions, setShowSuggestions }) => {
                     <TextInput
                         style={styles.search_input}
                         placeholder="Search a match"
-                        value={query}
-                        onChangeText={text => getSuggestions(text)}
+                        value={searchQuery}
+                        onChangeText={text => setSearchQuery(text)}
+                        ref={searchInputRef}
                     />
 
-                    <View style={styles.suggestions_box}>
-                        {suggestions.length > 0 &&
-                            showSuggestions &&
-                            suggestions.map((suggestion, index) => (
-                                <Text
-                                    style={styles.suggestion}
-                                    key={index}
-                                    onPress={() => {
-                                        setShowSuggestions(false);
-                                        setQuery(suggestion);
-                                    }}
-                                >
-                                    {suggestion}
-                                </Text>
-                            ))}
-                    </View>
-                    <TouchableOpacity
-                        style={styles.search_button}
-                        onPress={() =>
-                            navigation.navigate("searched-cakes-screen", {
-                                searchedQuery: query
-                            })
-                        }
-                    >
+                    <View style={styles.search_button}>
                         <Icon name="search" size={20} color="white" />
-                    </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </View>

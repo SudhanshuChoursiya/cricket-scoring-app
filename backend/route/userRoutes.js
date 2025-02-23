@@ -24,7 +24,8 @@ import {
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
-    getSingleMatchDetailsController
+    getSingleMatchDetailsController,
+    getSearchedMatchController
 } from "../controller/userControllers.js";
 import upload from "../middleware/multer.js";
 import verifyToken from "../middleware/auth.js";
@@ -84,7 +85,9 @@ router
     .route("/change-captain/:matchId")
     .post(verifyToken, changeCaptainController);
 
-router.route("/add-substitutes/:matchId").post(verifyToken,addSubstitutesController);
+router
+    .route("/add-substitutes/:matchId")
+    .post(verifyToken, addSubstitutesController);
 
 router
     .route("/remove-substitutes/:matchId")
@@ -101,5 +104,7 @@ router.route("/get-all-matches").get(verifyToken, getAllMatchDetailsController);
 router
     .route("/get-match-details/:matchId")
     .get(verifyToken, getSingleMatchDetailsController);
+
+router.route("/search-match").get(verifyToken, getSearchedMatchController);
 
 export default router;

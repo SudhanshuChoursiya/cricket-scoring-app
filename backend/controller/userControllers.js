@@ -853,7 +853,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
     switchStrike();
     endOver();
     checkGameProgress();
-    io.emit("scoreUpdated", {match});
+    io.emit("scoreUpdated", { match });
     // Save match details
     await match.save();
 
@@ -983,7 +983,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
     const newBatsman = battingTeam.playing11.find(player =>
         player._id.equals(newBatsmanId)
     );
-    
+
     if (!replacedBatsman || !newBatsman) {
         throw new ApiError(404, "Batsman not found");
     }
@@ -1053,7 +1053,7 @@ const changeStrikeController = asyncHandler(async (req, res) => {
     currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsmen => {
         return { ...batsmen, onStrike: !batsmen.onStrike };
     });
-    io.emit("scoreUpdated", {match});
+    io.emit("scoreUpdated", { match });
     await match.save();
 
     res.status(200).json(
@@ -1666,7 +1666,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     currentInning.currentBowler = currentBowler;
 
     currentInning.currentOverTimeline.pop();
-    io.emit("scoreUpdated", {match});
+    io.emit("scoreUpdated", { match });
     // Save the updated match
     await match.save();
 
@@ -1762,6 +1762,33 @@ const getSingleMatchDetailsController = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, matchDetails));
 });
 
+const getSearchedMatchController = asyncHandler(async (req, res) => {
+    const searchQuery = req.query.searched?.trim();
+
+    const user = req.user;
+    if (!searchQuery) {
+        throw new ApiError(400, "search query is required");
+    }
+
+    const query = {
+        $or: [
+            { "teamA.name": { $regex: searchQuery, $options: "i" } },
+            { "teamB.name": { $regex: searchQuery, $options: "i" } },
+            { "matchPlace.city": { $regex: searchQuery, $options: "i" } },
+            { "matchPlace.ground": { $regex: searchQuery, $options: "i" } }
+        ],
+        createdBy: user._id
+    };
+
+    const matches = await MatchModel.find(query);
+
+    if (matches.length === 0) {
+        throw new ApiError(404, "no match has been found");
+    }
+
+    res.status(200).json(new ApiResponse(200, matches));
+});
+
 export {
     loginController,
     refreshAccessTokenController,
@@ -1786,5 +1813,6 @@ export {
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
-    getSingleMatchDetailsController
+    getSingleMatchDetailsController,
+    getSearchedMatchController
 };
