@@ -47,7 +47,12 @@ const ChangeCaptainModal = ({
         try {
             setShowSpinner(true);
             if (!matchId || !teamId || !player) {
-                dispatch(showToast("please provide all the required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please provide all required field"
+                    })
+                );
                 return;
             }
 
@@ -68,9 +73,7 @@ const ChangeCaptainModal = ({
             if (response.status !== 200) {
                 dispatch(showToast(data.message));
             } else {
-                dispatch(
-                    setChangeCaptainModal({ isShow: false })
-                );
+                dispatch(setChangeCaptainModal({ isShow: false }));
             }
         } catch (error) {
             console.log(error);

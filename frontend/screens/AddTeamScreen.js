@@ -33,7 +33,12 @@ const AddTeamScreen = ({ navigation, route }) => {
             setShowSpinner(true);
             Keyboard.dismiss();
             if (!teamName || !city) {
-                dispatch(showToast("plz fill all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please fill all required field"
+                    })
+                );
                 return;
             }
 
@@ -52,7 +57,7 @@ const AddTeamScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.navigate("select-teams");
                 setTeamName(null);
@@ -62,7 +67,10 @@ const AddTeamScreen = ({ navigation, route }) => {
         } catch (error) {
             console.log(error);
             dispatch(
-                showToast("unexpected error occured,please try again latter")
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured,please try again latter"
+                })
             );
         } finally {
             setShowSpinner(false);

@@ -44,7 +44,9 @@ const ExtraRunsModal = ({ showSpinner, handleUpdateScore }) => {
     const handleConfirmModal = () => {
         if (["LB", "BY"].includes(extraRunsModal.runsInput?.label)) {
             if (extraRunsModal.runsInput?.value <= 0) {
-                dispatch(showToast("Please select runs"));
+                dispatch(
+                    showToast({ type: "error", message: "Please select runs" })
+                );
                 return;
             }
         }

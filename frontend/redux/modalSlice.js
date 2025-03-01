@@ -45,7 +45,7 @@ const initialState = {
         isShow: false
     },
     changeCaptainModal: {
-        isShow: false,
+        isShow: false
     },
     endInningModal: {
         isShow: false
@@ -60,7 +60,10 @@ const initialState = {
         isShow: false,
         actionType: null,
         title: null,
-        description: null,
+        description: null
+    },
+    superOverModal: {
+        isShow: false
     }
 };
 
@@ -157,6 +160,12 @@ const modalSlice = createSlice({
                 ...state.confirmModal,
                 ...action.payload
             };
+        },
+        setSuperOverModal: (state, action) => {
+            state.superOverModal = {
+                ...state.superOverModal,
+                ...action.payload
+            };
         }
     }
 });
@@ -176,7 +185,8 @@ export const {
     setEndMatchModal,
     setOutMethodModal,
     setCustomRunsModal,
-    setConfirmModal
+    setConfirmModal,
+    setSuperOverModal
 } = modalSlice.actions;
 
 export default modalSlice.reducer;

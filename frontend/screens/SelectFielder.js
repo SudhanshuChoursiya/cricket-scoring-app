@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setFielder } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectFielder = ({ navigation, route }) => {
     const [bowlingTeam, setBowlingTeam] = useState(null);
@@ -43,13 +43,10 @@ const SelectFielder = ({ navigation, route }) => {
                     const data = await response.json();
 
                     if (response.status === 200) {
-                        if (data.data.currentInning === 1) {
-                            setCurrentBowler(data.data.inning1.currentBowler);
-                            setBowlingTeam(data.data.inning1.bowlingTeam);
-                        } else {
-                            setCurrentBowler(data.data.inning2.currentBowler);
-                            setBowlingTeam(data.data.inning2.bowlingTeam);
-                        }
+                        const currentInning = getCurrentInning(data.data);
+
+                        setCurrentBowler(currentInning.currentBowler);
+                        setBowlingTeam(currentInning.bowlingTeam);
                     }
                 } catch (error) {
                     console.log(error);

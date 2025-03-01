@@ -1,12 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { View, Text, Animated, StyleSheet } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { hideToast } from "../redux/toastSlice.js";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const ToastAlert = () => {
     const dispatch = useDispatch();
-    const { message, visible } = useSelector(state => state.toast);
-    const fadeAnim = new Animated.Value(0);
+    const { type, message, visible } = useSelector(state => state.toast);
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+    const toastData = {
+        success: { name: "check-circle", color: "#14B492" },
+        error: { name: "error", color: "#E21F26" },
+        warning: { name: "warning", color: "#f48441" },
+        info: { name: "info", color: "#007AFF" }
+    };
+
+    const { name: iconName, color: backgroundColor } =
+        toastData[type] || toastData.info;
 
     useEffect(() => {
         let timeoutId;
@@ -25,15 +37,24 @@ const ToastAlert = () => {
                 }).start(() => {
                     dispatch(hideToast());
                 });
-            }, 2500);
+            }, 3000);
         }
         return () => clearTimeout(timeoutId);
-    }, [visible]);
+    }, [visible, fadeAnim, dispatch]);
 
     if (!visible) return null;
 
     return (
-        <Animated.View style={[styles.toast_container, { opacity: fadeAnim }]}>
+        <Animated.View
+            style={[
+                styles.toast_container,
+                {
+                    opacity: fadeAnim,
+                    backgroundColor
+                }
+            ]}
+        >
+            <Icon name={iconName} size={26} color="#f7f7f7" />
             <Text style={styles.toast_text}>{message}</Text>
         </Animated.View>
     );
@@ -43,9 +64,12 @@ const styles = StyleSheet.create({
     toast_container: {
         position: "absolute",
         bottom: normalizeVertical(70),
+        flexDirection: "row",
+        alignItems: "center",
         alignSelf: "center",
-        backgroundColor: "#B43427",
-        paddingVertical: normalizeVertical(11),
+        justifyContent: "center",
+        gap: normalize(10),
+        paddingVertical: normalizeVertical(10),
         paddingHorizontal: normalize(22),
         borderRadius: normalize(8),
         elevation: 1,
@@ -54,7 +78,8 @@ const styles = StyleSheet.create({
     toast_text: {
         color: "#FFFFFF",
         fontSize: normalize(17),
-        textTransform: "capitalize",
+        fontFamily: "robotoMedium",
+        textTransform: "capitalize"
     }
 });
 

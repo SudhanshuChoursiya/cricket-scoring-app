@@ -126,7 +126,12 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             setShowSpinner(true);
             const { matchId, teamId, replacedPlayerId } = route.params;
             if (!selectedPlayer || !matchId || !teamId || !replacedPlayerId) {
-                dispatch(showToast("plz provide all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please provide all required field"
+                    })
+                );
                 return;
             }
 
@@ -150,14 +155,19 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.navigate("change-squad", { matchId, teamId });
                 setSelectedPlayer(null);
             }
         } catch (error) {
             console.log(error);
-            dispatch(showToast("unexpected error occured, try again latter"));
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured, try again latter"
+                })
+            );
         } finally {
             setShowSpinner(false);
         }

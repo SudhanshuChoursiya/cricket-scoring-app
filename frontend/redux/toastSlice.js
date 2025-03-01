@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
+    type: null,
     message: null,
     visible: false
 };
@@ -10,11 +11,13 @@ const toastSlice = createSlice({
     initialState,
     reducers: {
         showToast: (state, action) => {
-            state.message = action.payload;
+            state.type = action.payload.type;
+            state.message = action.payload.message;
             state.visible = true;
         },
         hideToast: state => {
             state.visible = false;
+            state.type = null;
             state.message = null;
         }
     }

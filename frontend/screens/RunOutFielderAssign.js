@@ -16,10 +16,10 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-import { showAlert } from "../redux/alertSlice.js";
-import AlertToast from "../components/AlertToast.js";
 
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const RunOutFielderAssign = ({ navigation, route }) => {
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
     const [outEnd, setOutEnd] = useState(null);
@@ -68,11 +68,8 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                     const data = await response.json();
 
                     if (response.status === 200) {
-                        setCurrentInningDetails(
-                            data.data.currentInning === 1
-                                ? data.data.inning1
-                                : data.data.inning2
-                        );
+                        const currentInning = getCurrentInning(data.data);
+                        setCurrentInningDetails(currentInning);
                     }
                 } catch (error) {
                     console.log(error);

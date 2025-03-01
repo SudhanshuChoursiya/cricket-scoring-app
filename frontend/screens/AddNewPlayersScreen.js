@@ -85,7 +85,12 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
             const filteredPlayers = await removeEmptyValueFromArray(players);
 
             if (filteredPlayers.length === 0) {
-                dispatch(showToast("add atleast one player"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "add atleast one player"
+                    })
+                );
                 return;
             }
 
@@ -104,7 +109,7 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.goBack();
             }

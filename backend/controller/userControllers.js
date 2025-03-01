@@ -3,10 +3,10 @@ import jwt from "jsonwebtoken";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
+import { createInning, getCurrentInning } from "../utility/matchUtils.js";
 import { SignupModel } from "../models/signup.js";
 import { TeamModel } from "../models/team.js";
 import { MatchModel } from "../models/match.js";
-
 import {
     uploadToCloudinary,
     removeFromCloudinary
@@ -411,6 +411,7 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
 
 const updateInitialPlayersController = asyncHandler(async (req, res) => {
     const { strikeBatsmanId, nonStrikeBatsmanId, currentBowlerId } = req.body;
+
     const user = req.user;
     const matchId = req.params.matchId;
 
@@ -437,10 +438,10 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const battingTeam = currentInning.battingTeam;
+
     const bowlingTeam = currentInning.bowlingTeam;
 
     const strikeBatsman = battingTeam.playing11.find(player =>
@@ -461,15 +462,26 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     ];
 
     currentInning.currentBowler = currentBowler;
+    if (!match.isSuperOver) {
+        if (match.currentInning === 1) {
+            match.matchStatus = "in progress";
+        }
+        if (match.currentInning === 2) {
+            match.matchStatus = "in progress";
+            match.isInningChangePending = false;
+            match.isSecondInningStarted = true;
+        }
+    } else {
+        if (match.superOver.currentInning === 1) {
+            match.matchStatus = "super over";
+        }
+        if (match.superOver.currentInning === 2) {
+            match.matchStatus = "super over";
+            match.isInningChangePending = false;
+            match.isSecondInningStarted = true;
+        }
+    }
 
-    if (match.currentInning === 1) {
-        match.matchStatus = "in progress";
-    }
-    if (match.currentInning === 2) {
-        match.matchStatus = "in progress";
-        match.isInningChangePending = false;
-        match.isSecondInningStarted = true;
-    }
     await match.save();
 
     res.status(200).json(
@@ -505,8 +517,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const currentBatsmen = currentInning.currentBatsmen;
 
@@ -529,40 +540,102 @@ const updateScoreController = asyncHandler(async (req, res) => {
         player._id.equals(fielderId)
     );
     const checkGameProgress = () => {
-        if (match.currentInning === 1) {
-            if (
-                match.inning1.wicketsFallen >= 10 ||
-                match.inning1.currentOvers >= match.inning1.totalOvers
-            ) {
-                match.currentInning = 2;
-                match.targetScore = match.inning1.totalScore + 1;
-                match.isInningChangePending = true;
-                match.matchStatus = "inning break";
-                io.emit("inningCompleted");
+        if (!match.isSuperOver) {
+            if (match.currentInning === 1) {
+                if (
+                    match.inning1.wicketsFallen >= 10 ||
+                    match.inning1.currentOvers >= match.inning1.totalOvers
+                ) {
+                    match.matchStatus = "inning break";
+
+                    match.currentInning = 2;
+
+                    match.targetScore = match.inning1.totalScore + 1;
+
+                    match.isInningChangePending = true;
+
+                    io.emit("inningCompleted");
+                }
+            } else {
+                if (match.inning2.totalScore >= match.targetScore) {
+                    match.matchStatus = "completed";
+
+                    match.matchResult = `${
+                        match.inning2.battingTeam.name
+                    } won by ${10 - match.inning2.wicketsFallen} wickets`;
+
+                    io.emit("matchCompleted");
+                } else if (
+                    match.inning2.currentOvers >= match.inning2.totalOvers ||
+                    match.inning2.wicketsFallen >= 10
+                ) {
+                    if (match.inning2.totalScore === match.targetScore - 1) {
+                        match.matchStatus = "completed";
+
+                        match.matchResult = "match tied";
+
+                        io.emit("matchTied");
+                    } else {
+                        match.matchStatus = "completed";
+
+                        match.matchResult = `${
+                            match.inning2.bowlingTeam.name
+                        } won by ${
+                            match.targetScore - match.inning2.totalScore
+                        } runs`;
+
+                        io.emit("matchCompleted");
+                    }
+                }
             }
-        }
+        } else {
+            if (match.superOver.currentInning === 1) {
+                if (
+                    match.superOver.inning1.wicketsFallen >= 10 ||
+                    match.superOver.inning1.currentOvers >=
+                        match.superOver.inning1.totalOvers
+                ) {
+                    match.matchStatus = "inning break";
 
-        if (match.currentInning === 2) {
-            if (match.inning2.totalScore >= match.targetScore) {
-                match.matchStatus = "completed";
+                    match.superOver.currentInning = 2;
 
-                match.matchWinner.teamName = match.inning2.battingTeam.name;
+                    match.superOver.targetScore =
+                        match.superOver.inning1.totalScore + 1;
+                    match.isInningChangePending = true;
 
-                match.matchWinner.wonBy = `${
-                    10 - match.inning2.wicketsFallen
-                } wickets`;
-                io.emit("matchCompleted");
-            } else if (
-                match.inning2.currentOvers >= match.inning2.totalOvers ||
-                match.inning2.wicketsFallen >= 10
-            ) {
-                match.matchStatus = "completed";
-                match.matchWinner.teamName = match.inning2.bowlingTeam.name;
+                    io.emit("inningCompleted");
+                }
+            } else {
+                if (
+                    match.superOver.inning2.totalScore >=
+                    match.superOver.targetScore
+                ) {
+                    match.matchStatus = "completed";
 
-                match.matchWinner.wonBy = `${
-                    match.targetScore - match.inning2.totalScore
-                } runs`;
-                io.emit("matchCompleted");
+                    match.matchResult = `match tied ${match.superOver.inning2.battingTeam.name} won super over`;
+
+                    io.emit("matchCompleted");
+                } else if (
+                    match.superOver.inning2.currentOvers >=
+                        match.superOver.inning2.totalOvers ||
+                    match.superOver.inning2.wicketsFallen >= 10
+                ) {
+                    if (
+                        match.superOver.inning2.totalScore ===
+                        match.superOver.targetScore - 1
+                    ) {
+                        match.matchStatus = "completed";
+
+                        match.matchResult = "super over tied";
+
+                        io.emit("superOverTied");
+                    } else {
+                        match.matchStatus = "completed";
+                        match.matchResult = `match tied ${match.superOver.inning2.bowlingTeam.name} won super over`;
+
+                        io.emit("matchCompleted");
+                    }
+                }
             }
         }
     };
@@ -651,18 +724,33 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 currentInning.currentOvers === currentInning.totalOvers - 1 &&
                 currentInning.currentOverBalls === 6;
             if (!isLastBall && currentInning.wicketsFallen !== 10) {
-                if (
-                    currentInning === 2 &&
-                    inning2.totalScore !== match.targetScore
-                ) {
-                    match.isSelectNewBatsmanPending = true;
-                    io.emit("wicketFallen");
+                if (!match.isSuperOver) {
+                    if (
+                        match.currentInning === 2 &&
+                        match.inning2.totalScore !== match.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    }
                 } else {
-                    match.isSelectNewBatsmanPending = true;
-                    io.emit("wicketFallen");
+                    if (
+                        match.superOver.currentInning === 2 &&
+                        match.superOver.inning2.totalScore !==
+                            match.superOver.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    }
                 }
             }
         }
+
         currentInning.currentOverTimeline.push({
             overNumber: currentInning.currentOvers,
             ballNumber: currentInning.currentOverBalls,
@@ -772,18 +860,33 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 currentInning.currentOvers === currentInning.totalOvers - 1 &&
                 currentInning.currentOverBalls === 6;
             if (!isLastBall && currentInning.wicketsFallen !== 10) {
-                if (
-                    currentInning === 2 &&
-                    inning2.totalScore !== match.targetScore
-                ) {
-                    match.isSelectNewBatsmanPending = true;
-                    io.emit("wicketFallen");
+                if (!match.isSuperOver) {
+                    if (
+                        match.currentInning === 2 &&
+                        match.inning2.totalScore !== match.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    }
                 } else {
-                    match.isSelectNewBatsmanPending = true;
-                    io.emit("wicketFallen");
+                    if (
+                        match.superOver.currentInning === 2 &&
+                        match.superOver.inning2.totalScore !==
+                            match.superOver.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.emit("wicketFallen");
+                    }
                 }
             }
         }
+
         currentInning.currentOverTimeline.push({
             overNumber: currentInning.currentOvers,
             ballNumber: currentInning.currentOverBalls,
@@ -829,14 +932,29 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 currentInning.currentOvers !== currentInning.totalOvers &&
                 currentInning.wicketsFallen !== 10
             ) {
-                if (match.currentInning === 2) {
-                    if (match.inning2.totalScore !== match.targetScore) {
+                if (!match.isSuperOver) {
+                    if (match.currentInning === 2) {
+                        if (match.inning2.totalScore !== match.targetScore) {
+                            match.isOverChangePending = true;
+                            io.emit("overCompleted");
+                        }
+                    } else {
                         match.isOverChangePending = true;
                         io.emit("overCompleted");
                     }
                 } else {
-                    match.isOverChangePending = true;
-                    io.emit("overCompleted");
+                    if (match.superOver.currentInning === 2) {
+                        if (
+                            match.superOver.inning2.totalScore !==
+                            match.superOver.targetScore
+                        ) {
+                            match.isOverChangePending = true;
+                            io.emit("overCompleted");
+                        }
+                    } else {
+                        match.isOverChangePending = true;
+                        io.emit("overCompleted");
+                    }
                 }
             }
         }
@@ -886,8 +1004,7 @@ const changeBowlerController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const newBowler = currentInning.bowlingTeam.playing11.find(player =>
         player._id.equals(newBowlerId)
@@ -923,8 +1040,7 @@ const updateOutBatsmanController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const battingTeam = currentInning.battingTeam;
 
@@ -971,8 +1087,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const battingTeam = currentInning.battingTeam;
 
@@ -1047,8 +1162,7 @@ const changeStrikeController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsmen => {
         return { ...batsmen, onStrike: !batsmen.onStrike };
@@ -1538,23 +1652,40 @@ const undoScoreController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
-    if (match.currentInning === 2 && match.isInningChangePending) {
-        match.currentInning = 1;
-        match.isInningChangePending = false;
-        match.targetScore = null;
-        match.matchStatus = "in progress";
+    if (!match.isSuperOver) {
+        if (match.isInningChangePending && match.currentInning === 2) {
+            match.currentInning = 1;
+            match.isInningChangePending = false;
+            match.targetScore = null;
+            match.matchStatus = "in progress";
+        }
+
+        if (match.matchStatus === "completed" && match.currentInning === 2) {
+            match.matchStatus = "in progress";
+
+            match.matchResult = null;
+        }
+    } else {
+        if (
+            match.isInningChangePending &&
+            match.superOver.currentInning === 2
+        ) {
+            match.superOver.currentInning = 1;
+            match.isInningChangePending = false;
+            match.superOver.targetScore = null;
+            match.matchStatus = "super over";
+        }
+
+        if (
+            match.matchStatus === "completed" &&
+            match.superOver.currentInning === 2
+        ) {
+            match.matchStatus = "super over";
+            match.matchResult = null;
+        }
     }
 
-    if (match.matchStatus === "completed" && match.currentInning === 2) {
-        match.matchStatus = "in progress";
-
-        match.matchWinner.teamName = null;
-
-        match.matchWinner.wonBy = null;
-    }
-
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     const strikeBatsman = currentInning.battingTeam.playing11.find(player =>
         player._id.equals(lastAction.strikeBatsmanId)
@@ -1675,6 +1806,82 @@ const undoScoreController = asyncHandler(async (req, res) => {
     );
 });
 
+const startSuperOverController = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const matchId = req.params.matchId;
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "no match has been found");
+    }
+    const totalOvers = 1;
+    const batsmanStats = {
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        isOut: false
+    };
+
+    const bowlerStats = {
+        ballsBowled: 0,
+        wickets: 0,
+        overs: 0,
+        runsConceded: 0
+    };
+
+    if (match.isSecondInningStarted) {
+        match.isSecondInningStarted = false;
+    }
+
+    match.matchStatus = "super over";
+
+    if (!match.isSuperOver) {
+        match.isSuperOver = true;
+        match.superOver = {
+            inning1: createInning(
+                match.inning2.bowlingTeam,
+                match.inning2.battingTeam,
+                batsmanStats,
+                bowlerStats,
+                totalOvers
+            ),
+            inning2: createInning(
+                match.inning2.battingTeam,
+                match.inning2.bowlingTeam,
+                batsmanStats,
+                bowlerStats,
+                totalOvers
+            ),
+            currentInning: 1
+        };
+    } else {
+        match.superOver = {
+            inning1: createInning(
+                match.superOver.inning2.bowlingTeam,
+                match.superOver.inning2.battingTeam,
+                batsmanStats,
+                bowlerStats,
+                totalOvers
+            ),
+            inning2: createInning(
+                match.superOver.inning2.battingTeam,
+                match.superOver.inning2.bowlingTeam,
+                batsmanStats,
+                bowlerStats,
+                totalOvers
+            ),
+            currentInning: 1
+        };
+    }
+
+    await match.save();
+    res.status(200).json(new ApiResponse(200, match));
+});
+
 const endInningController = asyncHandler(async (req, res) => {
     const user = req.user;
     const matchId = req.params.matchId;
@@ -1687,13 +1894,20 @@ const endInningController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "no match has been found");
     }
 
-    match.currentInning = 2;
-    match.targetScore = match.inning1.totalScore + 1;
+    if (!match.isSuperOver) {
+        match.currentInning = 2;
+        match.targetScore = match.inning1.totalScore + 1;
+    } else {
+        match.superOver.currentInning = 2;
+        match.superOver.targetScore = match.superOver.inning1.totalScore + 1;
+    }
     match.isInningChangePending = true;
     match.matchStatus = "inning break";
+
     await match.save();
     res.status(200).json(new ApiResponse(200, match));
 });
+
 const endMatchController = asyncHandler(async (req, res) => {
     const { isMatchAbandoned, winningTeamId } = req.body;
     const user = req.user;
@@ -1707,27 +1921,29 @@ const endMatchController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "no match has been found");
     }
 
-    const currentInning =
-        match.currentInning === 1 ? match.inning1 : match.inning2;
+    const currentInning = getCurrentInning(match);
 
     if (isMatchAbandoned) {
         match.matchStatus = "abandoned";
     } else {
         if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
             match.matchStatus = "completed";
-
-            match.matchWinner.teamName = currentInning.battingTeam.name;
-
-            match.matchWinner.wonBy = `${
-                10 - currentInning.wicketsFallen
-            } wickets`;
+            if (!match.isSuperOver) {
+                match.matchResult = `${currentInning.battingTeam.name} won by ${
+                    10 - currentInning.wicketsFallen
+                } wickets`;
+            } else {
+                match.matchResult = `match tied ${currentInning.battingTeam.name} won super over`;
+            }
         } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
             match.matchStatus = "completed";
-            match.matchWinner.teamName = currentInning.bowlingTeam.name;
-
-            match.matchWinner.wonBy = `${
-                match.targetScore - currentInning.totalScore
-            } runs`;
+            if (!match.isSuperOver) {
+                match.matchResult = `${currentInning.bowlingTeam.name} won by ${
+                    match.targetScore - currentInning.totalScore
+                } runs`;
+            } else {
+                match.matchResult = `match tied ${currentInning.bowlingTeam.name} won super over`;
+            }
         }
     }
     if (match.isInningChangePending === true) {
@@ -1808,6 +2024,7 @@ export {
     addSubstitutesController,
     removeSubstitutesController,
     undoScoreController,
+    startSuperOverController,
     endInningController,
     endMatchController,
     getAllTeamsController,

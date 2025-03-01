@@ -95,7 +95,12 @@ const TossScreen = ({ navigation, route }) => {
         try {
             setShowSpinner(true);
             if (!tossWinner || !tossDecision) {
-                dispatch(showToast("plz select all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please select all required field"
+                    })
+                );
                 return;
             }
 
@@ -117,7 +122,7 @@ const TossScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.navigate("initial-players-assign-screen", {
                     matchId: route.params?.matchId
@@ -127,7 +132,12 @@ const TossScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(showToast("unexpected error occured, try again latter"));
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured, try again latter"
+                })
+            );
         } finally {
             setShowSpinner(false);
         }

@@ -44,7 +44,12 @@ const CustomRunsModal = ({ showSpinner, handleUpdateScore }) => {
     const handleConfirmModal = () => {
         if (customRunsModal.runsInput?.label === "5,7") {
             if (customRunsModal.runsInput?.value <= 0) {
-                dispatch(showToast("Please Enter Runs"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please enter runs"
+                    })
+                );
                 return;
             }
         }

@@ -52,9 +52,11 @@ const EndMatchModal = ({
             let payload = {};
             if (!selectedTeam && !isMatchAbandoned) {
                 dispatch(
-                    showToast(
-                        "please select wining team or check match Abandoned"
-                    )
+                    showToast({
+                        type: "error",
+                        message:
+                            "please select wining team or check match Abandoned"
+                    })
                 );
                 return;
             }
@@ -81,7 +83,7 @@ const EndMatchModal = ({
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.navigate("home-screen");
 

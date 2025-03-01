@@ -55,9 +55,9 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
             <View style={styles.modal_container}>
                 <Text style={styles.modal_title}>Match Completed</Text>
                 <View style={styles.modal_content}>
-                    <Text style={styles.inning_info}>
-                        {matchDetails?.matchWinner?.teamName} won by{" "}
-                        {matchDetails?.matchWinner?.wonBy}
+                    <Text style={styles.modal_info}>
+                        {matchDetails?.matchStatus === "completed" &&
+                            matchDetails?.matchResult}
                     </Text>
                     <TouchableOpacity
                         style={styles.start_new_inning_btn}
@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium",
         color: "#AF2B1C"
     },
-
     modal_content: {
         borderWidth: normalize(2),
         borderColor: "#d2d1d1",
@@ -114,13 +113,12 @@ const styles = StyleSheet.create({
         gap: normalizeVertical(20),
         borderRadius: normalize(8)
     },
-
-    inning_info: {
+    modal_info: {
         fontSize: normalize(18),
         fontFamily: "ubuntuMedium",
-        color: "#565656"
+        color: "#565656",
+        textTransform: "capitalize",
     },
-
     start_new_inning_btn: {
         backgroundColor: "#14B492",
         paddingVertical: normalizeVertical(15),
@@ -136,7 +134,6 @@ const styles = StyleSheet.create({
         textTransform: "uppercase",
         textAlign: "center"
     },
-
     continue_over_btn: {
         width: "100%",
         backgroundColor: "#f5f5f5",
@@ -144,7 +141,6 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8),
         elevation: 1
     },
-
     continue_over_btn_text: {
         color: "#AF2B1C",
         fontSize: normalize(17),

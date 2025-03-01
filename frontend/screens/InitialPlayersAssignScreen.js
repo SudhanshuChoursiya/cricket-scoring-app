@@ -20,10 +20,12 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const InitialPlayersAssignScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
+    const [currentInningDetails, setCurrentInningDetails] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
@@ -36,6 +38,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
     }, []);
 
     useFocusEffect(
@@ -69,6 +72,9 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
 
                     if (response.status === 200) {
                         setMatchDetails(data.data);
+
+                        const currentInning = getCurrentInning(data.data);
+                        setCurrentInningDetails(currentInning);
                     }
                 } catch (error) {
                     console.log(error);
@@ -132,7 +138,8 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 dispatch(setStrikeBatsman({ _id: null, name: null }));
                 dispatch(setNonStrikeBatsman({ _id: null, name: null }));
                 dispatch(setCurrentBowler({ _id: null, name: null }));
-                if (data.data.currentInning === 2) {
+
+                if (data.data.currentInning === 2 || data.data.isSuperOver) {
                     dispatch(clearUndoStack());
                 }
                 navigation.navigate("manage-scoreboard", {
@@ -160,8 +167,14 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                     />
                 </TouchableOpacity>
                 <Text style={styles.label}>
-                    Start {matchDetails?.currentInning === 1 ? "1st" : "2nd"}{" "}
-                    Innings
+                    {!matchDetails?.isSuperOver &&
+                        matchDetails?.currentInning === 1 &&
+                        "Start 1st innings"}
+                    {!matchDetails?.isSuperOver &&
+                        matchDetails?.currentInning === 2 &&
+                        "Start 2nd innings"}
+
+                    {matchDetails?.isSuperOver && "Start Super Over"}
                 </Text>
             </View>
 
@@ -169,10 +182,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 <>
                     <View style={styles.select_striker_and_nonstriker_wrapper}>
                         <Text style={styles.heading}>
-                            Batting -{" "}
-                            {matchDetails?.currentInning === 1
-                                ? matchDetails?.inning1.battingTeam.name
-                                : matchDetails?.inning2.battingTeam.name}
+                            Batting - {currentInningDetails?.battingTeam.name}
                         </Text>
 
                         <View style={styles.select_batsman_wrapper}>
@@ -291,10 +301,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
 
                     <View style={styles.select_current_bowler_wrapper}>
                         <Text style={styles.heading}>
-                            Bowling -{" "}
-                            {matchDetails?.currentInning === 1
-                                ? matchDetails?.inning1.bowlingTeam.name
-                                : matchDetails?.inning2.bowlingTeam.name}
+                            Bowling - {currentInningDetails?.bowlingTeam.name}
                         </Text>
 
                         <View style={styles.select_bowler_wrapper}>
@@ -381,7 +388,6 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                 </TouchableOpacity>
                             </View>
                         )}
-
                 </>
             ) : (
                 <LoadingSpinner />

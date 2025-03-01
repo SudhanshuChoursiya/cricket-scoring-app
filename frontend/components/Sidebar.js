@@ -20,7 +20,7 @@ import {
 } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
+const Sidebar = ({ matchDetails, showSidebar, setShowSidebar }) => {
     const dispatch = useDispatch();
     const deviceWidth = Dimensions.get("window").width;
 
@@ -91,23 +91,30 @@ const Sidebar = ({ currentInning, showSidebar, setShowSidebar }) => {
                 >
                     <Text style={styles.sidebar_link_text}>replace bowler</Text>
                 </TouchableOpacity>
+                {!matchDetails?.isSuperOver && (
+                    <TouchableOpacity
+                        style={styles.sidebar_link}
+                        onPress={() => handleLinkPress("changeSquad")}
+                    >
+                        <Text style={styles.sidebar_link_text}>
+                            change squad
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
-                <TouchableOpacity
-                    style={styles.sidebar_link}
-                    onPress={() => handleLinkPress("changeSquad")}
-                >
-                    <Text style={styles.sidebar_link_text}>change squad</Text>
-                </TouchableOpacity>
-                {currentInning !== 2 && (
+                {(matchDetails?.currentInning !== 2 ||
+                    (matchDetails?.isSuperOver &&
+                        matchDetails?.superOver?.currentInning !== 2)) && (
                     <TouchableOpacity
                         style={styles.sidebar_link}
                         onPress={() => handleLinkPress("endInning")}
                     >
                         <Text style={styles.sidebar_link_text}>
-                            end innings
+                            End Innings
                         </Text>
                     </TouchableOpacity>
                 )}
+
                 <TouchableOpacity
                     style={styles.sidebar_link}
                     onPress={() => handleLinkPress("endMatch")}

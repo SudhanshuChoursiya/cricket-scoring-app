@@ -63,7 +63,12 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 !matchPlace.city ||
                 !matchPlace.ground
             ) {
-                dispatch(showToast("plz fill all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please fill all required field"
+                    })
+                );
                 return;
             }
 
@@ -88,7 +93,7 @@ const CreateMatchScreen = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 navigation.navigate("toss-screen", { matchId: data.data._id });
 
@@ -98,7 +103,12 @@ const CreateMatchScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(showToast("unexpected error occured,try again latter"));
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured,try again latter"
+                })
+            );
         } finally {
             setShowSpinner(false);
         }

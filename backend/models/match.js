@@ -150,15 +150,9 @@ const MatchSchema = new mongoose.Schema({
             type: String
         }
     },
-    matchWinner: {
-        teamName: {
-            type: String,
-            default: null
-        },
-        wonBy: {
-            type: String,
-            default: null
-        }
+    matchResult: {
+        type: String,
+        default: null
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -179,6 +173,20 @@ const MatchSchema = new mongoose.Schema({
     isSecondInningStarted: {
         type: Boolean,
         default: false
+    },
+    isSuperOver: {
+        type: Boolean,
+        default: false
+    },
+    superOver: {
+        inning1: InningSchema,
+        inning2: InningSchema,
+        currentInning: {
+            type: Number
+        },
+        targetScore: {
+            type: Number
+        }
     }
 });
 

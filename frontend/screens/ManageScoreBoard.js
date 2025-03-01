@@ -12,11 +12,13 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import { throttle } from "lodash";
 import {
     setExtraRunsModal,
     setOverCompleteModal,
     setInningCompleteModal,
     setMatchCompleteModal,
+    setSuperOverModal,
     setUndoModal,
     setChangeStrikeModal,
     setReplaceBowlerModal,
@@ -44,7 +46,9 @@ import EndMatchModal from "../components/EndMatchModal.js";
 import UndoModal from "../components/UndoModal.js";
 import ChangeStrikerModal from "../components/ChangeStrikerModal.js";
 import OutMethodModal from "../components/OutMethodModal.js";
+import SuperOverModal from "../components/SuperOverModal.js";
 import { io } from "socket.io-client";
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ManageScoreBoardScreen = ({ navigation, route }) => {
@@ -52,6 +56,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
 
     const [isLoading, setIsLoading] = useState(true);
+
     const [showSpinner, setShowSpinner] = useState(false);
     const [showSidebar, setShowSidebar] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
@@ -80,18 +85,24 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
             if (response.status === 200) {
                 setMatchDetails(data.data);
-                if (
-                    data.data.currentInning === 2 &&
-                    !data.data.isSecondInningStarted
-                ) {
-                    setCurrentInningDetails(data.data.inning1);
+
+                let currentInning = getCurrentInning(data.data);
+                if (!data.data.isSuperOver) {
+                    if (
+                        !data.data.isSecondInningStarted &&
+                        data.data.currentInning === 2
+                    ) {
+                        currentInning = data.data.inning1;
+                    }
                 } else {
-                    setCurrentInningDetails(
-                        data.data.currentInning === 1
-                            ? data.data.inning1
-                            : data.data.inning2
-                    );
+                    if (
+                        !data.data.isSecondInningStarted &&
+                        data.data.superOver.currentInning === 2
+                    ) {
+                        currentInning = data.data.superOver.inning1;
+                    }
                 }
+                setCurrentInningDetails(currentInning);
             }
         } catch (error) {
             console.log(error);
@@ -113,7 +124,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleBackPress = useCallback(() => {
         if (
-            matchDetails?.matchStatus === "in progress" &&
+            (matchDetails?.matchStatus === "in progress" ||
+                matchDetails?.matchStatus === "super over") &&
             !matchDetails?.isOverChangePending
         ) {
             navigation.navigate("home-screen");
@@ -135,13 +147,21 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
         socket.on("scoreUpdated", ({ match }) => {
             setMatchDetails(match);
-            if (match.currentInning === 2 && !match.isSecondInningStarted) {
-                setCurrentInningDetails(match.inning1);
+
+            let currentInning = getCurrentInning(match);
+            if (!match.isSuperOver) {
+                if (!match.isSecondInningStarted && match.currentInning === 2) {
+                    currentInning = match.inning1;
+                }
             } else {
-                setCurrentInningDetails(
-                    match.currentInning === 1 ? match.inning1 : match.inning2
-                );
+                if (
+                    !match.isSecondInningStarted &&
+                    match.superOver.currentInning === 2
+                ) {
+                    currentInning = match.superOver.inning1;
+                }
             }
+            setCurrentInningDetails(currentInning);
         });
 
         socket.on("wicketFallen", () => {
@@ -156,6 +176,12 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             dispatch(setInningCompleteModal({ isShow: true }));
         });
 
+        socket.on("matchTied", () => {
+            dispatch(setSuperOverModal({ isShow: true }));
+        });
+        socket.on("superOverTied", () => {
+            dispatch(setSuperOverModal({ isShow: true }));
+        });
         socket.on("matchCompleted", () => {
             dispatch(setMatchCompleteModal({ isShow: true }));
         });
@@ -314,7 +340,12 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
         } else if (modalType === "UNDO") {
             if (undoStack.length === 0) {
-                dispatch(showToast("no more undo operation"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "no more undo operation"
+                    })
+                );
                 return;
             }
 
@@ -505,7 +536,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleUpdateScore = async (typeOfBall, payloadData) => {
         try {
-            setShowSpinner(true);
             let payload = payloadData;
 
             if (
@@ -514,7 +544,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 typeOfBall === "BY" ||
                 typeOfBall === "LB"
             ) {
-                payload = { ...payload, runs: extraRunsModal.runsInput?.value };
+                payload = {
+                    ...payload,
+                    runs: extraRunsModal.runsInput?.value
+                };
             }
 
             if (typeOfBall === "5,7") {
@@ -533,7 +566,13 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 payload.isWicket === undefined ||
                 payload.isDeadBall === undefined
             ) {
-                throw new Error("plz provide all the required field");
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please provide all required field"
+                    })
+                );
+                return;
             }
 
             const response = await fetch(
@@ -550,13 +589,16 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
+
             if (response.status !== 200) {
-                throw new Error(data.message);
+                console.log(data.message);
+            }
+
+            if (response.status === 429) {
+                dispatch(showToast({ type: "warning", message: data.message }));
             }
         } catch (error) {
             console.log(error);
-        } finally {
-            setShowSpinner(false);
         }
     };
 
@@ -575,8 +617,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             );
 
             const data = await response.json();
+
             if (response.status !== 200) {
-                throw new Error(data.message);
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 dispatch(setChangeStrikeModal({ isShow: false }));
             }
@@ -612,7 +655,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
             const data = await response.json();
             if (response.status !== 200) {
-                throw new Error(data.message);
+                dispatch(showToast({ type: "error", message: data.message }));
             }
         } catch (error) {
             console.log(error);
@@ -669,21 +712,29 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             </View>
                         </View>
 
-                        {!matchDetails?.isSecondInningStarted && (
-                            <View style={styles.toss_details_wrapper}>
-                                <Text style={styles.toss_details}>
-                                    {matchDetails?.toss.tossWinner} won the toss
-                                    and elected to{" "}
-                                    {matchDetails?.toss.tossDecision}
+                        {!matchDetails?.isSecondInningStarted &&
+                            !matchDetails?.isSuperOver && (
+                                <View style={styles.match_status_wrapper}>
+                                    <Text style={styles.match_status}>
+                                        {matchDetails?.toss.tossWinner} won the
+                                        toss and elected to{" "}
+                                        {matchDetails?.toss.tossDecision}
+                                    </Text>
+                                </View>
+                            )}
+                        {matchDetails?.isSuperOver && (
+                            <View style={styles.match_status_wrapper}>
+                                <Text style={styles.match_status}>
+                                    Super Over In Progress
                                 </Text>
                             </View>
                         )}
 
-                        {matchDetails?.matchStatus !== "completed" &&
-                            matchDetails?.currentInning === 2 &&
-                            matchDetails?.isSecondInningStarted && (
-                                <View style={styles.toss_details_wrapper}>
-                                    <Text style={styles.toss_details}>
+                        {matchDetails?.matchStatus === "in progress" &&
+                            matchDetails?.isSecondInningStarted &&
+                            !matchDetails?.isSuperOver && (
+                                <View style={styles.match_status_wrapper}>
+                                    <Text style={styles.match_status}>
                                         {currentInningDetails?.battingTeam.name}{" "}
                                         needs{" "}
                                         {matchDetails?.targetScore -
@@ -699,16 +750,38 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                             )}
-                        {matchDetails?.matchStatus === "completed" &&
-                            matchDetails?.currentInning === 2 && (
-                                <View style={styles.toss_details_wrapper}>
-                                    <Text style={styles.toss_details}>
-                                        {matchDetails?.matchWinner?.teamName}{" "}
-                                        won by{" "}
-                                        {matchDetails?.matchWinner?.wonBy}
+                        {matchDetails?.matchStatus === "super over" &&
+                            matchDetails?.isSecondInningStarted &&
+                            matchDetails?.isSuperOver && (
+                                <View style={styles.match_status_wrapper}>
+                                    <Text style={styles.match_status}>
+                                        {currentInningDetails?.battingTeam.name}{" "}
+                                        needs{" "}
+                                        {matchDetails?.superOver?.targetScore -
+                                            matchDetails?.superOver?.inning2
+                                                .totalScore}{" "}
+                                        runs in{" "}
+                                        {matchDetails?.superOver?.inning2
+                                            .totalOvers *
+                                            6 -
+                                            matchDetails?.superOver?.inning2
+                                                .currentOvers *
+                                                6 -
+                                            matchDetails?.superOver?.inning2
+                                                .currentOverBalls}{" "}
+                                        balls
                                     </Text>
                                 </View>
                             )}
+
+                        {matchDetails?.matchStatus === "completed" && (
+                            <View style={styles.match_status_wrapper}>
+                                <Text style={styles.match_status}>
+                                    {matchDetails?.matchResult}
+                                </Text>
+                            </View>
+                        )}
+
                         <View style={styles.current_batsman_wrapper}>
                             {currentInningDetails?.currentBatsmen.map(
                                 player => (
@@ -760,9 +833,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     <View style={styles.bowling_team_name_wrapper}>
                         <Text style={styles.vs_text}>Vs</Text>
                         <Text style={styles.bowling_team_name}>
-                            {matchDetails?.currentInning === 1
-                                ? matchDetails?.inning1.bowlingTeam.name
-                                : matchDetails?.inning2.bowlingTeam.name}
+                            {currentInningDetails?.bowlingTeam.name}
                         </Text>
                     </View>
                     <View style={styles.current_bowler_wrapper}>
@@ -921,7 +992,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     </View>
                     {/*Sidebar */}
                     <Sidebar
-                        currentInning={matchDetails?.currentInning}
+                        matchDetails={matchDetails}
                         showSidebar={showSidebar}
                         setShowSidebar={setShowSidebar}
                     />
@@ -969,6 +1040,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     <EndMatchModal
                         matchId={matchDetails?._id}
                         matchDetails={matchDetails}
+                        showSpinner={showSpinner}
+                        setShowSpinner={setShowSpinner}
+                    />
+                    <SuperOverModal
+                        matchId={matchDetails?._id}
                         showSpinner={showSpinner}
                         setShowSpinner={setShowSpinner}
                     />
@@ -1050,7 +1126,7 @@ const styles = StyleSheet.create({
         fontFamily: "robotoBold"
     },
 
-    toss_details: {
+    match_status: {
         fontSize: normalize(18),
         color: "white",
         fontFamily: "robotoMedium"

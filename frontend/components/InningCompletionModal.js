@@ -46,7 +46,8 @@ const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
             animationInTiming={200}
-            animationOutTiming={200}            backdropTransitionOutTiming={0}
+            animationOutTiming={200}
+            backdropTransitionOutTiming={0}
             coverScreen={false}
             style={styles.modal_wrapper}
         >
@@ -54,8 +55,10 @@ const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
                 <Text style={styles.modal_title}>Inning complete</Text>
                 <View style={styles.modal_content}>
                     <Text style={styles.inning_info}>
-                        {matchDetails?.inning1.battingTeam.name} scores{" "}
-                        {matchDetails?.inning1.totalScore} runs
+                        {!matchDetails?.isSuperOver &&
+                            `${matchDetails?.inning1.battingTeam.name} scores ${matchDetails?.inning1.totalScore} runs`}
+                        {matchDetails?.isSuperOver &&
+                            `${matchDetails?.superOver.inning1.battingTeam.name} scores ${matchDetails?.superOver.inning1.totalScore} runs`}
                     </Text>
                     <TouchableOpacity
                         style={styles.start_new_inning_btn}

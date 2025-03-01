@@ -12,7 +12,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import Spinner from "../components/Spinner.js";
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const SelectNewBatsman = ({ navigation, route }) => {
     const [battingTeam, setBattingTeam] = useState(null);
     const [currentBatsmen, setCurrentBatsmen] = useState(null);
@@ -42,14 +44,11 @@ const SelectNewBatsman = ({ navigation, route }) => {
                     const data = await response.json();
 
                     if (response.status === 200) {
-                        if (data.data.currentInning === 1) {
-                            setCurrentBatsmen(data.data.inning1.currentBatsmen);
+                        const currentInning = getCurrentInning(data.data);
 
-                            setBattingTeam(data.data.inning1.battingTeam);
-                        } else {
-                            setCurrentBatsmen(data.data.inning2.currentBatsmen);
-                            setBattingTeam(data.data.inning2.battingTeam);
-                        }
+                        setCurrentBatsmen(currentInning.currentBatsmen);
+
+                        setBattingTeam(currentInning.battingTeam);
                     }
                 } catch (error) {
                     console.log(error);

@@ -16,6 +16,7 @@ import {
     setCurrentBowler
 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import { getCurrentInning } from "../utils/matchUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectInitialPlayerScreen = ({ navigation, route }) => {
     const [battingTeam, setBattingTeam] = useState(null);
@@ -49,13 +50,9 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
                     const data = await response.json();
 
                     if (response.status === 200) {
-                        if (data.data.currentInning === 1) {
-                            setBattingTeam(data.data.inning1.battingTeam);
-                            setBowlingTeam(data.data.inning1.bowlingTeam);
-                        } else {
-                            setBattingTeam(data.data.inning2.battingTeam);
-                            setBowlingTeam(data.data.inning2.bowlingTeam);
-                        }
+                        const currentInning = getCurrentInning(data.data);
+                        setBattingTeam(currentInning.battingTeam);
+                        setBowlingTeam(currentInning.bowlingTeam);
                     }
                 } catch (error) {
                     console.log(error);

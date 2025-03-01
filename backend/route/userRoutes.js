@@ -19,6 +19,7 @@ import {
     addSubstitutesController,
     removeSubstitutesController,
     undoScoreController,
+    startSuperOverController,
     endInningController,
     endMatchController,
     getAllTeamsController,
@@ -29,82 +30,125 @@ import {
 } from "../controller/userControllers.js";
 import upload from "../middleware/multer.js";
 import verifyToken from "../middleware/auth.js";
+import rateLimiter from "../middleware/rateLimiter.js";
 
-//routes for login
-router.route("/login").post(loginController);
+// Apply rate limiter to all POST routes
+router.post("/login", rateLimiter, loginController);
+router.post("/refresh-access-token", rateLimiter, refreshAccessTokenController);
+router.post("/add-new-team", rateLimiter, verifyToken, addNewTeamController);
+router.post(
+    "/add-new-players/:teamId",
+    rateLimiter,
+    verifyToken,
+    addPlayersController
+);
+router.post(
+    "/create-new-match",
+    rateLimiter,
+    verifyToken,
+    createMatchController
+);
+router.post(
+    "/update-toss-details/:matchId",
+    rateLimiter,
+    verifyToken,
+    updateTossDetailsController
+);
+router.post(
+    "/update-initial-players/:matchId",
+    rateLimiter,
+    verifyToken,
+    updateInitialPlayersController
+);
+router.post(
+    "/update-score/:matchId",
+    rateLimiter,
+    verifyToken,
+    updateScoreController
+);
+router.post(
+    "/change-bowler/:matchId",
+    rateLimiter,
+    verifyToken,
+    changeBowlerController
+);
+router.post(
+    "/change-batsman/:matchId",
+    rateLimiter,
+    verifyToken,
+    changeBatsmanController
+);
+router.post(
+    "/update-out-batsman/:matchId",
+    rateLimiter,
+    verifyToken,
+    updateOutBatsmanController
+);
+router.post(
+    "/change-strike/:matchId",
+    rateLimiter,
+    verifyToken,
+    changeStrikeController
+);
+router.post(
+    "/replace-player/:matchId",
+    rateLimiter,
+    verifyToken,
+    replacePlayerController
+);
+router.post(
+    "/change-captain/:matchId",
+    rateLimiter,
+    verifyToken,
+    changeCaptainController
+);
+router.post(
+    "/add-substitutes/:matchId",
+    rateLimiter,
+    verifyToken,
+    addSubstitutesController
+);
+router.post(
+    "/remove-substitutes/:matchId",
+    rateLimiter,
+    verifyToken,
+    removeSubstitutesController
+);
+router.post(
+    "/undo-score/:matchId",
+    rateLimiter,
+    verifyToken,
+    undoScoreController
+);
+router.post(
+    "/start-super-over/:matchId",
+    rateLimiter,
+    verifyToken,
+    startSuperOverController
+);
+router.post(
+    "/end-inning/:matchId",
+    rateLimiter,
+    verifyToken,
+    endInningController
+);
+router.post(
+    "/end-match/:matchId",
+    rateLimiter,
+    verifyToken,
+    endMatchController
+);
 
-router.route("/refresh-access-token").post(refreshAccessTokenController);
-
-router.route("/check-auth").get(verifyToken, checkAuthController);
-
-router.route("/add-new-team").post(verifyToken, addNewTeamController);
-
-router
-    .route("/add-new-players/:teamId")
-    .post(verifyToken, addPlayersController);
-
-router.route("/get-all-teams").get(verifyToken, getAllTeamsController);
-
-router
-    .route("/get-single-team/:teamId")
-    .get(verifyToken, getSingleTeamController);
-
-router.route("/create-new-match").post(verifyToken, createMatchController);
-
-router
-    .route("/update-toss-details/:matchId")
-    .post(verifyToken, updateTossDetailsController);
-
-router
-    .route("/update-initial-players/:matchId")
-    .post(verifyToken, updateInitialPlayersController);
-
-router.route("/update-score/:matchId").post(verifyToken, updateScoreController);
-
-router
-    .route("/change-bowler/:matchId")
-    .post(verifyToken, changeBowlerController);
-
-router
-    .route("/change-batsman/:matchId")
-    .post(verifyToken, changeBatsmanController);
-
-router
-    .route("/update-out-batsman/:matchId")
-    .post(verifyToken, updateOutBatsmanController);
-
-router
-    .route("/change-strike/:matchId")
-    .post(verifyToken, changeStrikeController);
-
-router
-    .route("/replace-player/:matchId")
-    .post(verifyToken, replacePlayerController);
-
-router
-    .route("/change-captain/:matchId")
-    .post(verifyToken, changeCaptainController);
-
-router
-    .route("/add-substitutes/:matchId")
-    .post(verifyToken, addSubstitutesController);
-
-router
-    .route("/remove-substitutes/:matchId")
-    .post(verifyToken, removeSubstitutesController);
-
-router.route("/undo-score/:matchId").post(verifyToken, undoScoreController);
-
-router.route("/end-inning/:matchId").post(verifyToken, endInningController);
-
-router.route("/end-match/:matchId").post(verifyToken, endMatchController);
-
-router.route("/get-all-matches").get(verifyToken, getAllMatchDetailsController);
-
-router
-    .route("/get-match-details/:matchId")
-    .get(verifyToken, getSingleMatchDetailsController);
-
-router.route("/search-match").get(verifyToken, getSearchedMatchController);
+// GET routes remain unchanged
+router.get("/check-auth", verifyToken, checkAuthController);
+router.get("/get-all-teams", verifyToken, getAllTeamsController);
+router.get("/get-single-team/:teamId", verifyToken, getSingleTeamController);
+router.get("/get-all-matches", verifyToken, getAllMatchDetailsController);
+router.get(
+    "/get-match-details/:matchId",
+    verifyToken,
+    getSingleMatchDetailsController
+);
+router.get("/search-match", verifyToken, getSearchedMatchController);
 
 export default router;

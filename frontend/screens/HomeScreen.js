@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     StatusBar,
     Keyboard,
-    TouchableWithoutFeedback,
+    TouchableWithoutFeedback
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -39,7 +39,7 @@ const HomeScreen = ({ navigation, route }) => {
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const [matches, setMatches] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-    
+
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
 
@@ -254,9 +254,17 @@ const HomeScreen = ({ navigation, route }) => {
                                                     match.matchStatus ===
                                                         "in progress") &&
                                                     `${match.toss.tossWinner} elected to ${match.toss.tossDecision} first`}
+
+                                                {match.matchStatus ===
+                                                    "inning break" &&
+                                                    "innings break"}
+
                                                 {match.matchStatus ===
                                                     "completed" &&
-                                                    `${match.matchWinner.teamName} won by ${match.matchWinner.wonBy}`}
+                                                    match.matchResult}
+                                                {match.matchStatus ===
+                                                    "super over" &&
+                                                    "match tied (super over in progress)"}
 
                                                 {match.matchStatus ===
                                                     "abandoned" &&

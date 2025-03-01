@@ -188,7 +188,12 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                 !teamDetails?.teamId ||
                 !player.playerId
             ) {
-                dispatch(showToast("please provide all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please provide all required field"
+                    })
+                );
                 return;
             }
 
@@ -211,7 +216,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 dispatch(
                     setConfirmModal({
@@ -224,7 +229,12 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(showToast("unexpected error occured, try again latter"));
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured, try again latter"
+                })
+            );
         } finally {
             setShowSpinner(false);
         }
@@ -239,7 +249,12 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                 !teamDetails?.teamId ||
                 !player.playerId
             ) {
-                dispatch(showToast("please provide all required field"));
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "please provide all required field"
+                    })
+                );
                 return;
             }
 
@@ -262,7 +277,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             const data = await response.json();
 
             if (response.status !== 200) {
-                dispatch(showToast(data.message));
+                dispatch(showToast({ type: "error", message: data.message }));
             } else {
                 dispatch(
                     setConfirmModal({
@@ -275,7 +290,12 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(showToast("unexpected error occured, try again latter"));
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: "unexpected error occured, try again latter"
+                })
+            );
         } finally {
             setShowSpinner(false);
         }
