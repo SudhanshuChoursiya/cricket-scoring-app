@@ -18,6 +18,7 @@ import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import CheckBox from "../components/CheckBox.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const RetiredOutAssign = ({ navigation, route }) => {
@@ -197,12 +198,11 @@ const RetiredOutAssign = ({ navigation, route }) => {
                                             <Text
                                                 style={styles.batsman_icon_text}
                                             >
-                                                {batsman.name &&
-                                                    batsman.name[0]}
+                                                {batsman?.name[0]}
                                             </Text>
                                         </View>
                                         <Text style={styles.batsman_name}>
-                                            {batsman.name && batsman.name}
+                                            {ellipsize(batsman?.name, 28)}
                                         </Text>
                                         <Text style={styles.current_end}>
                                             {batsman.onStrike

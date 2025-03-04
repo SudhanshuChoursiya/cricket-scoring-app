@@ -18,6 +18,7 @@ import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const RunOutFielderAssign = ({ navigation, route }) => {
@@ -199,12 +200,11 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                                             <Text
                                                 style={styles.batsman_icon_text}
                                             >
-                                                {batsman.name &&
-                                                    batsman.name[0]}
+                                                {batsman?.name[0]}
                                             </Text>
                                         </View>
                                         <Text style={styles.batsman_name}>
-                                            {batsman.name && batsman.name}
+                                            {ellipsize(batsman?.name, 28)}
                                         </Text>
                                         <Text style={styles.current_end}>
                                             {batsman.onStrike
@@ -258,11 +258,11 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                             >
                                 <View style={styles.fielder_icon_wrapper}>
                                     <Text style={styles.fielder_icon_text}>
-                                        {fielder.name && fielder.name[0]}
+                                        {fielder?.name[0]}
                                     </Text>
                                 </View>
                                 <Text style={styles.fielder_name}>
-                                    {fielder.name && fielder.name}
+                                    {ellipsize(fielder?.name, 28)}
                                 </Text>
                             </TouchableOpacity>
                         )}

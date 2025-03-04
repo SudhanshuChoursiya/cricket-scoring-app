@@ -21,6 +21,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const InitialPlayersAssignScreen = ({ navigation, route }) => {
@@ -182,7 +183,10 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 <>
                     <View style={styles.select_striker_and_nonstriker_wrapper}>
                         <Text style={styles.heading}>
-                            Batting - {currentInningDetails?.battingTeam.name}
+                            {ellipsize(
+                                `Batting - ${currentInningDetails?.battingTeam.name}`,
+                                35
+                            )}
                         </Text>
 
                         <View style={styles.select_batsman_wrapper}>
@@ -231,13 +235,11 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                 >
                                     <View style={styles.batsman_icon_wrapper}>
                                         <Text style={styles.batsman_icon_text}>
-                                            {strikeBatsman.name &&
-                                                strikeBatsman.name[0]}
+                                            {strikeBatsman?.name[0]}
                                         </Text>
                                     </View>
                                     <Text style={styles.batsman_name}>
-                                        {strikeBatsman.name &&
-                                            strikeBatsman.name}
+                                        {ellipsize(strikeBatsman?.name, 28)}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -286,13 +288,11 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                 >
                                     <View style={styles.batsman_icon_wrapper}>
                                         <Text style={styles.batsman_icon_text}>
-                                            {nonStrikeBatsman.name &&
-                                                nonStrikeBatsman.name[0]}
+                                            {nonStrikeBatsman?.name[0]}
                                         </Text>
                                     </View>
                                     <Text style={styles.batsman_name}>
-                                        {nonStrikeBatsman.name &&
-                                            nonStrikeBatsman.name}
+                                        {ellipsize(nonStrikeBatsman?.name, 28)}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -301,7 +301,10 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
 
                     <View style={styles.select_current_bowler_wrapper}>
                         <Text style={styles.heading}>
-                            Bowling - {currentInningDetails?.bowlingTeam.name}
+                            {ellipsize(
+                                `Bowling - ${currentInningDetails?.bowlingTeam.name}`,
+                                35
+                            )}
                         </Text>
 
                         <View style={styles.select_bowler_wrapper}>
@@ -350,13 +353,11 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                 >
                                     <View style={styles.bowler_icon_wrapper}>
                                         <Text style={styles.bowler_icon_text}>
-                                            {currentBowler.name &&
-                                                currentBowler.name[0]}
+                                            {currentBowler?.name[0]}
                                         </Text>
                                     </View>
                                     <Text style={styles.bowler_name}>
-                                        {currentBowler.name &&
-                                            currentBowler.name}
+                                        {ellipsize(currentBowler?.name, 28)}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(45),
         elevation: 1
     },
     batsman_icon_text: {
@@ -465,7 +466,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center"
     },
     select_current_bowler_wrapper: {
         gap: normalizeVertical(20),
@@ -482,7 +484,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -496,7 +498,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(45),
         elevation: 1
     },
     bowler_icon_text: {
@@ -509,7 +511,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center"
     },
     confirm_btn_wrapper: {
         position: "absolute",

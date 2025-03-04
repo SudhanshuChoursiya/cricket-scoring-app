@@ -13,6 +13,7 @@ import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setInningCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
@@ -58,7 +59,13 @@ const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
                         {!matchDetails?.isSuperOver &&
                             `${matchDetails?.inning1.battingTeam.name} scores ${matchDetails?.inning1.totalScore} runs`}
                         {matchDetails?.isSuperOver &&
-                            `${matchDetails?.superOver.inning1.battingTeam.name} scores ${matchDetails?.superOver.inning1.totalScore} runs`}
+                            `${ellipsize(
+                                matchDetails?.superOver.inning1.battingTeam
+                                    .name,
+                                25
+                            )} scores ${
+                                matchDetails?.superOver.inning1.totalScore
+                            } runs`}
                     </Text>
                     <TouchableOpacity
                         style={styles.start_new_inning_btn}
@@ -94,6 +101,7 @@ const styles = StyleSheet.create({
     },
     modal_container: {
         width: normalize(300),
+        height: normalizeVertical(320),
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),
@@ -106,22 +114,20 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium",
         color: "#AF2B1C"
     },
-
     modal_content: {
+        height: normalizeVertical(165),
+        justifyContent: "space-between",
+        paddingVertical: normalizeVertical(25),
+        paddingHorizontal: normalize(15),
         borderWidth: normalize(2),
         borderColor: "#d2d1d1",
-        paddingHorizontal: normalize(15),
-        paddingVertical: normalizeVertical(25),
-        gap: normalizeVertical(20),
         borderRadius: normalize(8)
     },
-
     inning_info: {
         fontSize: normalize(18),
         fontFamily: "ubuntuMedium",
         color: "#565656"
     },
-
     start_new_inning_btn: {
         backgroundColor: "#14B492",
         paddingVertical: normalizeVertical(15),
@@ -137,7 +143,6 @@ const styles = StyleSheet.create({
         textTransform: "uppercase",
         textAlign: "center"
     },
-
     continue_over_btn: {
         width: "100%",
         backgroundColor: "#f5f5f5",
@@ -145,7 +150,6 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8),
         elevation: 1
     },
-
     continue_over_btn_text: {
         color: "#AF2B1C",
         fontSize: normalize(17),

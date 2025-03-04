@@ -13,13 +13,14 @@ import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setChangeSquadModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ChangeSquadModal = ({ matchId, matchDetails }) => {
     const changeSquadModal = useSelector(state => state.modal.changeSquadModal);
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    
+
     const deviceWidth = Dimensions.get("window").width;
 
     const deviceHeight =
@@ -71,7 +72,7 @@ const ChangeSquadModal = ({ matchId, matchDetails }) => {
                                         </Text>
                                     </View>
                                     <Text style={styles.team_name}>
-                                        {team?.name}
+                                        {ellipsize(team?.name, 26)}
                                     </Text>
                                 </TouchableOpacity>
                             )
@@ -99,11 +100,10 @@ const styles = StyleSheet.create({
         paddingTop: StatusBar.currentHeight
     },
     modal_container: {
-        width: normalize(300),
+        width: normalize(320),
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),
-        paddingHorizontal: normalize(20),
         paddingVertical: normalizeVertical(20),
         elevation: 1
     },
@@ -129,7 +129,8 @@ const styles = StyleSheet.create({
     select_team_wrapper: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        gap: normalize(15)
     },
     team: {
         alignItems: "center",
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(40),
         elevation: 1
     },
     team_icon_text: {
@@ -162,7 +163,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center"
     },
     close_btn: {
         backgroundColor: "#f5f5f5",

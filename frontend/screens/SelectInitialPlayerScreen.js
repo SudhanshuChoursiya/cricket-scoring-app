@@ -17,6 +17,7 @@ import {
 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectInitialPlayerScreen = ({ navigation, route }) => {
     const [battingTeam, setBattingTeam] = useState(null);
@@ -142,11 +143,17 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
                 <>
                     <View style={styles.team_name_wrapper}>
                         <Text style={styles.team_name}>
-                            team:{" "}
-                            {route.params?.selectFor === "strike batsman" ||
-                            route.params?.selectFor === "non strike batsman"
-                                ? battingTeam?.name
-                                : bowlingTeam?.name}
+                            {ellipsize(
+                                `team: ${
+                                    route.params?.selectFor ===
+                                        "strike batsman" ||
+                                    route.params?.selectFor ===
+                                        "non strike batsman"
+                                        ? battingTeam?.name
+                                        : bowlingTeam?.name
+                                }`,
+                                35
+                            )}
                         </Text>
                     </View>
                     <FlatList
@@ -163,13 +170,13 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
                             >
                                 <View style={styles.player_icon}>
                                     <Text style={styles.player_icon_text}>
-                                        {item.name[0]}
+                                        {item?.name[0]}
                                     </Text>
                                 </View>
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {item.name}
+                                        {ellipsize(item?.name, 28)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>

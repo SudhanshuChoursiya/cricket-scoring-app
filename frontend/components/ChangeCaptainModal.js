@@ -16,6 +16,7 @@ import { showToast } from "../redux/toastSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
 import { useNavigation } from "@react-navigation/native";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ChangeCaptainModal = ({
@@ -109,7 +110,7 @@ const ChangeCaptainModal = ({
 
                             <View style={styles.other_player_info_wrapper}>
                                 <Text style={styles.player_name}>
-                                    {player?.name}
+                                    {ellipsize(player?.name, 28)}
                                 </Text>
                             </View>
                         </View>

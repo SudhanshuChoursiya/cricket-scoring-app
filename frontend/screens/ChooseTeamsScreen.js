@@ -17,7 +17,9 @@ import {
     setTeamBName
 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const ChooseTeamScreen = ({ navigation, route }) => {
     const [teams, setTeams] = useState([]);
     const [selectedTeam, setSelectedTeam] = useState(null);
@@ -147,13 +149,13 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                             >
                                 <View style={styles.team_icon}>
                                     <Text style={styles.team_icon_text}>
-                                        {item.team_name[0]}
+                                        {item?.team_name[0]}
                                     </Text>
                                 </View>
 
                                 <View style={styles.other_team_info_wrapper}>
                                     <Text style={styles.team_name}>
-                                        {item.team_name}
+                                        {ellipsize(item?.team_name, 28)}
                                     </Text>
                                     <View
                                         style={styles.city_and_captain_wrapper}
@@ -167,12 +169,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                                                 />
                                             </View>
                                             <Text style={styles.city_name}>
-                                                {item.city.length > 12
-                                                    ? item.city.substring(
-                                                          0,
-                                                          12
-                                                      ) + ".."
-                                                    : item.city}
+                                                {ellipsize(item?.city, 12)}
                                             </Text>
                                         </View>
                                         {item.captain_name && (
@@ -189,13 +186,10 @@ const ChooseTeamScreen = ({ navigation, route }) => {
                                                 <Text
                                                     style={styles.captain_name}
                                                 >
-                                                    {item.captain_name.length >
-                                                    12
-                                                        ? item.captain_name.substring(
-                                                              0,
-                                                              12
-                                                          ) + ".."
-                                                        : item.captain_name}
+                                                    {ellipsize(
+                                                        item?.captain_name,
+                                                        12
+                                                    )}
                                                 </Text>
                                             </View>
                                         )}
@@ -233,7 +227,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#FAFAFA",
         width: "100%"
     },
-
     choose_team_wrapper: {
         gap: normalizeVertical(25),
         paddingVertical: normalizeVertical(30)
@@ -241,7 +234,7 @@ const styles = StyleSheet.create({
     team: {
         width: "90%",
         flexDirection: "row",
-        gap: normalize(20),
+        gap: normalize(18),
         alignItems: "center",
         backgroundColor: "white",
         marginHorizontal: "auto",
@@ -256,7 +249,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(60),
-        borderRadius: normalize(100),
+        borderRadius: normalize(30),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1
@@ -288,7 +281,7 @@ const styles = StyleSheet.create({
         backgroundColor: "black",
         height: normalize(22),
         width: normalize(22),
-        borderRadius: normalize(50),
+        borderRadius: normalize(11),
         elevation: 1
     },
     icon: {

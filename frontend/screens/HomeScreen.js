@@ -32,6 +32,7 @@ import {
 import Header from "../components/Header.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { debounce } from "lodash";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const HomeScreen = ({ navigation, route }) => {
@@ -203,8 +204,15 @@ const HomeScreen = ({ navigation, route }) => {
                                             }
                                         >
                                             <Text style={styles.match_place}>
-                                                {match.matchPlace.ground} |{" "}
-                                                {match.matchPlace.city}
+                                                {ellipsize(
+                                                    match.matchPlace.ground,
+                                                    10
+                                                )}{" "}
+                                                |{" "}
+                                                {ellipsize(
+                                                    match.matchPlace.city,
+                                                    10
+                                                )}
                                             </Text>
                                             <View
                                                 style={[
@@ -233,13 +241,19 @@ const HomeScreen = ({ navigation, route }) => {
                                         </View>
                                         <View style={styles.team_name_wrapper}>
                                             <Text style={styles.team_name}>
-                                                {match.teamA.name}
+                                                {ellipsize(
+                                                    match.teamA.name,
+                                                    28
+                                                )}
                                             </Text>
                                             <Text style={styles.versus_text}>
                                                 Vs
                                             </Text>
                                             <Text style={styles.team_name}>
-                                                {match.teamB.name}
+                                                {ellipsize(
+                                                    match.teamB.name,
+                                                    28
+                                                )}
                                             </Text>
                                         </View>
 
@@ -253,15 +267,46 @@ const HomeScreen = ({ navigation, route }) => {
                                                     "toss happend" ||
                                                     match.matchStatus ===
                                                         "in progress") &&
-                                                    `${match.toss.tossWinner} elected to ${match.toss.tossDecision} first`}
+                                                    `${ellipsize(
+                                                        match.toss.tossWinner,
+                                                        28
+                                                    )} elected to ${
+                                                        match.toss.tossDecision
+                                                    } first`}
 
                                                 {match.matchStatus ===
                                                     "inning break" &&
                                                     "innings break"}
 
-                                                {match.matchStatus ===
+                                                {match?.matchStatus ===
                                                     "completed" &&
-                                                    match.matchResult}
+                                                    match?.matchResult &&
+                                                    (match.matchResult
+                                                        .status === "Win"
+                                                        ? `${ellipsize(
+                                                              match.matchResult
+                                                                  .winningTeam,
+                                                              28
+                                                          )} won by ${
+                                                              match.matchResult
+                                                                  .winningMargin
+                                                          }`
+                                                        : match.matchResult
+                                                              .status === "Tie"
+                                                        ? "Match Tied"
+                                                        : match.matchResult
+                                                              .status ===
+                                                          "Super Over"
+                                                        ? `${ellipsize(
+                                                              match.matchResult
+                                                                  .winningTeam,
+                                                              28
+                                                          )} won the super over`
+                                                        : match.matchResult
+                                                              .status ===
+                                                          "Super Over Tie"
+                                                        ? "Super Over Tied"
+                                                        : "")}
                                                 {match.matchStatus ===
                                                     "super over" &&
                                                     "match tied (super over in progress)"}
@@ -316,56 +361,34 @@ const styles = StyleSheet.create({
         fontFamily: "robotoBold"
     },
     matches_wrapper: {
-        gap: normalizeVertical(22),
+        gap: normalizeVertical(20),
         paddingTop: normalizeVertical(5),
         paddingBottom: normalizeVertical(50)
     },
     match: {
         width: "90%",
-        gap: normalize(20),
+        gap: normalizeVertical(12),
         justifyContent: "center",
         backgroundColor: "white",
         marginHorizontal: "auto",
         paddingHorizontal: normalize(10),
         paddingVertical: normalizeVertical(10),
-        borderRadius: normalize(8),
-        elevation: 2,
-        borderWidth: 2,
-        borderColor: "white"
-    },
-    team_name_wrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between"
-    },
-    team: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: normalize(10)
-    },
-    team_icon: {
-        backgroundColor: "#f75454",
-        height: normalize(60),
-        width: normalize(60),
-        borderRadius: normalize(100),
-        justifyContent: "center",
-        alignItems: "center",
+        borderRadius: normalize(4),
         elevation: 1
     },
-    team_icon_text: {
-        fontSize: normalize(28),
-        color: "white",
-        fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+    team_name_wrapper: {
+        justifyContent: "center",
+        alignItems: "center",
+        gap: normalizeVertical(10)
     },
     team_name: {
-        fontSize: normalize(18),
+        fontSize: normalize(17),
         color: "#474646",
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
     },
     versus_text: {
-        fontSize: normalize(22),
+        fontSize: normalize(20),
         color: "#E21F26",
         fontFamily: "robotoBold"
     },
@@ -374,13 +397,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between"
     },
-    match_info_wrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center"
-    },
     match_info: {
-        fontSize: normalize(18),
+        fontSize: normalize(17),
         color: "#1A4DA1",
         fontFamily: "robotoMedium",
         textAlign: "center",
@@ -392,9 +410,9 @@ const styles = StyleSheet.create({
         fontFamily: "latoBold"
     },
     match_status_wrapper: {
-        paddingHorizontal: normalize(15),
+        paddingHorizontal: normalize(14),
         paddingVertical: normalizeVertical(6),
-        borderRadius: normalize(15)
+        borderRadius: normalize(4)
     },
     match_status: {
         color: "#FFFFFF",

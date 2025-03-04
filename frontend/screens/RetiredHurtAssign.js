@@ -18,7 +18,9 @@ import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import CheckBox from "../components/CheckBox.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const RetiredHurtAssign = ({ navigation, route }) => {
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
     const [outEnd, setOutEnd] = useState(null);
@@ -196,12 +198,11 @@ const RetiredHurtAssign = ({ navigation, route }) => {
                                             <Text
                                                 style={styles.batsman_icon_text}
                                             >
-                                                {batsman.name &&
-                                                    batsman.name[0]}
+                                                {batsman?.name[0]}
                                             </Text>
                                         </View>
                                         <Text style={styles.batsman_name}>
-                                            {batsman.name && batsman.name}
+                                            {ellipsize(batsman?.name, 28)}
                                         </Text>
                                         <Text style={styles.current_end}>
                                             {batsman.onStrike
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(45),
         elevation: 1
     },
     batsman_icon_text: {

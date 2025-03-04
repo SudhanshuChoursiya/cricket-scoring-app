@@ -560,9 +560,13 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 if (match.inning2.totalScore >= match.targetScore) {
                     match.matchStatus = "completed";
 
-                    match.matchResult = `${
-                        match.inning2.battingTeam.name
-                    } won by ${10 - match.inning2.wicketsFallen} wickets`;
+                    match.matchResult = {
+                        status: "Win",
+                        winningTeam: `${match.inning2.battingTeam.name}`,
+                        winningMargin: `${
+                            10 - match.inning2.wicketsFallen
+                        } wickets`
+                    };
 
                     io.emit("matchCompleted");
                 } else if (
@@ -572,18 +576,23 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     if (match.inning2.totalScore === match.targetScore - 1) {
                         match.matchStatus = "completed";
 
-                        match.matchResult = "match tied";
+                        match.matchResult = {
+                            status: "Tie",
+                            winningTeam: null,
+                            winningMargin: null
+                        };
 
                         io.emit("matchTied");
                     } else {
                         match.matchStatus = "completed";
 
-                        match.matchResult = `${
-                            match.inning2.bowlingTeam.name
-                        } won by ${
-                            match.targetScore - match.inning2.totalScore
-                        } runs`;
-
+                        match.matchResult = {
+                            status: "Win",
+                            winningTeam: `${match.inning2.bowlingTeam.name}`,
+                            winningMargin: `${
+                                match.targetScore - match.inning2.totalScore
+                            } runs`
+                        };
                         io.emit("matchCompleted");
                     }
                 }
@@ -591,7 +600,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
         } else {
             if (match.superOver.currentInning === 1) {
                 if (
-                    match.superOver.inning1.wicketsFallen >= 10 ||
+                    match.superOver.inning1.wicketsFallen >= 2 ||
                     match.superOver.inning1.currentOvers >=
                         match.superOver.inning1.totalOvers
                 ) {
@@ -612,13 +621,17 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 ) {
                     match.matchStatus = "completed";
 
-                    match.matchResult = `match tied ${match.superOver.inning2.battingTeam.name} won super over`;
+                    match.matchResult = {
+                        status: "Super Over",
+                        winningTeam: `${match.superOver.inning2.battingTeam.name}`,
+                        winningMargin: null
+                    };
 
                     io.emit("matchCompleted");
                 } else if (
                     match.superOver.inning2.currentOvers >=
                         match.superOver.inning2.totalOvers ||
-                    match.superOver.inning2.wicketsFallen >= 10
+                    match.superOver.inning2.wicketsFallen >= 2
                 ) {
                     if (
                         match.superOver.inning2.totalScore ===
@@ -626,12 +639,20 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     ) {
                         match.matchStatus = "completed";
 
-                        match.matchResult = "super over tied";
+                        match.matchResult = {
+                            status: "Super Over Tie",
+                            winningTeam: null,
+                            winningMargin: null
+                        };
 
                         io.emit("superOverTied");
                     } else {
                         match.matchStatus = "completed";
-                        match.matchResult = `match tied ${match.superOver.inning2.bowlingTeam.name} won super over`;
+                        match.matchResult = {
+                            status: "Super Over",
+                            winningTeam: `${match.superOver.inning2.bowlingTeam.name}`,
+                            winningMargin: null
+                        };
 
                         io.emit("matchCompleted");
                     }
@@ -1663,7 +1684,11 @@ const undoScoreController = asyncHandler(async (req, res) => {
         if (match.matchStatus === "completed" && match.currentInning === 2) {
             match.matchStatus = "in progress";
 
-            match.matchResult = null;
+            match.matchResult = {
+                status: null,
+                winningTeam: null,
+                winningMargin: null
+            };
         }
     } else {
         if (
@@ -1681,7 +1706,11 @@ const undoScoreController = asyncHandler(async (req, res) => {
             match.superOver.currentInning === 2
         ) {
             match.matchStatus = "super over";
-            match.matchResult = null;
+            match.matchResult = {
+                status: null,
+                winningTeam: null,
+                winningMargin: null
+            };
         }
     }
 
@@ -1929,20 +1958,34 @@ const endMatchController = asyncHandler(async (req, res) => {
         if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
             match.matchStatus = "completed";
             if (!match.isSuperOver) {
-                match.matchResult = `${currentInning.battingTeam.name} won by ${
-                    10 - currentInning.wicketsFallen
-                } wickets`;
+                match.matchResult = {
+                    status: "Win",
+                    winningTeam: `${match.inning2.battingTeam.name}`,
+                    winningMargin: `${10 - match.inning2.wicketsFallen} wickets`
+                };
             } else {
-                match.matchResult = `match tied ${currentInning.battingTeam.name} won super over`;
+                match.matchResult = {
+                    status: "Super Over",
+                    winningTeam: `${match.superOver.inning2.battingTeam.name}`,
+                    winningMargin: null
+                };
             }
         } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
             match.matchStatus = "completed";
             if (!match.isSuperOver) {
-                match.matchResult = `${currentInning.bowlingTeam.name} won by ${
-                    match.targetScore - currentInning.totalScore
-                } runs`;
+                match.matchResult = {
+                    status: "Win",
+                    winningTeam: `${match.inning2.bowlingTeam.name}`,
+                    winningMargin: `${
+                        match.targetScore - match.inning2.totalScore
+                    } runs`
+                };
             } else {
-                match.matchResult = `match tied ${currentInning.bowlingTeam.name} won super over`;
+                match.matchResult = {
+                    status: "Super Over",
+                    winningTeam: `${match.superOver.inning2.bowlingTeam.name}`,
+                    winningMargin: null
+                };
             }
         }
     }

@@ -15,6 +15,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CaughtOutFielderAssign = ({ navigation, route }) => {
     const [currentInningDetails, setCurrentInningDetails] = useState(null);
@@ -62,7 +63,7 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
 
                     if (response.status === 200) {
                         currentInning = getCurrentInning(data.data);
-                setCurrentInningDetails(currentInning);
+                        setCurrentInningDetails(currentInning);
 
                         setOutBatsman(
                             currentInning.currentBatsmen.find(
@@ -155,11 +156,11 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
                         <View style={styles.out_batsman}>
                             <View style={styles.batsman_icon_wrapper}>
                                 <Text style={styles.batsman_icon_text}>
-                                    {outBastman.name && outBastman.name[0]}
+                                    {outBastman?.name[0]}
                                 </Text>
                             </View>
                             <Text style={styles.batsman_name}>
-                                {outBastman.name && outBastman.name}
+                                {ellipsize(outBastman?.name, 28)}
                             </Text>
                         </View>
                     </View>
@@ -205,11 +206,11 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
                             >
                                 <View style={styles.fielder_icon_wrapper}>
                                     <Text style={styles.fielder_icon_text}>
-                                        {fielder.name && fielder.name[0]}
+                                        {fielder?.name[0]}
                                     </Text>
                                 </View>
                                 <Text style={styles.fielder_name}>
-                                    {fielder.name && fielder.name}
+                                    {ellipsize(fielder?.name, 28)}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(45),
         elevation: 1
     },
     batsman_icon_text: {
@@ -311,7 +312,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center"
     },
     select_fielder_wrapper: {
         gap: normalizeVertical(20),
@@ -324,7 +326,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(18),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(210),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -337,7 +339,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50),
+        borderRadius: normalize(45),
         elevation: 1
     },
     fielder_icon_text: {
@@ -350,7 +352,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center"
     },
     confirm_btn_wrapper: {
         position: "absolute",

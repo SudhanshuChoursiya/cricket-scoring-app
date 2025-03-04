@@ -13,6 +13,7 @@ import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setMatchCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
@@ -27,6 +28,7 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
         Platform.OS === "ios"
             ? Dimensions.get("window").height
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+
     const handleNavigate = () => {
         navigation.navigate("home-screen", {
             matchId: matchDetails?._id
@@ -57,7 +59,26 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
                 <View style={styles.modal_content}>
                     <Text style={styles.modal_info}>
                         {matchDetails?.matchStatus === "completed" &&
-                            matchDetails?.matchResult}
+                            matchDetails?.matchResult &&
+                            (matchDetails.matchResult.status === "Win"
+                                ? `${ellipsize(
+                                      matchDetails.matchResult.winningTeam,
+                                      26
+                                  )} won by ${
+                                      matchDetails.matchResult.winningMargin
+                                  }`
+                                : matchDetails.matchResult.status === "Tie"
+                                ? "Match Tied"
+                                : matchDetails.matchResult.status ===
+                                  "Super Over"
+                                ? `${ellipsize(
+                                      matchDetails.matchResult.winningTeam,
+                                      26
+                                  )} won the super over`
+                                : matchDetails.matchResult.status ===
+                                  "Super Over Tie"
+                                ? "Super Over Tied"
+                                : "")}
                     </Text>
                     <TouchableOpacity
                         style={styles.start_new_inning_btn}
@@ -93,6 +114,7 @@ const styles = StyleSheet.create({
     },
     modal_container: {
         width: normalize(300),
+        height: normalizeVertical(320),
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),
@@ -106,18 +128,19 @@ const styles = StyleSheet.create({
         color: "#AF2B1C"
     },
     modal_content: {
+        height: normalizeVertical(165),
+        justifyContent: "space-between",
+        paddingVertical: normalizeVertical(25),
+        paddingHorizontal: normalize(15),
         borderWidth: normalize(2),
         borderColor: "#d2d1d1",
-        paddingHorizontal: normalize(15),
-        paddingVertical: normalizeVertical(25),
-        gap: normalizeVertical(20),
         borderRadius: normalize(8)
     },
     modal_info: {
         fontSize: normalize(18),
         fontFamily: "ubuntuMedium",
         color: "#565656",
-        textTransform: "capitalize",
+        textTransform: "capitalize"
     },
     start_new_inning_btn: {
         backgroundColor: "#14B492",

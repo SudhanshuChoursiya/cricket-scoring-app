@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectTwoTeamScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -60,32 +60,31 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         })
                     }
                 >
-                    {!teamA.name ? (
-                        <>
-                            <View style={styles.select_icon_wrapper}>
+                    <>
+                        <View style={styles.select_icon_wrapper}>
+                            {!teamA.name ? (
                                 <Icon
                                     name="add"
-                                    size={normalize(26)}
+                                    size={normalize(28)}
                                     color="white"
                                 />
-                            </View>
-
-                            <Text style={styles.select_caption}>
-                                select team a
-                            </Text>
-                        </>
-                    ) : (
-                        <>
-                            <View style={styles.selected_team_icon_wrapper}>
-                                <Text style={styles.selected_team_icon_text}>
-                                    {teamA.name[0]}
-                                </Text>
-                            </View>
+                            ) : (
+                                <View style={styles.selected_team_icon_wrapper}>
+                                    <Text
+                                        style={styles.selected_team_icon_text}
+                                    >
+                                        {teamA.name[0]}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                        {teamA.name && (
                             <Text style={styles.selected_team_name}>
-                                {teamA.name}
+                                {ellipsize(teamA.name, 30)}
                             </Text>
-                        </>
-                    )}
+                        )}
+                        <Text style={styles.select_caption}>team a</Text>
+                    </>
                 </TouchableOpacity>
                 <Text style={styles.versus_text}>Vs</Text>
                 <TouchableOpacity
@@ -96,34 +95,34 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         })
                     }
                 >
-                    {!teamB.name ? (
-                        <>
-                            <View style={styles.select_icon_wrapper}>
+                    <>
+                        <View style={styles.select_icon_wrapper}>
+                            {!teamB.name ? (
                                 <Icon
                                     name="add"
-                                    size={normalize(26)}
+                                    size={normalize(28)}
                                     color="white"
                                 />
-                            </View>
-
-                            <Text style={styles.select_caption}>
-                                select team b
-                            </Text>
-                        </>
-                    ) : (
-                        <>
-                            <View style={styles.selected_team_icon_wrapper}>
-                                <Text style={styles.selected_team_icon_text}>
-                                    {teamB.name[0]}
-                                </Text>
-                            </View>
+                            ) : (
+                                <View style={styles.selected_team_icon_wrapper}>
+                                    <Text
+                                        style={styles.selected_team_icon_text}
+                                    >
+                                        {teamB.name[0]}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                        {teamB.name && (
                             <Text style={styles.selected_team_name}>
-                                {teamB.name}
+                                {ellipsize(teamB.name, 30)}
                             </Text>
-                        </>
-                    )}
+                        )}
+                        <Text style={styles.select_caption}>team b</Text>
+                    </>
                 </TouchableOpacity>
             </View>
+
             {teamA.name && teamB.name && (
                 <View style={styles.confirm_btn_wrapper}>
                     <TouchableOpacity
@@ -150,14 +149,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(45),
+        gap: normalize(25),
         paddingHorizontal: normalize(20)
     },
 
     label: {
         fontSize: normalize(20),
         color: "white",
-        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },
@@ -173,33 +171,36 @@ const styles = StyleSheet.create({
         gap: normalizeVertical(15)
     },
     select_icon_wrapper: {
-        height: normalize(100),
-        width: normalize(100),
+        height: normalize(95),
+        width: normalize(95),
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#282829",
-        borderRadius: normalize(50),
+        borderRadius: normalize(47),
         elevation: 1
     },
     select_caption: {
         backgroundColor: "#1A4DA1",
         color: "white",
-        paddingHorizontal: normalize(15),
+        fontSize: normalize(16),
+        width: normalize(100),
         paddingVertical: normalizeVertical(10),
         borderRadius: normalize(8),
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        fontFamily: "robotoMedium",
+        textAlign: "center"
     },
     versus_text: {
-        fontSize: normalize(22),
+        fontSize: normalize(24),
         fontFamily: "robotoBold"
     },
     selected_team_icon_wrapper: {
-        height: normalize(100),
-        width: normalize(100),
+        height: normalize(95),
+        width: normalize(95),
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#E21F26",
-        borderRadius: normalize(50)
+        borderRadius: normalize(47)
     },
     selected_team_icon_text: {
         fontSize: normalize(28),
@@ -208,11 +209,9 @@ const styles = StyleSheet.create({
         textTransform: "capitalize"
     },
     selected_team_name: {
-        backgroundColor: "#1A4DA1",
-        color: "white",
-        paddingHorizontal: normalize(15),
-        paddingVertical: normalizeVertical(10),
-        borderRadius: normalize(8),
+        fontSize: normalize(19),
+        fontFamily: "robotoMedium",
+        color: "#333333",
         textTransform: "capitalize"
     },
     confirm_btn_wrapper: {

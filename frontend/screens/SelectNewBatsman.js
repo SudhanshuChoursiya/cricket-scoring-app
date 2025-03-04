@@ -13,6 +13,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import Spinner from "../components/Spinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const SelectNewBatsman = ({ navigation, route }) => {
@@ -187,7 +188,7 @@ const SelectNewBatsman = ({ navigation, route }) => {
                 <>
                     <View style={styles.team_name_wrapper}>
                         <Text style={styles.team_name}>
-                            team: {battingTeam?.name}
+                            {ellipsize(`team: ${battingTeam?.name}`, 35)}
                         </Text>
                     </View>
                     <FlatList
@@ -204,13 +205,13 @@ const SelectNewBatsman = ({ navigation, route }) => {
                             >
                                 <View style={styles.player_icon}>
                                     <Text style={styles.player_icon_text}>
-                                        {item.name[0]}
+                                        {item?.name[0]}
                                     </Text>
                                 </View>
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {item.name}
+                                        {ellipsize(item?.name, 28)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>

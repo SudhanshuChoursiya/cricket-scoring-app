@@ -13,8 +13,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showToast } from "../redux/toastSlice.js";
-
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const AddTeamScreen = ({ navigation, route }) => {
     const [teamName, setTeamName] = useState(null);
     const [city, setCity] = useState(null);

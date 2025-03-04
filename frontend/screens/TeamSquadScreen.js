@@ -12,6 +12,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import { MotiView } from "moti";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TeamSquadScreen = ({ navigation, route }) => {
     const [teamDetails, setTeamDetails] = useState([]);
@@ -127,14 +129,25 @@ const TeamSquadScreen = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>
-                    select{" "}
-                    {route.params?.selectFor === "team A"
-                        ? teamA.name
-                        : teamB.name}{" "}
-                    playing 11
-                </Text>
+                <MotiView
+                    from={{ translateX: 200 }}
+                    animate={{ translateX: -200 }}
+                    transition={{
+                        type: "timing",
+                        duration: 5000,
+                        loop: true,
+                        delay: 2000 // Delay after one loop
+                    }}
+                >
+                    <Text style={styles.label}>
+                        select playing 11
+                        {route.params?.selectFor === "team A"
+                            ? teamA.name
+                            : teamB.name}
+                    </Text>
+                </MotiView>
             </View>
+
             <View style={styles.add_player_btn_wrapper}>
                 <TouchableOpacity
                     style={styles.add_player_btn}
@@ -182,7 +195,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {item.name}
+                                        {ellipsize(item.name, 28)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -231,6 +244,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
+    },
+    heading_wrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginHorizontal: normalize(18),
+        marginTop: normalizeVertical(25)
+    },
+    heading: {
+        fontSize: normalize(20),
+        color: "black",
+        fontFamily: "robotoMedium"
     },
     squad_size_and_selected_count_wrapper: {
         flexDirection: "row",
@@ -290,7 +315,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(60),
-        borderRadius: normalize(100),
+        borderRadius: normalize(30),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1

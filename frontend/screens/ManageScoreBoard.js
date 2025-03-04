@@ -49,6 +49,7 @@ import OutMethodModal from "../components/OutMethodModal.js";
 import SuperOverModal from "../components/SuperOverModal.js";
 import { io } from "socket.io-client";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ManageScoreBoardScreen = ({ navigation, route }) => {
@@ -680,8 +681,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             />
                         </TouchableOpacity>
                         <Text style={styles.label}>
-                            {currentInningDetails &&
-                                currentInningDetails.battingTeam.name}
+                            {ellipsize(
+                                currentInningDetails?.battingTeam.name,
+                                26
+                            )}
                         </Text>
                         <TouchableOpacity
                             style={styles.settings_btn}
@@ -695,98 +698,147 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.batting_team_score_wrapper}>
-                        <View style={styles.score_and_overs_wrapper}>
-                            <View style={styles.score_wrapper}>
-                                <Text style={styles.team_score_text}>
-                                    {currentInningDetails?.totalScore}/
-                                    {currentInningDetails?.wicketsFallen}
-                                </Text>
+                    <View style={styles.scoreboard_wrapper}>
+                        <View style={styles.scores_and_match_status_wrapper}>
+                            <View style={styles.score_and_over_wrapper}>
+                                <View style={styles.score_wrapper}>
+                                    <Text style={styles.team_score_text}>
+                                        {currentInningDetails?.totalScore}/
+                                        {currentInningDetails?.wicketsFallen}
+                                    </Text>
+                                </View>
+                                <View style={styles.overs_wrapper}>
+                                    <Text style={styles.overs_text}>
+                                        ({currentInningDetails?.currentOvers}.
+                                        {currentInningDetails?.currentOverBalls}
+                                        /{currentInningDetails?.totalOvers})
+                                    </Text>
+                                </View>
                             </View>
-                            <View style={styles.overs_wrapper}>
-                                <Text style={styles.overs_text}>
-                                    ({currentInningDetails?.currentOvers}.
-                                    {currentInningDetails?.currentOverBalls}/
-                                    {currentInningDetails?.totalOvers})
-                                </Text>
-                            </View>
+
+                            {!matchDetails?.isSecondInningStarted &&
+                                !matchDetails?.isSuperOver && (
+                                    <View style={styles.match_status_wrapper}>
+                                        <Text style={styles.match_status}>
+                                            {ellipsize(
+                                                matchDetails?.toss.tossWinner,
+                                                26
+                                            )}{" "}
+                                            won the toss and elected to{" "}
+                                            {matchDetails?.toss.tossDecision}
+                                        </Text>
+                                    </View>
+                                )}
+                            {matchDetails?.isSuperOver && (
+                                <View style={styles.match_status_wrapper}>
+                                    <Text style={styles.match_status}>
+                                        Super Over In Progress
+                                    </Text>
+                                </View>
+                            )}
+
+                            {matchDetails?.matchStatus === "in progress" &&
+                                matchDetails?.isSecondInningStarted &&
+                                !matchDetails?.isSuperOver && (
+                                    <View style={styles.match_status_wrapper}>
+                                        <Text style={styles.match_status}>
+                                            {ellipsize(
+                                                currentInningDetails
+                                                    ?.battingTeam.name,
+                                                26
+                                            )}{" "}
+                                            needs{" "}
+                                            {matchDetails?.targetScore -
+                                                matchDetails?.inning2
+                                                    .totalScore}{" "}
+                                            runs in{" "}
+                                            {matchDetails?.inning2.totalOvers *
+                                                6 -
+                                                matchDetails.inning2
+                                                    .currentOvers *
+                                                    6 -
+                                                matchDetails.inning2
+                                                    .currentOverBalls}{" "}
+                                            balls
+                                        </Text>
+                                    </View>
+                                )}
+                            {matchDetails?.matchStatus === "super over" &&
+                                matchDetails?.isSecondInningStarted &&
+                                matchDetails?.isSuperOver && (
+                                    <View style={styles.match_status_wrapper}>
+                                        <Text style={styles.match_status}>
+                                            {ellipsize(
+                                                currentInningDetails
+                                                    ?.battingTeam.name,
+                                                26
+                                            )}{" "}
+                                            needs{" "}
+                                            {matchDetails?.superOver
+                                                ?.targetScore -
+                                                matchDetails?.superOver?.inning2
+                                                    .totalScore}{" "}
+                                            runs in{" "}
+                                            {matchDetails?.superOver?.inning2
+                                                .totalOvers *
+                                                6 -
+                                                matchDetails?.superOver?.inning2
+                                                    .currentOvers *
+                                                    6 -
+                                                matchDetails?.superOver?.inning2
+                                                    .currentOverBalls}{" "}
+                                            balls
+                                        </Text>
+                                    </View>
+                                )}
+
+                            {matchDetails?.matchStatus === "completed" &&
+                                matchDetails?.matchResult && (
+                                    <View style={styles.match_status_wrapper}>
+                                        <Text style={styles.match_status}>
+                                            {matchDetails.matchResult.status ===
+                                            "Win"
+                                                ? `${ellipsize(
+                                                      matchDetails.matchResult
+                                                          .winningTeam,
+                                                      26
+                                                  )} won by ${
+                                                      matchDetails.matchResult
+                                                          .winningMargin
+                                                  }`
+                                                : matchDetails.matchResult
+                                                      .status === "Tie"
+                                                ? "Match Tied"
+                                                : matchDetails.matchResult
+                                                      .status === "Super Over"
+                                                ? `${ellipsize(
+                                                      matchDetails.matchResult
+                                                          .winningTeam,
+                                                      26
+                                                  )} won the super over`
+                                                : matchDetails.matchResult
+                                                      .status ===
+                                                  "Super Over Tie"
+                                                ? "Super Over Tied"
+                                                : ""}
+                                        </Text>
+                                    </View>
+                                )}
                         </View>
-
-                        {!matchDetails?.isSecondInningStarted &&
-                            !matchDetails?.isSuperOver && (
-                                <View style={styles.match_status_wrapper}>
-                                    <Text style={styles.match_status}>
-                                        {matchDetails?.toss.tossWinner} won the
-                                        toss and elected to{" "}
-                                        {matchDetails?.toss.tossDecision}
-                                    </Text>
-                                </View>
-                            )}
-                        {matchDetails?.isSuperOver && (
-                            <View style={styles.match_status_wrapper}>
-                                <Text style={styles.match_status}>
-                                    Super Over In Progress
-                                </Text>
-                            </View>
-                        )}
-
-                        {matchDetails?.matchStatus === "in progress" &&
-                            matchDetails?.isSecondInningStarted &&
-                            !matchDetails?.isSuperOver && (
-                                <View style={styles.match_status_wrapper}>
-                                    <Text style={styles.match_status}>
-                                        {currentInningDetails?.battingTeam.name}{" "}
-                                        needs{" "}
-                                        {matchDetails?.targetScore -
-                                            matchDetails?.inning2
-                                                .totalScore}{" "}
-                                        runs in{" "}
-                                        {matchDetails?.inning2.totalOvers * 6 -
-                                            matchDetails.inning2.currentOvers *
-                                                6 -
-                                            matchDetails.inning2
-                                                .currentOverBalls}{" "}
-                                        balls
-                                    </Text>
-                                </View>
-                            )}
-                        {matchDetails?.matchStatus === "super over" &&
-                            matchDetails?.isSecondInningStarted &&
-                            matchDetails?.isSuperOver && (
-                                <View style={styles.match_status_wrapper}>
-                                    <Text style={styles.match_status}>
-                                        {currentInningDetails?.battingTeam.name}{" "}
-                                        needs{" "}
-                                        {matchDetails?.superOver?.targetScore -
-                                            matchDetails?.superOver?.inning2
-                                                .totalScore}{" "}
-                                        runs in{" "}
-                                        {matchDetails?.superOver?.inning2
-                                            .totalOvers *
-                                            6 -
-                                            matchDetails?.superOver?.inning2
-                                                .currentOvers *
-                                                6 -
-                                            matchDetails?.superOver?.inning2
-                                                .currentOverBalls}{" "}
-                                        balls
-                                    </Text>
-                                </View>
-                            )}
-
-                        {matchDetails?.matchStatus === "completed" && (
-                            <View style={styles.match_status_wrapper}>
-                                <Text style={styles.match_status}>
-                                    {matchDetails?.matchResult}
-                                </Text>
-                            </View>
-                        )}
 
                         <View style={styles.current_batsman_wrapper}>
                             {currentInningDetails?.currentBatsmen.map(
-                                player => (
+                                (player, index) => (
                                     <Pressable
-                                        style={styles.current_batsman}
+                                        style={[
+                                            styles.current_batsman,
+                                            {
+                                                alignItems:
+                                                    index === 0
+                                                        ? "flex-start"
+                                                        : "flex-end"
+                                            }
+                                        ]}
                                         key={player._id}
                                         onPress={() =>
                                             dispatch(
@@ -815,7 +867,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                         styles.out_player
                                                 ]}
                                             >
-                                                {player.name}
+                                                {ellipsize(player.name, 16)}
                                             </Text>
                                             {player.onStrike && (
                                                 <Icon
@@ -829,45 +881,58 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                 )
                             )}
                         </View>
-                    </View>
-                    <View style={styles.bowling_team_name_wrapper}>
-                        <Text style={styles.vs_text}>Vs</Text>
-                        <Text style={styles.bowling_team_name}>
-                            {currentInningDetails?.bowlingTeam.name}
-                        </Text>
-                    </View>
-                    <View style={styles.current_bowler_wrapper}>
-                        <Pressable
-                            style={styles.current_bowler}
-                            onPress={() =>
-                                dispatch(
-                                    setReplaceBowlerModal({ isShow: true })
-                                )
-                            }
-                        >
-                            <Icon
-                                name="sports-baseball"
-                                size={normalize(26)}
-                                color="#474646"
-                            />
-                            <Text style={styles.bowler_name}>
-                                {currentInningDetails?.currentBowler?.name}
-                            </Text>
-                        </Pressable>
-                        <View style={styles.bowler_stats_wrapper}>
-                            <Text style={styles.bowler_stats}>
-                                {currentInningDetails?.currentBowler?.wickets}-
-                                {
-                                    currentInningDetails?.currentBowler
-                                        ?.runsConceded
-                                }{" "}
-                                (
-                                {formatOver(
-                                    currentInningDetails?.currentBowler
-                                        ?.ballsBowled
+
+                        <View style={styles.bowling_team_name_wrapper}>
+                            <Text style={styles.vs_text}>Vs</Text>
+                            <Text style={styles.bowling_team_name}>
+                                {ellipsize(
+                                    currentInningDetails?.bowlingTeam.name,
+                                    26
                                 )}
-                                )
                             </Text>
+                        </View>
+
+                        <View style={styles.current_bowler_wrapper}>
+                            <Pressable
+                                style={styles.current_bowler}
+                                onPress={() =>
+                                    dispatch(
+                                        setReplaceBowlerModal({ isShow: true })
+                                    )
+                                }
+                            >
+                                <Icon
+                                    name="sports-baseball"
+                                    size={normalize(26)}
+                                    color="#474646"
+                                />
+                                <Text style={styles.bowler_name}>
+                                    {ellipsize(
+                                        currentInningDetails?.currentBowler
+                                            ?.name,
+                                        16
+                                    )}
+                                </Text>
+                            </Pressable>
+                            <View style={styles.bowler_stats_wrapper}>
+                                <Text style={styles.bowler_stats}>
+                                    {
+                                        currentInningDetails?.currentBowler
+                                            ?.wickets
+                                    }
+                                    -
+                                    {
+                                        currentInningDetails?.currentBowler
+                                            ?.runsConceded
+                                    }{" "}
+                                    (
+                                    {formatOver(
+                                        currentInningDetails?.currentBowler
+                                            ?.ballsBowled
+                                    )}
+                                    )
+                                </Text>
+                            </View>
                         </View>
                     </View>
                     <ScrollView
@@ -1099,17 +1164,15 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontFamily: "robotoMedium"
     },
-
-    batting_team_score_wrapper: {
+    scores_and_match_status_wrapper: {
         width: "100%",
-        height: normalizeVertical(240),
-        paddingTop: normalizeVertical(40),
+        height: normalizeVertical(150),
+        justifyContent: "center",
         alignItems: "center",
-        gap: normalizeVertical(5),
         backgroundColor: "#E73336",
-        position: "relative"
+        gap: normalizeVertical(5)
     },
-    score_and_overs_wrapper: {
+    score_and_over_wrapper: {
         flexDirection: "row",
         alignItems: "center",
         gap: normalize(8)
@@ -1119,23 +1182,21 @@ const styles = StyleSheet.create({
         color: "white",
         fontFamily: "robotoBold"
     },
-
     overs_text: {
         fontSize: normalize(20),
         color: "white",
         fontFamily: "robotoBold"
     },
-
+    match_status_wrapper: {
+        width: "90%"
+    },
     match_status: {
         fontSize: normalize(18),
         color: "white",
-        fontFamily: "robotoMedium"
+        fontFamily: "robotoMedium",
+        textAlign: "center"
     },
     current_batsman_wrapper: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
         backgroundColor: "#EE5860",
         paddingVertical: normalizeVertical(20),
         paddingHorizontal: normalize(20),
@@ -1144,7 +1205,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     current_batsman: {
-        alignItems: "center",
         gap: normalizeVertical(5)
     },
     batsman_name_wrapper: {

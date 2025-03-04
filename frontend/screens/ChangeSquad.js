@@ -17,7 +17,9 @@ import LoadingSpinner from "../components/LoadingSpinner.js";
 import ChangeCaptainModal from "../components/ChangeCaptainModal.js";
 import ConfirmModal from "../components/ConfirmModal.js";
 import { io } from "socket.io-client";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const ChangeSquadScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
     const [teamDetails, setTeamDetails] = useState(null);
@@ -375,7 +377,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                         styles.player_icon_text
                                                     }
                                                 >
-                                                    {item.name[0]}
+                                                    {item?.name[0]}
                                                 </Text>
                                                 {teamDetails?.captain
                                                     .captainId ===
@@ -404,7 +406,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                 <Text
                                                     style={styles.player_name}
                                                 >
-                                                    {item.name}
+                                                    {ellipsize(item?.name, 28)}
                                                 </Text>
                                             </View>
                                         </View>
@@ -453,7 +455,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                             styles.player_icon_text
                                                         }
                                                     >
-                                                        {item.name[0]}
+                                                        {item?.name[0]}
                                                     </Text>
                                                 </View>
 
@@ -467,7 +469,10 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                             styles.player_name
                                                         }
                                                     >
-                                                        {item.name}
+                                                        {ellipsize(
+                                                            item?.name,
+                                                            28
+                                                        )}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -516,7 +521,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                             styles.player_icon_text
                                                         }
                                                     >
-                                                        {item.name[0]}
+                                                        {item?.name[0]}
                                                     </Text>
                                                 </View>
 
@@ -530,7 +535,10 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                             styles.player_name
                                                         }
                                                     >
-                                                        {item.name}
+                                                        {ellipsize(
+                                                            item?.name,
+                                                            28
+                                                        )}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -651,6 +659,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: normalize(18)
+    },
+    other_player_info_wrapper: {
+        maxWidth: normalize(170)
     },
     player_icon: {
         backgroundColor: "#f75454",

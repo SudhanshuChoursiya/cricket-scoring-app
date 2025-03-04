@@ -13,6 +13,7 @@ import { setTeamACaptain, setTeamBCaptain } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import Spinner from "../components/Spinner.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectCaptain = ({ navigation, route }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -117,13 +118,13 @@ const SelectCaptain = ({ navigation, route }) => {
                             >
                                 <View style={styles.player_icon}>
                                     <Text style={styles.player_icon_text}>
-                                        {item.name[0]}
+                                        {item?.name[0]}
                                     </Text>
                                 </View>
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {item.name}
+                                        {ellipsize(item?.name,28)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(60),
-        borderRadius: normalize(100),
+        borderRadius: normalize(30),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1

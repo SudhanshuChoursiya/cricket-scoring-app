@@ -136,7 +136,7 @@ const MatchSchema = new mongoose.Schema({
         },
         tossDecision: {
             type: String,
-            enum: ["bat", "ball"],
+            enum: ["bat", "ball", null],
             default: null
         }
     },
@@ -151,8 +151,19 @@ const MatchSchema = new mongoose.Schema({
         }
     },
     matchResult: {
-        type: String,
-        default: null
+        status: {
+            type: String,
+            enum: ["Win", "Tie", "Super Over", "Super Over Tie", null],
+            default: null
+        },
+        winningTeam: {
+            type: String,
+            default: null
+        },
+        winningMargin: {
+            type: String,
+            default: null
+        }
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

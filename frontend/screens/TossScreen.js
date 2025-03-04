@@ -17,7 +17,7 @@ import ballLogo from "../assets/cricket-ball.png";
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { showToast } from "../redux/toastSlice.js";
-
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const TossScreen = ({ navigation, route }) => {
     const [matchDetails, setMatchDetails] = useState(null);
@@ -191,7 +191,7 @@ const TossScreen = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.team_name}>
-                                    {matchDetails?.teamA.name}
+                                    {ellipsize(matchDetails?.teamA.name, 28)}
                                 </Text>
                             </TouchableOpacity>
 
@@ -213,7 +213,7 @@ const TossScreen = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.team_name}>
-                                    {matchDetails?.teamB.name}
+                                    {ellipsize(matchDetails?.teamB.name, 28)}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(12),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(200),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50)
+        borderRadius: normalize(45)
     },
     team_icon_text: {
         fontSize: normalize(28),
@@ -359,7 +359,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center",
     },
     toss_decision_wrapper: {
         gap: normalizeVertical(20),
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: normalizeVertical(12),
         backgroundColor: "#FFFFFF",
-        width: normalize(155),
+        width: normalize(158),
         height: normalizeVertical(200),
         borderRadius: normalize(7),
         borderWidth: 2,
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F54133",
-        borderRadius: normalize(50)
+        borderRadius: normalize(45)
     },
     decision_icon: {
         height: normalize(58),

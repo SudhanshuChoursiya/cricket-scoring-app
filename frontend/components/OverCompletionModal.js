@@ -13,6 +13,7 @@ import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
 import { setOverCompleteModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const OverCompletionModal = ({
@@ -63,7 +64,10 @@ const OverCompletionModal = ({
                 <View style={styles.modal_content}>
                     <Text style={styles.over_info}>
                         End of over {currentInningDetails?.currentOvers} by{" "}
-                        {currentInningDetails?.currentBowler?.name}
+                        {ellipsize(
+                            currentInningDetails?.currentBowler?.name,
+                            28
+                        )}
                     </Text>
                     <TouchableOpacity
                         style={styles.start_new_over_btn}
@@ -101,6 +105,7 @@ const styles = StyleSheet.create({
     },
     modal_container: {
         width: normalize(300),
+        height: normalizeVertical(320),
         backgroundColor: "white",
         borderRadius: normalize(10),
         gap: normalizeVertical(20),
@@ -113,22 +118,20 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium",
         color: "#AF2B1C"
     },
-
     modal_content: {
+        height: normalizeVertical(165),
+        justifyContent: "space-between",
+        paddingVertical: normalizeVertical(25),
+        paddingHorizontal: normalize(15),
         borderWidth: normalize(2),
         borderColor: "#d2d1d1",
-        paddingHorizontal: normalize(15),
-        paddingVertical: normalizeVertical(25),
-        gap: normalizeVertical(20),
         borderRadius: normalize(8)
     },
-
     over_info: {
         fontSize: normalize(18),
         fontFamily: "ubuntuMedium",
         color: "#565656"
     },
-
     start_new_over_btn: {
         backgroundColor: "#14B492",
         paddingVertical: normalizeVertical(15),
@@ -144,7 +147,6 @@ const styles = StyleSheet.create({
         textTransform: "uppercase",
         textAlign: "center"
     },
-
     continue_over_btn: {
         width: "100%",
         backgroundColor: "#f5f5f5",
@@ -152,7 +154,6 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8),
         elevation: 1
     },
-
     continue_over_btn_text: {
         color: "#AF2B1C",
         fontSize: normalize(17),

@@ -10,3 +10,4 @@ export const getCurrentInning = match => {
 
     return match.currentInning === 1 ? match.inning1 : match.inning2;
 };
+

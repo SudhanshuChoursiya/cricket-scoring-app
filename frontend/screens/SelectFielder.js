@@ -13,6 +13,7 @@ import { setFielder } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectFielder = ({ navigation, route }) => {
     const [bowlingTeam, setBowlingTeam] = useState(null);
@@ -125,7 +126,7 @@ const SelectFielder = ({ navigation, route }) => {
                 <>
                     <View style={styles.team_name_wrapper}>
                         <Text style={styles.team_name}>
-                            team: {bowlingTeam?.name}
+                            {ellipsize(`team ${bowlingTeam?.name}`, 35)}
                         </Text>
                     </View>
                     <FlatList
@@ -143,14 +144,21 @@ const SelectFielder = ({ navigation, route }) => {
                                 <View style={styles.player_details}>
                                     <View style={styles.player_icon}>
                                         <Text style={styles.player_icon_text}>
-                                            {item.name[0]}
+                                            {item?.name[0]}
                                         </Text>
                                     </View>
                                     <View
                                         style={styles.other_player_info_wrapper}
                                     >
                                         <Text style={styles.player_name}>
-                                            {item.name}
+                                            {ellipsize(
+                                                item?.name,
+                                                bowlingTeam?.substitutes.includes(
+                                                    item
+                                                )
+                                                    ? 20
+                                                    : 28
+                                            )}
                                         </Text>
                                     </View>
                                 </View>
@@ -269,7 +277,6 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "ubuntuMedium"
     },
-    substitute_sign: {},
     substitute_sign_text: {
         fontSize: normalize(17),
         color: "#ad0c0c",

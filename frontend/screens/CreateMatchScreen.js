@@ -14,7 +14,7 @@ import { setTotalOvers, setCity, setGround } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showToast } from "../redux/toastSlice.js";
-
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const CreateMatchScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -144,19 +144,25 @@ const CreateMatchScreen = ({ navigation, route }) => {
                 <View style={styles.selected_team}>
                     <View style={styles.selected_team_icon_wrapper}>
                         <Text style={styles.selected_team_icon_text}>
-                            {teamA.name[0]}
+                            {teamA?.name[0]}
                         </Text>
                     </View>
-                    <Text style={styles.selected_team_name}>{teamA.name}</Text>
+                    <Text style={styles.selected_team_name}>
+                        {ellipsize(teamA?.name, 15)}
+                    </Text>
+                    <Text style={styles.selected_caption}>team a</Text>
                 </View>
                 <Text style={styles.versus_text}>Vs</Text>
                 <View style={styles.selected_team}>
                     <View style={styles.selected_team_icon_wrapper}>
                         <Text style={styles.selected_team_icon_text}>
-                            {teamB.name[0]}
+                            {teamB?.name[0]}
                         </Text>
                     </View>
-                    <Text style={styles.selected_team_name}>{teamB.name}</Text>
+                    <Text style={styles.selected_team_name}>
+                        {ellipsize(teamB?.name, 15)}
+                    </Text>
+                    <Text style={styles.selected_caption}>team b</Text>
                 </View>
             </View>
 
@@ -231,33 +237,32 @@ const styles = StyleSheet.create({
         fontSize: normalize(20),
         color: "white",
         paddingHorizontal: normalize(13),
-        textTransform: "capitalize",
-        fontFamily: "robotoBold"
+        fontFamily: "robotoBold",
+        textTransform: "capitalize"
     },
     selected_team_wrapper: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        marginHorizontal: normalize(20),
+        justifyContent: "center",
         marginVertical: normalizeVertical(25)
     },
     selected_team: {
+        flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        gap: normalizeVertical(15)
+        gap: normalizeVertical(10)
     },
-
     versus_text: {
         fontSize: normalize(22),
         fontFamily: "robotoBold"
     },
     selected_team_icon_wrapper: {
-        height: normalize(100),
-        width: normalize(100),
+        height: normalize(80),
+        width: normalize(80),
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#E21F26",
-        borderRadius: normalize(50)
+        borderRadius: normalize(40)
     },
     selected_team_icon_text: {
         fontSize: normalize(28),
@@ -266,12 +271,21 @@ const styles = StyleSheet.create({
         textTransform: "capitalize"
     },
     selected_team_name: {
+        fontSize: normalize(18),
+        fontFamily: "robotoMedium",
+        color: "#333333",
+        textTransform: "capitalize"
+    },
+    selected_caption: {
         backgroundColor: "#1A4DA1",
         color: "white",
-        paddingHorizontal: normalize(15),
-        paddingVertical: normalizeVertical(10),
+        fontSize: normalize(16),
+        width: normalize(90),
+        paddingVertical: normalizeVertical(8),
         borderRadius: normalize(8),
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        fontFamily: "robotoMedium",
+        textAlign: "center"
     },
     other_details_wrapper: {
         justifyContent: "center",
@@ -282,7 +296,7 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     text_input_label: {
-        fontSize: normalize(15),
+        fontSize: normalize(16),
         fontFamily: "ubuntuRegular"
     },
     text_input: {

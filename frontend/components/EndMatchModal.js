@@ -19,6 +19,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
 import CheckBox from "../components/CheckBox.js";
+import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const EndMatchModal = ({
@@ -138,7 +139,7 @@ const EndMatchModal = ({
                                         </Text>
                                     </View>
                                     <Text style={styles.team_name}>
-                                        {team?.name}
+                                        {ellipsize(team?.name, 26)}
                                     </Text>
                                 </TouchableOpacity>
                             )
@@ -256,7 +257,8 @@ const styles = StyleSheet.create({
         color: "black",
         fontSize: normalize(18),
         fontFamily: "robotoMedium",
-        textTransform: "capitalize"
+        textTransform: "capitalize",
+        textAlign: "center",
     },
     checkbox_wrapper: {
         marginHorizontal: normalize(18)
