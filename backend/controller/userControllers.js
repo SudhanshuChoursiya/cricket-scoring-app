@@ -1998,8 +1998,8 @@ const endMatchController = asyncHandler(async (req, res) => {
 });
 
 const getAllMatchDetailsController = asyncHandler(async (req, res) => {
-    const user = req.user;
-    const matchDetails = await MatchModel.find({ createdBy: user._id });
+    // const user = req.user;
+    const matchDetails = await MatchModel.find();
 
     if (!matchDetails) {
         throw new ApiError(404, "no match has been found");
@@ -2008,11 +2008,10 @@ const getAllMatchDetailsController = asyncHandler(async (req, res) => {
 });
 
 const getSingleMatchDetailsController = asyncHandler(async (req, res) => {
-    const user = req.user;
+    //const user = req.user;
     const matchId = req.params.matchId;
     const matchDetails = await MatchModel.findOne({
-        _id: matchId,
-        createdBy: user._id
+        _id: matchId
     });
 
     if (!matchDetails) {
