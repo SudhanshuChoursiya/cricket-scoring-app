@@ -204,7 +204,7 @@ const RunOutFielderAssign = ({ navigation, route }) => {
                                             </Text>
                                         </View>
                                         <Text style={styles.batsman_name}>
-                                            {ellipsize(batsman?.name, 28)}
+                                            {ellipsize(batsman?.name, 27)}
                                         </Text>
                                         <Text style={styles.current_end}>
                                             {batsman.onStrike

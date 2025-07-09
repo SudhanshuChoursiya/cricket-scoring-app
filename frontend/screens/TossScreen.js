@@ -191,7 +191,7 @@ const TossScreen = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.team_name}>
-                                    {ellipsize(matchDetails?.teamA.name, 28)}
+                                    {ellipsize(matchDetails?.teamA.name, 27)}
                                 </Text>
                             </TouchableOpacity>
 
@@ -213,7 +213,7 @@ const TossScreen = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.team_name}>
-                                    {ellipsize(matchDetails?.teamB.name, 28)}
+                                    {ellipsize(matchDetails?.teamB.name, 27)}
                                 </Text>
                             </TouchableOpacity>
                         </View>

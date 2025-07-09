@@ -683,7 +683,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                         <Text style={styles.label}>
                             {ellipsize(
                                 currentInningDetails?.battingTeam.name,
-                                26
+                                27
                             )}
                         </Text>
                         <TouchableOpacity
@@ -722,7 +722,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                         <Text style={styles.match_status}>
                                             {ellipsize(
                                                 matchDetails?.toss.tossWinner,
-                                                26
+                                                27
                                             )}{" "}
                                             won the toss and elected to{" "}
                                             {matchDetails?.toss.tossDecision}
@@ -745,7 +745,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                             {ellipsize(
                                                 currentInningDetails
                                                     ?.battingTeam.name,
-                                                26
+                                                27
                                             )}{" "}
                                             needs{" "}
                                             {matchDetails?.targetScore -
@@ -771,7 +771,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                             {ellipsize(
                                                 currentInningDetails
                                                     ?.battingTeam.name,
-                                                26
+                                                27
                                             )}{" "}
                                             needs{" "}
                                             {matchDetails?.superOver
@@ -801,7 +801,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                 ? `${ellipsize(
                                                       matchDetails.matchResult
                                                           .winningTeam,
-                                                      26
+                                                      27
                                                   )} won by ${
                                                       matchDetails.matchResult
                                                           .winningMargin
@@ -814,7 +814,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                 ? `${ellipsize(
                                                       matchDetails.matchResult
                                                           .winningTeam,
-                                                      26
+                                                      27
                                                   )} won the super over`
                                                 : matchDetails.matchResult
                                                       .status ===
@@ -867,7 +867,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                         styles.out_player
                                                 ]}
                                             >
-                                                {ellipsize(player.name, 16)}
+                                                {ellipsize(player.name, 17)}
                                             </Text>
                                             {player.onStrike && (
                                                 <Icon
@@ -887,7 +887,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                             <Text style={styles.bowling_team_name}>
                                 {ellipsize(
                                     currentInningDetails?.bowlingTeam.name,
-                                    26
+                                    27
                                 )}
                             </Text>
                         </View>
@@ -910,7 +910,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                     {ellipsize(
                                         currentInningDetails?.currentBowler
                                             ?.name,
-                                        16
+                                        20
                                     )}
                                 </Text>
                             </Pressable>
@@ -1210,7 +1210,7 @@ const styles = StyleSheet.create({
     batsman_name_wrapper: {
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(4)
+        gap: normalize(2)
     },
     batsman_name: {
         fontSize: normalize(18),

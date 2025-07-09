@@ -155,7 +155,7 @@ const ChooseTeamScreen = ({ navigation, route }) => {
 
                                 <View style={styles.other_team_info_wrapper}>
                                     <Text style={styles.team_name}>
-                                        {ellipsize(item?.team_name, 28)}
+                                        {ellipsize(item?.team_name, 27)}
                                     </Text>
                                     <View
                                         style={styles.city_and_captain_wrapper}

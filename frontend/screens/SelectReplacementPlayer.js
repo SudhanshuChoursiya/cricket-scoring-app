@@ -209,7 +209,7 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
                         <Text style={styles.heading}>
                             {ellipsize(
                                 ` Team : ${playingTeamDetails?.name}`,
-                                28
+                                35
                             )}
                         </Text>
                     </View>
@@ -233,7 +233,7 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {ellipsize(item?.name, 28)}
+                                        {ellipsize(item?.name, 27)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>

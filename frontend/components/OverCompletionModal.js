@@ -66,7 +66,7 @@ const OverCompletionModal = ({
                         End of over {currentInningDetails?.currentOvers} by{" "}
                         {ellipsize(
                             currentInningDetails?.currentBowler?.name,
-                            28
+                            27
                         )}
                     </Text>
                     <TouchableOpacity

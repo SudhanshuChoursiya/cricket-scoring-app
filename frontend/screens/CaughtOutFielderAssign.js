@@ -160,7 +160,7 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
                                 </Text>
                             </View>
                             <Text style={styles.batsman_name}>
-                                {ellipsize(outBastman?.name, 28)}
+                                {ellipsize(outBastman?.name, 27)}
                             </Text>
                         </View>
                     </View>
@@ -210,7 +210,7 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.fielder_name}>
-                                    {ellipsize(fielder?.name, 28)}
+                                    {ellipsize(fielder?.name, 27)}
                                 </Text>
                             </TouchableOpacity>
                         )}

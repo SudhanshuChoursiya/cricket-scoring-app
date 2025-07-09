@@ -143,12 +143,8 @@ router.post(
 router.get("/check-auth", verifyToken, checkAuthController);
 router.get("/get-all-teams", verifyToken, getAllTeamsController);
 router.get("/get-single-team/:teamId", verifyToken, getSingleTeamController);
-router.get("/get-all-matches", verifyToken, getAllMatchDetailsController);
-router.get(
-    "/get-match-details/:matchId",
-    verifyToken,
-    getSingleMatchDetailsController
-);
+router.get("/get-all-matches", getAllMatchDetailsController);
+router.get("/get-match-details/:matchId", getSingleMatchDetailsController);
 router.get("/search-match", verifyToken, getSearchedMatchController);
 
 export default router;

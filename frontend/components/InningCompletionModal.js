@@ -62,7 +62,7 @@ const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
                             `${ellipsize(
                                 matchDetails?.superOver.inning1.battingTeam
                                     .name,
-                                25
+                                27
                             )} scores ${
                                 matchDetails?.superOver.inning1.totalScore
                             } runs`}

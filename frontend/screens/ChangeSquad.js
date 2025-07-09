@@ -14,6 +14,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { showToast } from "../redux/toastSlice.js";
 import { setChangeCaptainModal, setConfirmModal } from "../redux/modalSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import ScrollingText from "../components/ScrollingText.js";
 import ChangeCaptainModal from "../components/ChangeCaptainModal.js";
 import ConfirmModal from "../components/ConfirmModal.js";
 import { io } from "socket.io-client";
@@ -333,14 +334,16 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                     onPress={() => navigation.goBack()}
                 >
                     <Icon
-                        name="arrow-back"
+                        name="arrow-left"
                         size={normalize(26)}
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>
-                    change {teamDetails?.name} squad
-                </Text>
+                <ScrollingText
+                    style={styles.label}
+                    text={`change ${teamDetails?.name} squad`}
+                    fitWidth="75%"
+                />
             </View>
             <View style={styles.add_player_btn_wrapper}>
                 <TouchableOpacity
@@ -406,7 +409,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                 <Text
                                                     style={styles.player_name}
                                                 >
-                                                    {ellipsize(item?.name, 28)}
+                                                    {ellipsize(item?.name, 27)}
                                                 </Text>
                                             </View>
                                         </View>
@@ -418,7 +421,10 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     handleOpenConfirmModal({
                                                         actionType: "REPLACE",
                                                         title: "Replace player",
-                                                        description: `Are you sure to replace ${item.name}?`,
+                                                        description: `Are you sure to replace ${ellipsize(
+                                                            item.name,
+                                                            27
+                                                        )}`,
                                                         player: item
                                                     })
                                                 }
@@ -471,7 +477,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     >
                                                         {ellipsize(
                                                             item?.name,
-                                                            28
+                                                            27
                                                         )}
                                                     </Text>
                                                 </View>
@@ -482,7 +488,10 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     handleOpenConfirmModal({
                                                         actionType: "REMOVE",
                                                         title: "Remove player",
-                                                        description: `Are you sure to remove ${item.name} from substitutes ?`,
+                                                        description: `Are you sure to remove ${ellipsize(
+                                                            item.name,
+                                                            27
+                                                        )} from substitutes ?`,
                                                         player: item
                                                     })
                                                 }
@@ -537,7 +546,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     >
                                                         {ellipsize(
                                                             item?.name,
-                                                            28
+                                                            27
                                                         )}
                                                     </Text>
                                                 </View>
@@ -551,7 +560,10 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                         handleOpenConfirmModal({
                                                             actionType: "ADD",
                                                             title: "Add player",
-                                                            description: `Are you sure to add ${item.name} in substitutes ?`,
+                                                            description: `Are you sure to add ${ellipsize(
+                                                                item.name,
+                                                                27
+                                                            )} in substitutes ?`,
                                                             player: item
                                                         })
                                                     }
@@ -597,15 +609,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(15),
+        gap: normalize(30),
         paddingHorizontal: normalize(20)
     },
     label: {
         fontSize: normalize(20),
         color: "white",
-        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
-        fontFamily: "robotoBold"
+        fontFamily: "robotoMedium"
     },
     heading: {
         fontSize: normalize(20),
@@ -661,7 +672,7 @@ const styles = StyleSheet.create({
         gap: normalize(18)
     },
     other_player_info_wrapper: {
-        maxWidth: normalize(170)
+        maxWidth: normalize(165)
     },
     player_icon: {
         backgroundColor: "#f75454",

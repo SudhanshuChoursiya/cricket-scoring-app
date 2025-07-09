@@ -239,7 +239,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                         </Text>
                                     </View>
                                     <Text style={styles.batsman_name}>
-                                        {ellipsize(strikeBatsman?.name, 28)}
+                                        {ellipsize(strikeBatsman?.name, 27)}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -292,7 +292,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                         </Text>
                                     </View>
                                     <Text style={styles.batsman_name}>
-                                        {ellipsize(nonStrikeBatsman?.name, 28)}
+                                        {ellipsize(nonStrikeBatsman?.name, 27)}
                                     </Text>
                                 </TouchableOpacity>
                             )}
@@ -357,7 +357,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                                         </Text>
                                     </View>
                                     <Text style={styles.bowler_name}>
-                                        {ellipsize(currentBowler?.name, 28)}
+                                        {ellipsize(currentBowler?.name, 27)}
                                     </Text>
                                 </TouchableOpacity>
                             )}

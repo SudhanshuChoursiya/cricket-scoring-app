@@ -157,7 +157,7 @@ const SelectFielder = ({ navigation, route }) => {
                                                     item
                                                 )
                                                     ? 20
-                                                    : 28
+                                                    : 27
                                             )}
                                         </Text>
                                     </View>

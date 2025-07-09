@@ -124,7 +124,7 @@ const SelectCaptain = ({ navigation, route }) => {
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {ellipsize(item?.name,28)}
+                                        {ellipsize(item?.name,27)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>

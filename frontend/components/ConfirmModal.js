@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setConfirmModal } from "../redux/modalSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
+
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ConfirmModal = ({ showSpinner, player, handleConfirm }) => {

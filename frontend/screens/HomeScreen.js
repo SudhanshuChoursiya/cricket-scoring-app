@@ -243,7 +243,7 @@ const HomeScreen = ({ navigation, route }) => {
                                             <Text style={styles.team_name}>
                                                 {ellipsize(
                                                     match.teamA.name,
-                                                    28
+                                                    35
                                                 )}
                                             </Text>
                                             <Text style={styles.versus_text}>
@@ -252,7 +252,7 @@ const HomeScreen = ({ navigation, route }) => {
                                             <Text style={styles.team_name}>
                                                 {ellipsize(
                                                     match.teamB.name,
-                                                    28
+                                                    35
                                                 )}
                                             </Text>
                                         </View>
@@ -269,7 +269,7 @@ const HomeScreen = ({ navigation, route }) => {
                                                         "in progress") &&
                                                     `${ellipsize(
                                                         match.toss.tossWinner,
-                                                        28
+                                                        35
                                                     )} elected to ${
                                                         match.toss.tossDecision
                                                     } first`}
@@ -286,7 +286,7 @@ const HomeScreen = ({ navigation, route }) => {
                                                         ? `${ellipsize(
                                                               match.matchResult
                                                                   .winningTeam,
-                                                              28
+                                                              35
                                                           )} won by ${
                                                               match.matchResult
                                                                   .winningMargin
@@ -300,7 +300,7 @@ const HomeScreen = ({ navigation, route }) => {
                                                         ? `${ellipsize(
                                                               match.matchResult
                                                                   .winningTeam,
-                                                              28
+                                                              35
                                                           )} won the super over`
                                                         : match.matchResult
                                                               .status ===

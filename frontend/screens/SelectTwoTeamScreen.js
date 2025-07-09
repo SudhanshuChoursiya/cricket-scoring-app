@@ -80,7 +80,7 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         </View>
                         {teamA.name && (
                             <Text style={styles.selected_team_name}>
-                                {ellipsize(teamA.name, 30)}
+                                {ellipsize(teamA.name, 35)}
                             </Text>
                         )}
                         <Text style={styles.select_caption}>team a</Text>
@@ -115,7 +115,7 @@ const SelectTwoTeamScreen = ({ navigation, route }) => {
                         </View>
                         {teamB.name && (
                             <Text style={styles.selected_team_name}>
-                                {ellipsize(teamB.name, 30)}
+                                {ellipsize(teamB.name, 35)}
                             </Text>
                         )}
                         <Text style={styles.select_caption}>team b</Text>

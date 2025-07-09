@@ -12,9 +12,10 @@ import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-import { MotiView } from "moti";
+import ScrollingText from "../components/ScrollingText.js";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+
 const TeamSquadScreen = ({ navigation, route }) => {
     const [teamDetails, setTeamDetails] = useState([]);
     const [teamPlaying11, setTeamPlaying11] = useState([]);
@@ -129,23 +130,16 @@ const TeamSquadScreen = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <MotiView
-                    from={{ translateX: 200 }}
-                    animate={{ translateX: -200 }}
-                    transition={{
-                        type: "timing",
-                        duration: 5000,
-                        loop: true,
-                        delay: 2000 // Delay after one loop
-                    }}
-                >
-                    <Text style={styles.label}>
-                        select playing 11
-                        {route.params?.selectFor === "team A"
+
+                <ScrollingText
+                    text={`select playing 11 ${
+                        route.params?.selectFor === "team A"
                             ? teamA.name
-                            : teamB.name}
-                    </Text>
-                </MotiView>
+                            : teamB.name
+                    }`}
+                    style={styles.label}
+                    fitWidth="85%"
+                />
             </View>
 
             <View style={styles.add_player_btn_wrapper}>
@@ -195,7 +189,7 @@ const TeamSquadScreen = ({ navigation, route }) => {
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {ellipsize(item.name, 28)}
+                                        {ellipsize(item.name, 27)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
