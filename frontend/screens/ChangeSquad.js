@@ -334,7 +334,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                     onPress={() => navigation.goBack()}
                 >
                     <Icon
-                        name="arrow-left"
+                        name="arrow-back"
                         size={normalize(26)}
                         color="white"
                     />
@@ -609,14 +609,15 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(30),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
         fontSize: normalize(20),
         color: "white",
+        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
-        fontFamily: "robotoMedium"
+        fontFamily: "robotoBold"
     },
     heading: {
         fontSize: normalize(20),

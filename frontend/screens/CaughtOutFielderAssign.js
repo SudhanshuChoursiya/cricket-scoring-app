@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(20),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {

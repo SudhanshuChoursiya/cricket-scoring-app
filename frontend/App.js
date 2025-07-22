@@ -313,13 +313,13 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-    header: {
+        header: {
         paddingTop: normalizeVertical(50),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(45),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
@@ -328,5 +328,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
-    }
+    },
 });

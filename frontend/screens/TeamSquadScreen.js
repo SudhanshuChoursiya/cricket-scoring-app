@@ -132,11 +132,11 @@ const TeamSquadScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
 
                 <ScrollingText
-                    text={`select playing 11 ${
+                    text={`select playing 11 ( ${
                         route.params?.selectFor === "team A"
                             ? teamA.name
                             : teamB.name
-                    }`}
+                    } )`}
                     style={styles.label}
                     fitWidth="85%"
                 />
@@ -270,7 +270,6 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "robotoMedium"
     },
-
     add_player_btn: {
         backgroundColor: "#1A4DA1",
         marginTop: normalizeVertical(25),

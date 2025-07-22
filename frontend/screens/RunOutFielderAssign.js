@@ -13,10 +13,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { useFocusEffect } from "@react-navigation/native";
 import { setFielder } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
-
 import { getCurrentInning } from "../utils/matchUtils.js";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
@@ -367,13 +365,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#F2F2F2",
         width: "100%"
     },
-    header: {
+        header: {
         paddingTop: normalizeVertical(50),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(20),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
@@ -388,7 +386,6 @@ const styles = StyleSheet.create({
         color: "black",
         fontFamily: "robotoMedium"
     },
-
     select_out_batsman_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),
@@ -514,12 +511,13 @@ const styles = StyleSheet.create({
         gap: normalizeVertical(20),
         marginHorizontal: normalize(22),
         marginVertical: normalizeVertical(20),
-        paddingBottom: normalizeVertical(65)
+        paddingBottom: normalizeVertical(35)
     },
     runs_scored_wrapper: {
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(10)
+        gap: normalize(10),
+        paddingBottom: normalizeVertical(35),
     },
     runs_scored: {
         height: normalizeVertical(40),
@@ -531,7 +529,8 @@ const styles = StyleSheet.create({
         borderRadius: normalize(15),
         borderWidth: 2,
         borderColor: "white",
-        elevation: 1
+        elevation: 1,
+        
     },
     run_name: {
         color: "black",

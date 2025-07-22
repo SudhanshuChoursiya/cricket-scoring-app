@@ -216,16 +216,15 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%"
     },
-    header: {
+        header: {
         paddingTop: normalizeVertical(50),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(45),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
-
     label: {
         fontSize: normalize(20),
         color: "white",
@@ -233,10 +232,9 @@ const styles = StyleSheet.create({
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },
-
     add_players_wrapper: {
         marginTop: normalizeVertical(30),
-        marginBottom: normalizeVertical(80)
+        marginBottom: normalizeVertical(82)
     },
     dynamic_input_wrapper: {
         width: "88%",

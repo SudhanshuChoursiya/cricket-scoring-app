@@ -56,59 +56,11 @@ const ProfileScreen = ({ navigation }) => {
 
     const menuList = [
         {
-            menuName: "update address",
-            menuIconName: "place",
-            action: () => {
-                navigation.navigate("update-address");
-            }
-        },
-        {
-            menuName: "notifications",
-            menuIconName: "notifications",
-            action: () => {
-                navigation.navigate("add-cake");
-            }
-        },
-        {
-            menuName: "my orders",
-            menuIconName: "receipt-long",
-            action: () => {
-                navigation.navigate("my-orders");
-            }
-        },
-        {
-            menuName: "orders delivered",
-            menuIconName: "task-alt",
-            action: () => {
-                navigation.navigate("orders-delivered");
-            }
-        },
-        {
-            menuName: "add cake",
-            menuIconName: "add-circle",
-            action: () => {
-                navigation.navigate("add-cake");
-            }
-        },
-        {
-            menuName: "manage cake",
-            menuIconName: "cake",
-            action: () => {
-                navigation.navigate("manage-cake");
-            }
-        },
-        {
             menuName: "logout",
             menuIconName: "exit-to-app",
             action: logoutUser
         }
     ];
-
-    const filteredMenuList = user.is_admin
-        ? menuList
-        : menuList.filter(
-              menu => !["add cake", "manage cake"].includes(menu.menuName)
-          );
 
     return (
         <View style={styles.wrapper}>
@@ -141,7 +93,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.others_page_link_section}>
-                {filteredMenuList.map((menu, index) => (
+                {menuList.map((menu, index) => (
                     <TouchableOpacity
                         style={styles.page_link}
                         onPress={menu.action}
@@ -236,7 +188,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: normalizeVertical(10)
     },
-
     username: {
         fontSize: normalize(23),
         fontFamily: "robotoBold"
@@ -248,15 +199,11 @@ const styles = StyleSheet.create({
     others_page_link_section: {
         marginVertical: normalizeVertical(30)
     },
-
     page_link: {
-        flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-
         backgroundColor: "#F3F3F3",
         borderRadius: normalize(15),
-
         paddingHorizontal: normalize(15),
         paddingVertical: normalizeVertical(10),
         marginHorizontal: normalize(18),

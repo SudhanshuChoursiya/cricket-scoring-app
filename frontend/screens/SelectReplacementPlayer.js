@@ -12,9 +12,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
 import { showToast } from "../redux/toastSlice.js";
-
 import { setTeamAPlaying11, setTeamBPlaying11 } from "../redux/matchSlice.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import ScrollingText from "../components/ScrollingText";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 const SelectReplacementPlayer = ({ navigation, route }) => {
@@ -187,7 +187,11 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>select replacement player</Text>
+                <ScrollingText
+                    text={`select replacement player ( ${playingTeamDetails?.name} )`}
+                    style={styles.label}
+                    fitWidth="85%"
+                />
             </View>
             <View style={styles.add_player_btn_wrapper}>
                 <TouchableOpacity
@@ -205,14 +209,6 @@ const SelectReplacementPlayer = ({ navigation, route }) => {
             </View>
             {!isLoading ? (
                 <>
-                    <View style={styles.heading_wrapper}>
-                        <Text style={styles.heading}>
-                            {ellipsize(
-                                ` Team : ${playingTeamDetails?.name}`,
-                                35
-                            )}
-                        </Text>
-                    </View>
                     <FlatList
                         data={availablePlayers()}
                         renderItem={({ item }) => (
@@ -294,18 +290,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
-    },
-    heading_wrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginHorizontal: normalize(18),
-        marginTop: normalizeVertical(25)
-    },
-    heading: {
-        fontSize: normalize(20),
-        color: "black",
-        fontFamily: "robotoMedium"
     },
     add_player_btn: {
         backgroundColor: "#1A4DA1",

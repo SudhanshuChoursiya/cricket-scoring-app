@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(20),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
         color: "black",
         fontFamily: "robotoMedium"
     },
-
     select_out_batsman_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),
@@ -389,7 +388,6 @@ const styles = StyleSheet.create({
         borderColor: "white",
         elevation: 2
     },
-
     batsman_icon_wrapper: {
         height: normalize(90),
         width: normalize(90),
@@ -417,7 +415,6 @@ const styles = StyleSheet.create({
         fontFamily: "robotoMedium",
         textTransform: "capitalize"
     },
-
     select_ball_type_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),

@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import ScrollingText from "../components/ScrollingText.js";
 import Spinner from "../components/Spinner.js";
 import { getCurrentInning } from "../utils/matchUtils.js";
 import { ellipsize } from "../utils/textUtils.js";
@@ -136,16 +137,15 @@ const SelectNewBowler = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>select new bowler</Text>
+                <ScrollingText
+                    text={`select new bowler (${bowlingTeam?.name})`}
+                    style={styles.label}
+                    fitWidth="85%"
+                />
             </View>
 
             {!isLoading ? (
                 <>
-                    <View style={styles.team_name_wrapper}>
-                        <Text style={styles.team_name}>
-                            {ellipsize(`team: ${bowlingTeam?.name}`, 35)}
-                        </Text>
-                    </View>
                     <FlatList
                         data={availablePlayers()}
                         renderItem={({ item }) => (
@@ -217,26 +217,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(40),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
         fontSize: normalize(20),
         color: "white",
-
-        textTransform: "capitalize",
-        fontFamily: "robotoBold"
-    },
-    team_name_wrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginHorizontal: normalize(18),
-        marginTop: normalizeVertical(35)
-    },
-    team_name: {
-        fontSize: normalize(20),
-        color: "#474646",
+        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },

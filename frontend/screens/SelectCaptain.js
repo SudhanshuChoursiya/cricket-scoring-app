@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setTeamACaptain, setTeamBCaptain } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import ScrollingText from "../components/ScrollingText.js";
 import Spinner from "../components/Spinner.js";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
@@ -98,9 +99,15 @@ const SelectCaptain = ({ navigation, route }) => {
                         color="white"
                     />
                 </TouchableOpacity>
-                <Text style={styles.label}>
-                    select {route.params?.selectFor} captain
-                </Text>
+                <ScrollingText
+                    text={`select ${
+                        route.params?.selectFor === "team A"
+                            ? teamA?.name
+                            : teamB?.name
+                    } captain`}
+                    style={styles.label}
+                    fitWidth="85%"
+                />
             </View>
 
             {!isLoading ? (
@@ -124,7 +131,7 @@ const SelectCaptain = ({ navigation, route }) => {
 
                                 <View style={styles.other_player_info_wrapper}>
                                     <Text style={styles.player_name}>
-                                        {ellipsize(item?.name,27)}
+                                        {ellipsize(item?.name, 27)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -164,26 +171,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(40),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
         fontSize: normalize(20),
         color: "white",
-
-        textTransform: "capitalize",
-        fontFamily: "robotoBold"
-    },
-    team_name_wrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginHorizontal: normalize(18),
-        marginTop: normalizeVertical(35)
-    },
-    team_name: {
-        fontSize: normalize(20),
-        color: "#474646",
+        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },

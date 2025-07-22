@@ -149,13 +149,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(25),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
-
     label: {
         fontSize: normalize(20),
         color: "white",
+        paddingHorizontal: normalize(13),
         textTransform: "capitalize",
         fontFamily: "robotoBold"
     },

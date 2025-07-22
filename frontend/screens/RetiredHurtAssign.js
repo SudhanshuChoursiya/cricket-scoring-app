@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#E21F26",
         flexDirection: "row",
         alignItems: "center",
-        gap: normalize(20),
+        gap: normalize(15),
         paddingHorizontal: normalize(20)
     },
     label: {
@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
         color: "black",
         fontFamily: "robotoMedium"
     },
-
     select_out_batsman_wrapper: {
         justifyContent: "center",
         gap: normalizeVertical(20),
