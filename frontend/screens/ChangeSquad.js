@@ -409,7 +409,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                 <Text
                                                     style={styles.player_name}
                                                 >
-                                                    {ellipsize(item?.name, 27)}
+                                                    {ellipsize(item?.name, 26)}
                                                 </Text>
                                             </View>
                                         </View>
@@ -423,7 +423,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                         title: "Replace player",
                                                         description: `Are you sure to replace ${ellipsize(
                                                             item.name,
-                                                            27
+                                                            26
                                                         )}`,
                                                         player: item
                                                     })
@@ -477,7 +477,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     >
                                                         {ellipsize(
                                                             item?.name,
-                                                            27
+                                                            26
                                                         )}
                                                     </Text>
                                                 </View>
@@ -490,7 +490,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                         title: "Remove player",
                                                         description: `Are you sure to remove ${ellipsize(
                                                             item.name,
-                                                            27
+                                                            26
                                                         )} from substitutes ?`,
                                                         player: item
                                                     })
@@ -546,7 +546,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                     >
                                                         {ellipsize(
                                                             item?.name,
-                                                            27
+                                                            26
                                                         )}
                                                     </Text>
                                                 </View>
@@ -562,7 +562,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                                                             title: "Add player",
                                                             description: `Are you sure to add ${ellipsize(
                                                                 item.name,
-                                                                27
+                                                                26
                                                             )} in substitutes ?`,
                                                             player: item
                                                         })
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     header: {
-        paddingTop: normalizeVertical(50),
+        paddingTop: normalizeVertical(38),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",

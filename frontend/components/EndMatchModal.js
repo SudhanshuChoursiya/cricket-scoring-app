@@ -139,7 +139,7 @@ const EndMatchModal = ({
                                         </Text>
                                     </View>
                                     <Text style={styles.team_name}>
-                                        {ellipsize(team?.name, 27)}
+                                        {ellipsize(team?.name, 26)}
                                     </Text>
                                 </TouchableOpacity>
                             )

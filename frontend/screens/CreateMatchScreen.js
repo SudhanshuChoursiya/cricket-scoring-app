@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     header: {
-        paddingTop: normalizeVertical(50),
+        paddingTop: normalizeVertical(38),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",
@@ -232,7 +232,6 @@ const styles = StyleSheet.create({
         gap: normalize(20),
         paddingHorizontal: normalize(20)
     },
-
     label: {
         fontSize: normalize(20),
         color: "white",

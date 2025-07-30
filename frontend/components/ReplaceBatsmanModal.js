@@ -72,7 +72,7 @@ const ReplaceBatsmanModal = ({ matchId, currentInningDetails }) => {
                                     </Text>
                                 </View>
                                 <Text style={styles.batsman_name}>
-                                    {ellipsize(batsman?.name, 27)}
+                                    {ellipsize(batsman?.name, 26)}
                                 </Text>
                             </TouchableOpacity>
                         ))}

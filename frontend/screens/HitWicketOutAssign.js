@@ -4,6 +4,8 @@ import {
   View,
   Image,
   TouchableOpacity,
+  ScrollView,
+  TextInput,
   StatusBar
 } from "react-native";
 import {
@@ -25,6 +27,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
+import CheckBox from "../components/CheckBox.js";
 import {
   getCurrentInning
 } from "../utils/matchUtils.js";
@@ -35,17 +38,20 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
-const CaughtOutFielderAssign = ({
+
+const HitWicketOutAssign = ({
   navigation, route
 }) => {
   const [currentInningDetails,
     setCurrentInningDetails] = useState(null);
-  const [outBastman,
-    setOutBatsman] = useState(null);
+
   const [isLoading,
     setIsLoading] = useState(true);
   const [showSpinner,
     setShowSpinner] = useState(false);
+
+  const [isWideBall,
+    setIsWideBall] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
   const dispatch = useDispatch();
@@ -95,14 +101,8 @@ const CaughtOutFielderAssign = ({
           const data = await response.json();
 
           if (response.status === 200) {
-            currentInning = getCurrentInning(data.data);
+            const currentInning = getCurrentInning(data.data);
             setCurrentInningDetails(currentInning);
-
-            setOutBatsman(
-              currentInning.currentBatsmen.find(
-                player => player.onStrike
-              )
-            );
           }
         } catch (error) {
           console.log(error);
@@ -115,12 +115,14 @@ const CaughtOutFielderAssign = ({
       [isScreenFocused])
   );
 
+  const strikeBatsman = currentInningDetails?.currentBatsmen?.find((batsman)=>batsman.onStrike)
+
   const handleConfirm = async () => {
     try {
       setShowSpinner(true);
       const payload = {
         ...route.params?.payload,
-        fielderId: fielder.playerId
+        isWide: isWideBall
       };
 
       if (
@@ -129,7 +131,9 @@ const CaughtOutFielderAssign = ({
         payload.isNoball === undefined ||
         payload.isBye === undefined ||
         payload.isLegBye === undefined ||
-        payload.isWicket === undefined
+        payload.isWicket === undefined ||
+        payload.isDeadBall === undefined
+
       ) {
         throw new Error("plz provide all the required field");
       }
@@ -154,10 +158,6 @@ const CaughtOutFielderAssign = ({
         navigation.navigate("manage-scoreboard", {
           matchId: route.params?.matchId
         });
-
-        dispatch(setFielder({
-          playerId: null, name: null
-        }));
       }
     } catch (error) {
       console.log(error);
@@ -179,102 +179,74 @@ const CaughtOutFielderAssign = ({
             color="white"
             />
         </TouchableOpacity>
-        <Text style={styles.label}>
-          {route.params?.payload.outMethod} out
-        </Text>
+        <Text style={styles.label}>Hit wicket </Text>
       </View>
-
       {!isLoading ? (
         <>
-          <View style={styles.out_batsman_wrapper}>
+          <View style={styles.select_out_batsman_wrapper}>
             <Text style={styles.heading}>Who</Text>
+            <View style={styles.out_batsman_wrapper}>
 
-            <View style={styles.out_batsman}>
-              <View style={styles.batsman_icon_wrapper}>
-                <Text style={styles.batsman_icon_text}>
-                  {outBastman?.name[0]}
-                </Text>
-              </View>
-              <Text style={styles.batsman_name}>
-                {ellipsize(outBastman?.name, 26)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.select_fielder_wrapper}>
-            <Text style={styles.heading}>Select Fielder</Text>
-
-            {!fielder.playerId ? (
-              <TouchableOpacity
-                style={styles.fielder}
-                onPress={() =>
-                navigation.navigate("select-fielder", {
-                  matchId: route.params?.matchId,
-
-                  payload: route.params?.payload
-                })
+              <View
+                style={
+                styles.out_batsman
                 }
                 >
                 <View
-                  style={[
-                    styles.fielder_icon_wrapper,
-                    !fielder.playerId &&
-                    styles.bg_flash_white
-                  ]}
+                  style={styles.batsman_icon_wrapper}
                   >
-                  <Icon
-                    name="add"
-                    size={normalize(34)}
-                    color="black"
-                    />
-                </View>
-                <Text style={styles.fielder_name}>fielder</Text>
-              </TouchableOpacity>
-            ): (
-              <TouchableOpacity
-                style={styles.fielder}
-                onPress={() =>
-                navigation.navigate("select-fielder", {
-                  matchId: route.params?.matchId,
-                  payload: route.params?.payload
-                })
-                }
-                >
-                <View style={styles.fielder_icon_wrapper}>
-                  <Text style={styles.fielder_icon_text}>
-                    {fielder?.name[0]}
+                  <Text
+                    style={styles.batsman_icon_text}
+                    >
+                    {strikeBatsman?.name[0]}
                   </Text>
                 </View>
-                <Text style={styles.fielder_name}>
-                  {ellipsize(fielder?.name, 26)}
+                <Text style={styles.batsman_name}>
+                  {ellipsize(strikeBatsman?.name, 26)}
                 </Text>
-              </TouchableOpacity>
-            )}
+                <Text style={styles.current_end}>
+
+                  striker
+
+                </Text>
+              </View>
+
+
+            </View>
           </View>
 
-          {fielder.playerId && (
-            <View style={styles.confirm_btn_wrapper}>
-              <TouchableOpacity
-                style={styles.confirm_btn}
-                onPress={handleConfirm}
-                >
-                {!showSpinner ? (
-                  <Text style={styles.confirm_btn_text}>
-                    out
-                  </Text>
-                ): (
-                  <Spinner
-                    isLoading={showSpinner}
-                    label="processing..."
-                    spinnerColor="white"
-                    labelColor="white"
-                    labelSize={19}
-                    spinnerSize={28}
-                    />
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.checkbox_wrapper}>
+            <CheckBox
+              options={ {
+                label: "wide ball",
+                value: true
+              }}
+              checkedValue={isWideBall}
+              onCheck={setIsWideBall}
+              />
+          </View>
+
+          <View style={styles.confirm_btn_wrapper}>
+            <TouchableOpacity
+              style={styles.confirm_btn}
+              onPress={handleConfirm}
+              >
+              {!showSpinner ? (
+                <Text style={styles.confirm_btn_text}>
+                  out
+                </Text>
+              ): (
+                <Spinner
+                  isLoading={showSpinner}
+                  label="processing..."
+                  spinnerColor="white"
+                  labelColor="white"
+                  labelSize={19}
+                  spinnerSize={28}
+                  />
+              )}
+            </TouchableOpacity>
+          </View>
         </>
       ): (
         <LoadingSpinner />
@@ -310,32 +282,37 @@ const styles = StyleSheet.create({
     color: "black",
     fontFamily: "robotoMedium"
   },
-
-  out_batsman_wrapper: {
+  select_out_batsman_wrapper: {
+    justifyContent: "center",
     gap: normalizeVertical(20),
     marginHorizontal: normalize(22),
-    marginVertical: normalizeVertical(30)
+    marginVertical: normalizeVertical(25)
+  },
+  out_batsman_wrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flexStart",
+    gap: normalize(20)
   },
   out_batsman: {
     alignItems: "center",
     justifyContent: "center",
     gap: normalizeVertical(18),
     backgroundColor: "#FFFFFF",
-    width: normalize(158),
+    width: normalize(155),
     height: normalizeVertical(210),
     borderRadius: normalize(7),
     borderWidth: 2,
     borderColor: "white",
     elevation: 2
   },
-
   batsman_icon_wrapper: {
     height: normalize(90),
     width: normalize(90),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(45),
+    borderRadius: normalize(50),
     elevation: 1
   },
   batsman_icon_text: {
@@ -348,48 +325,17 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",
-    textTransform: "capitalize",
-    textAlign: "center"
+    textTransform: "capitalize"
   },
-  select_fielder_wrapper: {
-    gap: normalizeVertical(20),
-    marginHorizontal: normalize(22),
-    marginVertical: normalizeVertical(30)
-  },
-
-  fielder: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: normalizeVertical(18),
-    backgroundColor: "#FFFFFF",
-    width: normalize(158),
-    height: normalizeVertical(210),
-    borderRadius: normalize(7),
-    borderWidth: 2,
-    borderColor: "white",
-    elevation: 2
-  },
-  fielder_icon_wrapper: {
-    height: normalize(90),
-    width: normalize(90),
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F54133",
-    borderRadius: normalize(45),
-    elevation: 1
-  },
-  fielder_icon_text: {
-    fontSize: normalize(28),
-    color: "white",
+  current_end: {
+    color: "grey",
+    fontSize: normalize(17),
     fontFamily: "robotoMedium",
     textTransform: "capitalize"
   },
-  fielder_name: {
-    color: "black",
-    fontSize: normalize(18),
-    fontFamily: "robotoMedium",
-    textTransform: "capitalize",
-    textAlign: "center"
+  checkbox_wrapper: {
+    marginHorizontal: normalize(22),
+    marginVertical: normalizeVertical(20)
   },
   confirm_btn_wrapper: {
     position: "absolute",
@@ -410,13 +356,9 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
     fontFamily: "robotoBold"
   },
-  selected: {
-    borderWidth: 2,
-    borderColor: "#14B391"
-  },
   bg_flash_white: {
     backgroundColor: "#E7E8EA"
   }
 });
 
-export default CaughtOutFielderAssign;
+export default HitWicketOutAssign;

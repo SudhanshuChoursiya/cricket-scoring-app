@@ -202,7 +202,7 @@ const RetiredOutAssign = ({ navigation, route }) => {
                                             </Text>
                                         </View>
                                         <Text style={styles.batsman_name}>
-                                            {ellipsize(batsman?.name, 27)}
+                                            {ellipsize(batsman?.name, 26)}
                                         </Text>
                                         <Text style={styles.current_end}>
                                             {batsman.onStrike
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     header: {
-        paddingTop: normalizeVertical(50),
+        paddingTop: normalizeVertical(38),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",

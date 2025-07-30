@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
         header: {
-        paddingTop: normalizeVertical(50),
+        paddingTop: normalizeVertical(38),
         paddingBottom: normalizeVertical(20),
         backgroundColor: "#E21F26",
         flexDirection: "row",

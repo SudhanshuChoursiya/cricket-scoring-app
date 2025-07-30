@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     },
     img_wrapper: {
         width: "100%",
-        height: "51%",
+        height: "50%",
         borderBottomLeftRadius: normalizeVertical(75),
         borderBottomRightRadius: normalizeVertical(75),
         overflow: "hidden",
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
         width: "85%"
     },
     about_us_paragraph: {
-        fontSize: normalize(16),
+        fontSize: normalize(17),
         color: "#8d8989",
         textAlign: "center",
         fontFamily: "ubuntuRegular"
@@ -174,14 +174,14 @@ const styles = StyleSheet.create({
         width: "85%"
     },
     tagline: {
-        fontSize: normalize(16),
+        fontSize: normalize(17),
         color: "#424242",
         textAlign: "center",
         fontFamily: "robotoBold"
     },
     btn_wraaper: {
         width: "85%",
-        height: normalizeVertical(51),
+        height: normalizeVertical(50),
         backgroundColor: "#E21F26",
         color: "white",
         flexDirection: "row",
