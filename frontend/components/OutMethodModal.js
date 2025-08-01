@@ -205,16 +205,16 @@ const styles = StyleSheet.create({
   },
   out_method_img_wrapper: {
     backgroundColor: "#F1F1F1",
-    height: normalize(78),
+    height: normalize(77),
     width: normalize(78),
-    borderRadius: normalize(39),
+    borderRadius: normalize(78/2),
     justifyContent: "center",
     alignItems: "center",
-    elevation: 1
+    elevation:1
   },
   out_method_img: {
-    height: normalize(65),
-    width: normalize(65)
+    height: normalize(60),
+    width: normalize(60)
   },
   out_method_text: {
     fontSize: normalize(16),

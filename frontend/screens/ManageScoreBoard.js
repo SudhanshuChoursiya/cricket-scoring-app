@@ -822,36 +822,38 @@ const ManageScoreBoardScreen = ({
               </View>
             </View>
           </View>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            ref={overTimeLineScrollRef}
-            >
-            <View style={styles.over_timeline_wrapper}>
-              {currentInningDetails?.currentOverTimeline.map(
-                timeLine => (
-                  <View
-                    style={styles.over_timeline}
-                    key={timeLine._id}
-                    >
-                    <Text
-                      style={[
-                        styles.timeline_text,
-                        timeLine.isWicket &&
-                        styles.out_text,
-                        timeLine.isFour &&
-                        styles.four_text,
-                        timeLine.isSix &&
-                        styles.six_text
-                      ]}
+          <View>
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              ref={overTimeLineScrollRef}
+              >
+              <View style={styles.over_timeline_wrapper}>
+                {currentInningDetails?.currentOverTimeline.map(
+                  timeLine => (
+                    <View
+                      style={styles.over_timeline}
+                      key={timeLine._id}
                       >
-                      {formatOverTimeline(timeLine)}
-                    </Text>
-                  </View>
-                )
-              )}
-            </View>
-          </ScrollView>
+                      <Text
+                        style={[
+                          styles.timeline_text,
+                          timeLine.isWicket &&
+                          styles.out_text,
+                          timeLine.isFour &&
+                          styles.four_text,
+                          timeLine.isSix &&
+                          styles.six_text
+                        ]}
+                        >
+                        {formatOverTimeline(timeLine)}
+                      </Text>
+                    </View>
+                  )
+                )}
+              </View>
+            </ScrollView>
+          </View>
           <View style={styles.score_button_wrapper}>
             <View style={styles.main_score_button_wrapper}>
               <View
@@ -1155,7 +1157,7 @@ const styles = StyleSheet.create({
     color: "#f6d67c"
   },
   over_timeline_wrapper: {
-    minHeight: normalizeVertical(70),
+    height: normalizeVertical(70),
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1186,13 +1188,13 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   primary_main_score_button_wrapper: {
-    width: "80%",
+    width: "75%",
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap"
   },
   secondary_main_score_button_wrapper: {
-    width: "20%"
+    width: "25%"
   },
   primary_score_button: {
     justifyContent: "center",
@@ -1218,7 +1220,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: normalizeVertical(80),
-    flex: 1,
+    width: "25%",
     backgroundColor: "#EEEEEE",
     borderTopWidth: 1,
     borderLeftWidth: 1,

@@ -88,8 +88,9 @@ const ChangeSquadModal = ({
                       {team?.name[0]}
                     </Text>
                   </View>
-                  <Text style={styles.team_name}>
-                    {ellipsize(team?.name, 26)}
+                  <Text style={styles.team_name}
+                    numberOfLines={1} ellipsizeMode="tail">
+                    {team?.name}
                   </Text>
                 </TouchableOpacity>
               )
@@ -163,12 +164,12 @@ const styles = StyleSheet.create({
   },
   team_icon_wrapper: {
     height: normalize(80),
-    width: normalize(80),
+    width: normalize(81),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(40),
-    elevation: 1
+    borderRadius: normalize(81/2),
+    elevation:1
   },
   team_icon_text: {
     fontSize: normalize(28),
@@ -177,6 +178,8 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   team_name: {
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",

@@ -181,14 +181,14 @@ const styles = StyleSheet.create({
     },
     btn_wraaper: {
         width: "85%",
-        height: normalizeVertical(50),
+        height: normalizeVertical(45),
         backgroundColor: "#E21F26",
         color: "white",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         borderRadius: normalize(25),
-        marginVertical: normalizeVertical(32),
+        marginVertical: normalizeVertical(30),
         elevation: 2
     },
     google_icon: {

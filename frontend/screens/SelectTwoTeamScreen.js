@@ -85,6 +85,7 @@ const SelectTwoTeamScreen = ({
           }
           >
           <>
+
             <View style={styles.select_icon_wrapper}>
               {!teamA.name ? (
                 <Icon
@@ -102,6 +103,9 @@ const SelectTwoTeamScreen = ({
                 </View>
               )}
             </View>
+
+
+
             {teamA.name && (
               <Text style={styles.selected_team_name}>
                 {ellipsize(teamA.name, 35)}
@@ -195,13 +199,13 @@ const styles = StyleSheet.create({
     gap: normalizeVertical(15)
   },
   select_icon_wrapper: {
-    height: normalize(95),
-    width: normalize(95),
+    height: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#282829",
-    borderRadius: normalize(47),
-    elevation: 1
+    borderRadius: normalize(91/2),
+    elevation:1
   },
   select_caption: {
     backgroundColor: "#1A4DA1",
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#E21F26",
-    borderRadius: normalize(47)
+    borderRadius: normalize(95/2)
   },
   selected_team_icon_text: {
     fontSize: normalize(28),

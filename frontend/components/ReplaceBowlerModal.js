@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     icon_wrapper: {
         height: normalize(85),
         width: normalize(85),
-        borderRadius: normalize(100),
+        borderRadius: normalize(85/2),
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFE8C6"

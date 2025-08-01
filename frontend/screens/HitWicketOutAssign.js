@@ -201,8 +201,10 @@ const HitWicketOutAssign = ({
                     {strikeBatsman?.name[0]}
                   </Text>
                 </View>
-                <Text style={styles.batsman_name}>
-                  {ellipsize(strikeBatsman?.name, 26)}
+                <Text style={styles.batsman_name}
+                  numberOfLines={1} ellipsizeMode="tail"
+                  >
+                  {strikeBatsman?.name}
                 </Text>
                 <Text style={styles.current_end}>
 
@@ -299,8 +301,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: normalizeVertical(18),
     backgroundColor: "#FFFFFF",
-    width: normalize(155),
-    height: normalizeVertical(210),
+    width: normalize(158),
+    height: normalizeVertical(200),
     borderRadius: normalize(7),
     borderWidth: 2,
     borderColor: "white",
@@ -308,12 +310,12 @@ const styles = StyleSheet.create({
   },
   batsman_icon_wrapper: {
     height: normalize(90),
-    width: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(50),
-    elevation: 1
+    borderRadius: normalize(91/2),
+    elevation:1
   },
   batsman_icon_text: {
     fontSize: normalize(28),
@@ -322,10 +324,13 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   batsman_name: {
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",
-    textTransform: "capitalize"
+    textTransform: "capitalize",
+    textAlign: "center"
   },
   current_end: {
     color: "grey",

@@ -342,8 +342,8 @@ const styles = StyleSheet.create({
   player_icon: {
     backgroundColor: "#f75454",
     height: normalize(60),
-    width: normalize(60),
-    borderRadius: normalize(30),
+    width: normalize(61),
+    borderRadius: normalize(61/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1

@@ -195,8 +195,10 @@ const CaughtOutFielderAssign = ({
                   {outBastman?.name[0]}
                 </Text>
               </View>
-              <Text style={styles.batsman_name}>
-                {ellipsize(outBastman?.name, 26)}
+              <Text style={styles.batsman_name}
+                numberOfLines={1} ellipsizeMode="tail"
+                >
+                {outBastman?.name}
               </Text>
             </View>
           </View>
@@ -245,8 +247,10 @@ const CaughtOutFielderAssign = ({
                     {fielder?.name[0]}
                   </Text>
                 </View>
-                <Text style={styles.fielder_name}>
-                  {ellipsize(fielder?.name, 26)}
+                <Text style={styles.fielder_name}
+                  numberOfLines={1} ellipsizeMode="tail"
+                  >
+                  {fielder?.name}
                 </Text>
               </TouchableOpacity>
             )}
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
     gap: normalizeVertical(18),
     backgroundColor: "#FFFFFF",
     width: normalize(158),
-    height: normalizeVertical(210),
+    height: normalizeVertical(200),
     borderRadius: normalize(7),
     borderWidth: 2,
     borderColor: "white",
@@ -331,12 +335,13 @@ const styles = StyleSheet.create({
 
   batsman_icon_wrapper: {
     height: normalize(90),
-    width: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(45),
-    elevation: 1
+    borderRadius: normalize(91/2),
+    elevation:1
+
   },
   batsman_icon_text: {
     fontSize: normalize(28),
@@ -345,6 +350,8 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   batsman_name: {
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",
@@ -363,7 +370,7 @@ const styles = StyleSheet.create({
     gap: normalizeVertical(18),
     backgroundColor: "#FFFFFF",
     width: normalize(158),
-    height: normalizeVertical(210),
+    height: normalizeVertical(200),
     borderRadius: normalize(7),
     borderWidth: 2,
     borderColor: "white",
@@ -371,12 +378,13 @@ const styles = StyleSheet.create({
   },
   fielder_icon_wrapper: {
     height: normalize(90),
-    width: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(45),
-    elevation: 1
+    borderRadius: normalize(91/2),
+    elevation:1
+
   },
   fielder_icon_text: {
     fontSize: normalize(28),
@@ -385,6 +393,8 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   fielder_name: {
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",

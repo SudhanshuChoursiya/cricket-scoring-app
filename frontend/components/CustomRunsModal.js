@@ -161,10 +161,13 @@ const styles = StyleSheet.create({
     },
     modal_input: {
         width: normalize(65),
+        height:normalizeVertical(35),
         borderWidth: 2,
         borderColor: "#14B492",
         borderRadius: normalize(5),
-        paddingHorizontal: normalize(10)
+        paddingHorizontal: normalize(10),
+        fontSize:normalize(16),
+        fontWeight:"bold"
     },
     modal_desc: {
         color: "#474646",
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
     },
     cancel_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
@@ -187,7 +190,7 @@ const styles = StyleSheet.create({
     },
     ok_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",

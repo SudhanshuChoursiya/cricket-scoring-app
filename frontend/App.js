@@ -299,12 +299,13 @@ export const Layout = () => {
     dispatch(fetchAuth());
   }, []);
 
-  const onLayoutRootView = React.useCallback(async () => {
-    if (!isLoading) {
-      await SplashScreen.hideAsync();
+  React.useEffect(() => {
+    if (fontsLoaded && !isLoading) {
+      SplashScreen.hideAsync();
     }
   },
-    [isLoading]);
+    [fontsLoaded,
+      isLoading]);
 
   if (!fontsLoaded) {
     return null;
@@ -315,7 +316,7 @@ export const Layout = () => {
   }
 
   return (
-    <SafeAreaView style={ { flex: 1 }} onLayout={onLayoutRootView}>
+    <SafeAreaView style={ { flex: 1 }}>
       <StatusBar
         barStyle="light-content"
         backgroundColor="transparent"

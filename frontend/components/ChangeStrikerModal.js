@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     },
     cancel_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     },
     ok_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",

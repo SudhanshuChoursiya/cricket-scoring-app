@@ -230,11 +230,14 @@ const styles = StyleSheet.create({
         fontFamily: "robotoMedium"
     },
     modal_input: {
-        width: normalize(50),
+        width: normalize(55),
+        height:normalizeVertical(35),
         borderWidth: 2,
         borderColor: "#14B492",
         borderRadius: normalize(5),
-        paddingHorizontal: normalize(10)
+        paddingHorizontal: normalize(10),
+        fontSize:normalize(16),
+        fontWeight:"bold"
     },
     operator_sign: {
         color: "#7c7c7c",
@@ -272,7 +275,9 @@ const styles = StyleSheet.create({
         borderWidth: 1.1,
         borderColor: "#6d6d6d",
         borderRadius: normalize(5),
-        paddingHorizontal: normalize(10)
+        paddingHorizontal: normalize(10),
+        fontSize:normalize(16),
+        fontWeight:"bold"
     },
     modal_btn_wrapper: {
         flexDirection: "row",
@@ -280,7 +285,7 @@ const styles = StyleSheet.create({
     },
     cancel_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
@@ -289,7 +294,7 @@ const styles = StyleSheet.create({
     },
     ok_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",

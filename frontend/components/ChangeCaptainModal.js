@@ -204,8 +204,8 @@ const styles = StyleSheet.create({
     player_icon: {
         backgroundColor: "#f75454",
         height: normalize(60),
-        width: normalize(60),
-        borderRadius: normalize(30),
+        width: normalize(61),
+        borderRadius: normalize(61/2),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     },
     cancel_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     },
     ok_button: {
         width: "50%",
-        height: normalizeVertical(62),
+        height: normalizeVertical(60),
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",

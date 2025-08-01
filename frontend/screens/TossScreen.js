@@ -24,8 +24,8 @@ import {
   setTossWinner
 } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import batLogo from "../assets/cricket-bat.png";
-import ballLogo from "../assets/cricket-ball.png";
+import chooseToBatLogo from "../assets/choose_to_bat.png";
+import chooseToBallLogo from "../assets/choose_to_ball.png";
 import Spinner from "../components/Spinner.js";
 import LoadingSpinner from "../components/LoadingSpinner.js";
 import {
@@ -224,14 +224,19 @@ const TossScreen = ({
                 )
                 }
                 >
-                <View style={styles.team_icon_wrapper}>
+
+
+
+                <View style={styles.team_icon}>
                   <Text style={styles.team_icon_text}>
                     {matchDetails?.teamA.name[0]}
                   </Text>
                 </View>
-                <Text style={styles.team_name}>
-                  {ellipsize(matchDetails?.teamA.name, 26)}
-                </Text>
+                <View style={styles.team_name_wrapper}>
+                  <Text style={styles.team_name}>
+                    {ellipsize(matchDetails?.teamA.name, 26)}
+                  </Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -246,14 +251,22 @@ const TossScreen = ({
                 )
                 }
                 >
-                <View style={styles.team_icon_wrapper}>
+
+
+                <View style={styles.team_icon}>
                   <Text style={styles.team_icon_text}>
                     {matchDetails?.teamB.name[0]}
                   </Text>
+
                 </View>
-                <Text style={styles.team_name}>
-                  {ellipsize(matchDetails?.teamB.name, 26)}
-                </Text>
+
+                <View style={styles.team_name_wrapper}>
+                  <Text style={styles.team_name}>
+                    {ellipsize(matchDetails?.teamB.name, 26)}
+                  </Text>
+
+
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -275,7 +288,7 @@ const TossScreen = ({
                   <Image
                     style={styles.decision_icon}
                     resizeMode="cover"
-                    source={batLogo}
+                    source={chooseToBatLogo}
                     />
                 </View>
                 <Text style={styles.decision_text}>bat</Text>
@@ -293,7 +306,7 @@ const TossScreen = ({
                   <Image
                     style={styles.decision_icon}
                     resizeMode="cover"
-                    source={ballLogo}
+                    source={chooseToBallLogo}
                     />
                 </View>
                 <Text style={styles.decision_text}>ball</Text>
@@ -379,20 +392,24 @@ const styles = StyleSheet.create({
     borderColor: "white",
     elevation: 2
   },
-
-  team_icon_wrapper: {
+  team_icon: {
     height: normalize(90),
-    width: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(45)
+    borderRadius: normalize(91/2),
+    elevation: 1
   },
   team_icon_text: {
     fontSize: normalize(28),
     color: "white",
     fontFamily: "robotoMedium",
-    textTransform: "capitalize"
+    textTransform: "capitalize",
+  },
+  team_name_wrapper: {
+    minHeight: normalizeVertical(45),
+    justifyContent: "center"
   },
   team_name: {
     color: "black",
@@ -400,6 +417,7 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium",
     textTransform: "capitalize",
     textAlign: "center",
+
   },
   toss_decision_wrapper: {
     gap: normalizeVertical(20),
@@ -425,15 +443,17 @@ const styles = StyleSheet.create({
   },
   decision_icon_wrapper: {
     height: normalize(90),
-    width: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(45)
+    borderRadius: normalize(91/2),
+    elevation: 1,
   },
   decision_icon: {
-    height: normalize(58),
-    width: normalize(58)
+    height: normalize(60),
+    width: normalize(60),
+
   },
   decision_text: {
     color: "black",

@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#F54133",
         borderRadius: normalize(40),
-        elevation: 1
+      
     },
     batsman_icon_text: {
         fontSize: normalize(28),
