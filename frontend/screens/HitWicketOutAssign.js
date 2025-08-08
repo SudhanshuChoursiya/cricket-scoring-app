@@ -38,6 +38,9 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 
 const HitWicketOutAssign = ({
   navigation, route
@@ -54,6 +57,7 @@ const HitWicketOutAssign = ({
     setIsWideBall] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+    useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
@@ -67,23 +71,6 @@ const HitWicketOutAssign = ({
     setIsScreenFocused(true);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   useFocusEffect(
     useCallback(() => {
@@ -314,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(91/2),
+    borderRadius: normalize(92/2),
     elevation:1
   },
   batsman_icon_text: {

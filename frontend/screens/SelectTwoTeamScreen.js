@@ -24,6 +24,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const SelectTwoTeamScreen = ({
   navigation, route
 }) => {
@@ -31,7 +35,7 @@ const SelectTwoTeamScreen = ({
     setIsLoading] = useState(true);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-
+ useHideTabBar(navigation,isScreenFocused)
   const {
     teamA,
     teamB
@@ -41,23 +45,6 @@ const SelectTwoTeamScreen = ({
     setIsScreenFocused(true);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   return (
     <View style={styles.wrapper}>
@@ -204,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#282829",
-    borderRadius: normalize(91/2),
+    borderRadius: normalize(92/2),
     elevation:1
   },
   select_caption: {
@@ -223,12 +210,13 @@ const styles = StyleSheet.create({
     fontFamily: "robotoBold"
   },
   selected_team_icon_wrapper: {
-    height: normalize(95),
-    width: normalize(95),
+    height: normalize(90),
+    width: normalize(91),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#E21F26",
-    borderRadius: normalize(95/2)
+    borderRadius: normalize(92/2),
+    elevation:1
   },
   selected_team_icon_text: {
     fontSize: normalize(28),

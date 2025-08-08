@@ -38,6 +38,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const TossScreen = ({
   navigation, route
 }) => {
@@ -49,6 +53,7 @@ const TossScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+  useHideTabBar(navigation, isScreenFocused);
   const dispatch = useDispatch();
   const {
     accessToken
@@ -63,23 +68,6 @@ const TossScreen = ({
     return () => setIsScreenFocused(false);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   useFocusEffect(
     useCallback(() => {
@@ -234,7 +222,7 @@ const TossScreen = ({
                 </View>
                 <View style={styles.team_name_wrapper}>
                   <Text style={styles.team_name}>
-                    {ellipsize(matchDetails?.teamA.name, 26)}
+                    {ellipsize(matchDetails?.teamA.name, 24)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -262,7 +250,7 @@ const TossScreen = ({
 
                 <View style={styles.team_name_wrapper}>
                   <Text style={styles.team_name}>
-                    {ellipsize(matchDetails?.teamB.name, 26)}
+                    {ellipsize(matchDetails?.teamB.name, 24)}
                   </Text>
 
 
@@ -398,7 +386,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(91/2),
+    borderRadius: normalize(92/2),
     elevation: 1
   },
   team_icon_text: {
@@ -447,13 +435,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(91/2),
+    borderRadius: normalize(92/2),
     elevation: 1,
   },
   decision_icon: {
     height: normalize(60),
     width: normalize(60),
-
   },
   decision_text: {
     color: "black",

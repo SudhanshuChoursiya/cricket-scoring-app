@@ -14,7 +14,7 @@ import {
   useCallback
 } from "react";
 import {
-  useFocusEffect
+  useFocusEffect,
 } from "@react-navigation/native";
 import {
   useSelector,
@@ -67,6 +67,7 @@ const HomeScreen = ({
   const {
     accessToken
   } = useSelector(state => state.auth);
+
 
   useEffect(() => {
     setIsScreenFocused(true);
@@ -363,16 +364,17 @@ const HomeScreen = ({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: "#F2F2F2"
+    backgroundColor: "#F2F2F2",
+    marginBottom: normalizeVertical(60)
   },
   section_wrapper: {
     marginTop: normalizeVertical(22),
-
     zIndex: -1
   },
   create_new_match_btn: {
     backgroundColor: "#1A4DA1",
-    marginVertical: normalizeVertical(25),
+    marginTop: normalizeVertical(22),
+    marginBottom: normalizeVertical(22),
     marginHorizontal: normalize(18),
     paddingHorizontal: normalize(5),
     paddingVertical: normalizeVertical(12),
@@ -387,8 +389,7 @@ const styles = StyleSheet.create({
   },
   matches_wrapper: {
     gap: normalizeVertical(20),
-    paddingTop: normalizeVertical(5),
-    paddingBottom: normalizeVertical(50)
+    paddingBottom: normalizeVertical(30)
   },
   match: {
     width: "90%",

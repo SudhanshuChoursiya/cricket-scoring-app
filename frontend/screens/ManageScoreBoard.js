@@ -84,10 +84,14 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 
 const ManageScoreBoardScreen = ({
   navigation, route
 }) => {
+
   const [matchDetails,
     setMatchDetails] = useState(null);
   const [currentInningDetails,
@@ -105,6 +109,7 @@ const ManageScoreBoardScreen = ({
   const [isWicketFallen,
     setIsWicketFallen] = useState(false);
   const overTimeLineScrollRef = useRef(null);
+  useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
 
   const {
@@ -310,26 +315,6 @@ const ManageScoreBoardScreen = ({
       [isScreenFocused,
         isLoading])
   );
-
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    },
-      [isScreenFocused])
-  );
-
 
 
   const handleOpenModal = (modalType, payload) => {
@@ -576,7 +561,7 @@ const ManageScoreBoardScreen = ({
             <Text style={styles.label}>
               {ellipsize(
                 currentInningDetails?.battingTeam.name,
-                26
+                24
               )}
             </Text>
             <TouchableOpacity
@@ -590,8 +575,8 @@ const ManageScoreBoardScreen = ({
                 />
             </TouchableOpacity>
           </View>
-
           <View style={styles.scoreboard_wrapper}>
+
             <View style={styles.scores_and_match_status_wrapper}>
               <View style={styles.score_and_over_wrapper}>
                 <View style={styles.score_wrapper}>
@@ -614,11 +599,11 @@ const ManageScoreBoardScreen = ({
                 <View style={styles.match_status_wrapper}>
                   <Text style={styles.match_status}>
                     {ellipsize(
-                      matchDetails?.toss.tossWinner,
-                      26
+                      matchDetails?.toss?.tossWinner,
+                      24
                     )}{" "}
                     won the toss and elected to{" "}
-                    {matchDetails?.toss.tossDecision}
+                    {matchDetails?.toss?.tossDecision}
                   </Text>
                 </View>
               )}
@@ -638,7 +623,7 @@ const ManageScoreBoardScreen = ({
                     {ellipsize(
                       currentInningDetails
                       ?.battingTeam.name,
-                      26
+                      24
                     )}{" "}
                     needs{" "}
                     {matchDetails?.targetScore -
@@ -664,8 +649,8 @@ const ManageScoreBoardScreen = ({
                     {ellipsize(
                       currentInningDetails
                       ?.battingTeam.name,
-                      26
-                    )}{" "}
+
+                      24)}{" "}
                     needs{" "}
                     {matchDetails?.superOver
                     ?.targetScore -
@@ -694,7 +679,7 @@ const ManageScoreBoardScreen = ({
                     ? `${ellipsize(
                       matchDetails.matchResult
                       .winningTeam,
-                      26
+                      24
                     )} won by ${
                     matchDetails.matchResult
                     .winningMargin
@@ -705,8 +690,8 @@ const ManageScoreBoardScreen = ({
                     ? `${ellipsize(
                       matchDetails.matchResult
                       .winningTeam,
-                      26
-                    )} won the super over`: matchDetails.matchResult
+
+                      24)} won the super over`: matchDetails.matchResult
                     .status ===
                     "Super Over Tie"
                     ? "Super Over Tied": ""}
@@ -774,10 +759,11 @@ const ManageScoreBoardScreen = ({
               <Text style={styles.bowling_team_name}>
                 {ellipsize(
                   currentInningDetails?.bowlingTeam.name,
-                  26
-                )}
+
+                  24)}
               </Text>
             </View>
+
 
             <View style={styles.current_bowler_wrapper}>
               <Pressable
@@ -821,18 +807,18 @@ const ManageScoreBoardScreen = ({
                 </Text>
               </View>
             </View>
-          </View>
-          <View>
+
+
             <ScrollView
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               ref={overTimeLineScrollRef}
               >
-              <View style={styles.over_timeline_wrapper}>
+              <View style={styles.over_timeline}>
                 {currentInningDetails?.currentOverTimeline.map(
                   timeLine => (
                     <View
-                      style={styles.over_timeline}
+                      style={styles.timeline}
                       key={timeLine._id}
                       >
                       <Text
@@ -854,6 +840,7 @@ const ManageScoreBoardScreen = ({
               </View>
             </ScrollView>
           </View>
+
           <View style={styles.score_button_wrapper}>
             <View style={styles.main_score_button_wrapper}>
               <View
@@ -942,6 +929,7 @@ const ManageScoreBoardScreen = ({
               ))}
             </View>
           </View>
+
           {/*Sidebar */}
           <Sidebar
             matchDetails={matchDetails}
@@ -1021,12 +1009,13 @@ const styles = StyleSheet.create({
   wrapper: {
     width: "100%",
     flex: 1,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FFFFFF",
+    position: "relative"
   },
   header: {
     paddingTop: normalizeVertical(38),
     paddingBottom: normalizeVertical(20),
-    backgroundColor: "#E21F26",
+    backgroundColor: "#E21F",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1036,12 +1025,12 @@ const styles = StyleSheet.create({
   back_btn: {
     position: "absolute",
     left: normalize(20),
-    top: normalizeVertical(40)
+    top: normalizeVertical(39)
   },
   settings_btn: {
     position: "absolute",
     right: normalize(20),
-    top: normalizeVertical(40)
+    top: normalizeVertical(39)
   },
   label: {
     fontSize: normalize(20),
@@ -1051,9 +1040,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "robotoMedium"
   },
+  scoreboard_wrapper: {
+    flex: 1,
+  },
   scores_and_match_status_wrapper: {
+    height: "20%",
     width: "100%",
-    height: normalizeVertical(135),
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#E73336",
@@ -1084,8 +1076,8 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   current_batsman_wrapper: {
+    height:"10%",
     backgroundColor: "#EE5860",
-    paddingVertical: normalizeVertical(14),
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1111,8 +1103,9 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   bowling_team_name_wrapper: {
-    backgroundColor: "#E21F26",
-    paddingVertical: normalizeVertical(5),
+    height:"9%",
+    backgroundColor: "#E21F",
+
     paddingHorizontal: normalize(20),
     gap: normalizeVertical(5),
     alignItems: "center",
@@ -1131,7 +1124,7 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   current_bowler_wrapper: {
-    paddingVertical: normalizeVertical(10),
+    height:"5%",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1156,14 +1149,15 @@ const styles = StyleSheet.create({
   on_strike: {
     color: "#f6d67c"
   },
-  over_timeline_wrapper: {
-    height: normalizeVertical(70),
+  over_timeline: {
+    height:"15%",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
-    gap: normalize(17)
+    justifyContent: "center",
+    gap: normalize(15)
   },
-  over_timeline: {
+  timeline: {
     height: normalize(40),
     width: normalize(40),
     borderRadius: normalize(50),
@@ -1178,14 +1172,17 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   score_button_wrapper: {
-    marginTop: normalizeVertical(15),
-    backgroundColor: "rgba(0,0,0,0.3)"
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(128,128,128,0.5)"
   },
   main_score_button_wrapper: {
     flexDirection: "row"
   },
   extras_score_button_wrapper: {
-    flexDirection: "row"
+    flexDirection: "row",
   },
   primary_main_score_button_wrapper: {
     width: "75%",
@@ -1208,9 +1205,9 @@ const styles = StyleSheet.create({
   },
   secondary_score_button: {
     height: normalizeVertical(80),
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    flex: 1,
     backgroundColor: "#EEEEEE",
     borderTopWidth: 1,
     borderLeftWidth: 1,
@@ -1237,7 +1234,7 @@ const styles = StyleSheet.create({
     color: "rgba(198,198,198,0.4)"
   },
   out_text: {
-    color: "#E21F26"
+    color: "#E21F"
   },
   four_text: {
     color: "#f39c12"

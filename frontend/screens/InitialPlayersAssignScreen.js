@@ -39,6 +39,9 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 
 const InitialPlayersAssignScreen = ({
   navigation, route
@@ -53,6 +56,7 @@ const InitialPlayersAssignScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+  useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
@@ -71,23 +75,6 @@ const InitialPlayersAssignScreen = ({
     return () => setIsScreenFocused(false);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   useFocusEffect(
     useCallback(() => {
@@ -284,9 +271,9 @@ const InitialPlayersAssignScreen = ({
                   </View>
 
 
-                  <Text style={styles.batsman_name} 
-                  numberOfLines={1} ellipsizeMode="tail"
-                  >
+                  <Text style={styles.batsman_name}
+                    numberOfLines={1} ellipsizeMode="tail"
+                    >
                     {strikeBatsman?.name}
                   </Text>
 
@@ -345,8 +332,8 @@ const InitialPlayersAssignScreen = ({
                   </View>
 
                   <Text style={styles.batsman_name}
-                  numberOfLines={1} ellipsizeMode="tail"
-                  >
+                    numberOfLines={1} ellipsizeMode="tail"
+                    >
                     {nonStrikeBatsman?.name}
                   </Text>
 
@@ -417,8 +404,8 @@ const InitialPlayersAssignScreen = ({
                   </View>
 
                   <Text style={styles.bowler_name}
-                  numberOfLines={1} ellipsizeMode="tail"
-                  >
+                    numberOfLines={1} ellipsizeMode="tail"
+                    >
                     {currentBowler?.name}
                   </Text>
 
@@ -516,8 +503,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(91/2),
-    elevation:1
+    borderRadius: normalize(92/2),
+    elevation: 1
   },
   batsman_icon_text: {
     fontSize: normalize(28),
@@ -526,8 +513,8 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   batsman_name: {
-    width:"100%",
-    paddingHorizontal:normalize(5),
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",
@@ -562,8 +549,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(91/2),
-    elevation:1
+    borderRadius: normalize(92/2),
+    elevation: 1
   },
   bowler_icon_text: {
     fontSize: normalize(28),
@@ -572,8 +559,8 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   bowler_name: {
-    width:"100%",
-    paddingHorizontal:normalize(5),
+    width: "100%",
+    paddingHorizontal: normalize(5),
     color: "black",
     fontSize: normalize(18),
     fontFamily: "robotoMedium",

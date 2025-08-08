@@ -33,6 +33,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const SelectCaptain = ({
   navigation, route
 }) => {
@@ -43,7 +47,7 @@ const SelectCaptain = ({
 
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-
+useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
   const {
     teamA,
@@ -54,23 +58,6 @@ const SelectCaptain = ({
     return () => setIsScreenFocused(false);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   const availablePlayers = () => {
     if (route.params?.selectFor === "team A") {
@@ -114,7 +101,17 @@ const SelectCaptain = ({
     });
     return unsubscribe;
   }, [navigation]);
+  
+const selectFor = route.params?.selectFor;
+const teamName =
+  selectFor === "team A"
+    ? teamA?.name?.trim()
+    : teamB?.name?.trim();
 
+const headerText =
+  teamName && teamName.length > 0
+    ? `select ${teamName} captain`
+    : "";
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -129,10 +126,7 @@ const SelectCaptain = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select ${
-          route.params?.selectFor === "team A"
-          ? teamA?.name: teamB?.name
-          } captain`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -159,7 +153,7 @@ const SelectCaptain = ({
 
                 <View style={styles.other_player_info_wrapper}>
                   <Text style={styles.player_name}>
-                    {ellipsize(item?.name, 26)}
+                    {ellipsize(item?.name, 24)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -232,7 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1

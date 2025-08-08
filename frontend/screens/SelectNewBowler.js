@@ -158,6 +158,12 @@ const SelectNewBowler = ({
       setShowSpinner(false);
     }
   };
+  
+  const bowlingTeamName = bowlingTeam?.name?.trim();
+
+const headerText = bowlingTeamName
+  ? `select new bowler ( ${bowlingTeamName} )`
+  : "";
 
   return (
     <View style={styles.wrapper}>
@@ -173,7 +179,7 @@ const SelectNewBowler = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select new bowler ( ${bowlingTeam?.name} )`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -285,7 +291,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1

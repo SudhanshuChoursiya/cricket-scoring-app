@@ -1,4 +1,6 @@
 import "react-native-gesture-handler";
+import * as SplashScreen from "expo-splash-screen";
+SplashScreen.preventAutoHideAsync();
 import * as React from "react";
 import {
   Text,
@@ -11,20 +13,17 @@ import {
 import {
   useFonts
 } from "expo-font";
-//fonts imports
+// Font imports
 import kittenBold from "./assets/KittenBold.ttf";
 import ubuntuRegular from "./assets/Ubuntu-Regular.ttf";
 import ubuntuMedium from "./assets/Ubuntu-Medium.ttf";
 import ubuntuBold from "./assets/Ubuntu-Bold.ttf";
-
 import robotoRegular from "./assets/Roboto-Regular.ttf";
 import robotoMedium from "./assets/Roboto-Medium.ttf";
 import robotoBold from "./assets/Roboto-Bold.ttf";
-
 import poppinsBold from "./assets/Poppins-Bold.ttf";
 import latoBold from "./assets/Lato-Bold.ttf";
 
-import * as SplashScreen from "expo-splash-screen";
 import {
   NavigationContainer,
   useRoute
@@ -38,28 +37,19 @@ import {
 import {
   createStackNavigator
 } from "@react-navigation/stack";
+
 import ReduxProvider from "./redux/Provider.js";
-const Stack = createStackNavigator();
+import ToastAlert from "./components/ToastAlert.js";
 
-const Tab = createBottomTabNavigator();
-
-const TopTab = createMaterialTopTabNavigator();
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-import ToastAlert from "./components/ToastAlert.js";
 import HomeScreen from "./screens/HomeScreen.js";
-
 import ProfileScreen from "./screens/ProfileScreen.js";
-
 import SignInScreen from "./screens/SignInScreen.js";
 import SelectTwoTeamScreen from "./screens/SelectTwoTeamScreen.js";
-
 import ChooseTeamScreen from "./screens/ChooseTeamsScreen.js";
-
 import AddTeamScreen from "./screens/AddTeamScreen.js";
-
 import TeamSquadScreen from "./screens/TeamSquadScreen.js";
-
 import AddNewPlayersScreen from "./screens/AddNewPlayersScreen.js";
 import CreateMatchScreen from "./screens/CreateMatchScreen.js";
 import TossScreen from "./screens/TossScreen.js";
@@ -77,7 +67,7 @@ import SelectFielder from "./screens/SelectFielder.js";
 import SelectCaptain from "./screens/SelectCaptain.js";
 import ChangeSquad from "./screens/ChangeSquad.js";
 import SelectReplacementPlayer from "./screens/SelectReplacementPlayer.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   useDispatch,
   useSelector
@@ -89,7 +79,12 @@ import {
   normalize,
   normalizeVertical
 } from "./utils/responsive.js";
-SplashScreen.preventAutoHideAsync();
+
+
+
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+const TopTab = createMaterialTopTabNavigator();
 
 const CustomHeader = ({
   title, navigation, route
@@ -114,9 +109,7 @@ function TopTabNavigator() {
   return (
     <TopTab.Navigator
       screenOptions={ {
-        tabBarStyle: {
-          backgroundColor: "#E21F26"
-        },
+        tabBarStyle: { backgroundColor: "#E21F26" },
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "#d9b0ac",
         tabBarIndicatorStyle: {
@@ -138,82 +131,41 @@ function TopTabNavigator() {
     </TopTab.Navigator>
   );
 }
+
 function StackNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={ {
-        headerShown: false
-      }}
-      >
+    <Stack.Navigator screenOptions={ { headerShown: false }}>
       <Stack.Screen name="home-screen" component={HomeScreen} />
       <Stack.Screen name="select-teams" component={SelectTwoTeamScreen} />
-
       <Stack.Screen
         name="choose-team"
         component={TopTabNavigator}
         options={({ navigation, route }) => ({
           headerShown: true,
           header: () => (
-            <CustomHeader
-              title="Select"
-              navigation={navigation}
-              route={route}
-              />
+            <CustomHeader title="Select" navigation={navigation} route={route} />
           )
         })}
         />
-
       <Stack.Screen name="team-squad" component={TeamSquadScreen} />
       <Stack.Screen name="add-players" component={AddNewPlayersScreen} />
       <Stack.Screen name="select-captain" component={SelectCaptain} />
       <Stack.Screen name="create-match" component={CreateMatchScreen} />
       <Stack.Screen name="toss-screen" component={TossScreen} />
-      <Stack.Screen
-        name="initial-players-assign-screen"
-        component={InitialPlayersAssignScreen}
+      <Stack.Screen name="initial-players-assign-screen" component={InitialPlayersAssignScreen} />
+      <Stack.Screen name="select-initial-player-screen" component={SelectInitialPlayerScreen} />
+      <Stack.Screen name="manage-scoreboard" component={ManageScoreBoardScreen}
         />
-      <Stack.Screen
-        name="select-initial-player-screen"
-        component={SelectInitialPlayerScreen}
-        />
-      <Stack.Screen
-        name="manage-scoreboard"
-        component={ManageScoreBoardScreen}
-        />
-      <Stack.Screen
-        name="select-new-bowler"
-        component={SelectNewBowler}
-        />
-      <Stack.Screen
-        name="select-new-batsman"
-        component={SelectNewBatsman}
-        />
-      <Stack.Screen
-        name="caught-out-fielder-assign"
-        component={CaughtOutFielderAssign}
-        />
-      <Stack.Screen
-        name="run-out-fielder-assign"
-        component={RunOutFielderAssign}
-        />
-      <Stack.Screen
-        name="retired-hurt-assign"
-        component={RetiredHurtAssign}
-        />
-      <Stack.Screen
-        name="retired-out-assign"
-        component={RetiredOutAssign}
-        />
-      <Stack.Screen
-        name="hit-wicket-out-assign"
-        component={HitWicketOutAssign}
-        />
+      <Stack.Screen name="select-new-bowler" component={SelectNewBowler} />
+      <Stack.Screen name="select-new-batsman" component={SelectNewBatsman} />
+      <Stack.Screen name="caught-out-fielder-assign" component={CaughtOutFielderAssign} />
+      <Stack.Screen name="run-out-fielder-assign" component={RunOutFielderAssign} />
+      <Stack.Screen name="retired-hurt-assign" component={RetiredHurtAssign} />
+      <Stack.Screen name="retired-out-assign" component={RetiredOutAssign} />
+      <Stack.Screen name="hit-wicket-out-assign" component={HitWicketOutAssign} />
       <Stack.Screen name="select-fielder" component={SelectFielder} />
       <Stack.Screen name="change-squad" component={ChangeSquad} />
-      <Stack.Screen
-        name="select-replacement-player"
-        component={SelectReplacementPlayer}
-        />
+      <Stack.Screen name="select-replacement-player" component={SelectReplacementPlayer} />
     </Stack.Navigator>
   );
 }
@@ -223,7 +175,11 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={ {
         headerShown: false,
-        tabBarActiveTintColor: "#E21F26"
+        tabBarActiveTintColor: "#E21F26",
+        tabBarStyle: {
+          position: "absolute",
+          height: normalizeVertical(60),
+        },
       }}
       >
       <Tab.Screen
@@ -231,36 +187,21 @@ function TabNavigator() {
         component={StackNavigator}
         options={ {
           tabBarLabel: ({ color }) => (
-            <Text
-              style={ {
-                color: color,
-                fontFamily: "ubuntuMedium",
-                fontSize: normalize(16)
-              }}
-              >
+            <Text style={ { color, fontFamily: "ubuntuMedium", fontSize: normalize(16) }}>
               Home
             </Text>
           ),
           tabBarIcon: ({
             color, size
-          }) => (
-            <Icon name="home" size={size} color={color} />
-          )
+          }) => <Icon name="home" size={size} color={color} />
         }}
         />
-
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={ {
           tabBarLabel: ({ color }) => (
-            <Text
-              style={ {
-                color: color,
-                fontFamily: "ubuntuMedium",
-                fontSize: normalize(16)
-              }}
-              >
+            <Text style={ { color, fontFamily: "ubuntuMedium", fontSize: normalize(16) }}>
               Profile
             </Text>
           ),
@@ -276,6 +217,8 @@ function TabNavigator() {
 }
 
 export const Layout = () => {
+  const [appReady,
+    setAppReady] = React.useState(false);
   const [fontsLoaded] = useFonts( {
     ubuntuRegular,
     ubuntuMedium,
@@ -285,15 +228,14 @@ export const Layout = () => {
     robotoBold,
     kittenBold,
     poppinsBold,
-    latoBold
+    latoBold,
   });
 
   const dispatch = useDispatch();
   const {
     isLoading,
-    isLoggedin,
-    user
-  } = useSelector(state => state.auth);
+    isLoggedin
+  } = useSelector((state) => state.auth);
 
   React.useEffect(() => {
     dispatch(fetchAuth());
@@ -301,35 +243,30 @@ export const Layout = () => {
 
   React.useEffect(() => {
     if (fontsLoaded && !isLoading) {
-      SplashScreen.hideAsync();
+      setAppReady(true);
     }
   },
     [fontsLoaded,
       isLoading]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  const onLayoutRootView = React.useCallback(async () => {
+    if (appReady) {
+      await SplashScreen.hideAsync();
+    }
+  },
+    [appReady]);
 
-  if (isLoading) {
+  if (!appReady) {
     return null;
   }
 
   return (
-    <SafeAreaView style={ { flex: 1 }}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-        />
-
+    <SafeAreaView style={ { flex: 1 }} onLayout={onLayoutRootView}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <NavigationContainer>
         {!isLoggedin ? (
           <Stack.Navigator screenOptions={ { headerShown: false }}>
-            <Stack.Screen
-              name="signInScreen"
-              component={SignInScreen}
-              />
+            <Stack.Screen name="signInScreen" component={SignInScreen} />
           </Stack.Navigator>
         ): (
           <TabNavigator />
@@ -364,5 +301,5 @@ export default function App() {
       paddingHorizontal: normalize(13),
       textTransform: "capitalize",
       fontFamily: "robotoBold"
-    },
+    }
   });

@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(81/2),
+    borderRadius: normalize(82/2),
     elevation:1
   },
   team_icon_text: {

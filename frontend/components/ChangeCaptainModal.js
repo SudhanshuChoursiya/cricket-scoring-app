@@ -110,7 +110,7 @@ const ChangeCaptainModal = ({
 
                             <View style={styles.other_player_info_wrapper}>
                                 <Text style={styles.player_name}>
-                                    {ellipsize(player?.name, 26)}
+                                    {ellipsize(player?.name, 24)}
                                 </Text>
                             </View>
                         </View>
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(61),
-        borderRadius: normalize(61/2),
+        borderRadius: normalize(62/2),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1

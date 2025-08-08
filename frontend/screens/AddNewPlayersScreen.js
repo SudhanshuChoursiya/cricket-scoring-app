@@ -15,6 +15,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../redux/toastSlice.js";
 ("../components/AlertToast.js");
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 
 const AddNewPlayersScreen = ({ navigation, route }) => {
     const [players, setPlayers] = useState([{ name: "" }]);
@@ -23,6 +26,7 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
 
     const [showSpinner, setShowSpinner] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+    useHideTabBar(navigation)
     const dispatch = useDispatch();
     const playersRefs = useRef([]);
 
@@ -60,20 +64,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
     useEffect(() => {
         setIsScreenFocused(true);
     }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            navigation.getParent()?.setOptions({
-                tabBarStyle: { display: "none" }
-            });
-
-            return () => {
-                navigation.getParent()?.setOptions({
-                    tabBarStyle: { display: "flex" }
-                });
-            };
-        }, [isScreenFocused])
-    );
 
     const removeEmptyValueFromArray = array => {
         return array.filter(item => item.name.trim() !== "");

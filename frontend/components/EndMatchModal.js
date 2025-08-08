@@ -165,7 +165,7 @@ const EndMatchModal = ({
                     </Text>
                   </View>
                   <Text style={styles.team_name}>
-                    {ellipsize(team?.name, 26)}
+                    {ellipsize(team?.name, 24)}
                   </Text>
                 </TouchableOpacity>
               )
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F54133",
-    borderRadius: normalize(81/2),
+    borderRadius: normalize(82/2),
     elevation:1
   },
   team_icon_text: {

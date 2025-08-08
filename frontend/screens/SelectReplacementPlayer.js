@@ -36,6 +36,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const SelectReplacementPlayer = ({
   navigation, route
 }) => {
@@ -51,6 +55,7 @@ const SelectReplacementPlayer = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+    useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
@@ -131,23 +136,6 @@ const SelectReplacementPlayer = ({
     );
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -216,6 +204,13 @@ const SelectReplacementPlayer = ({
     }
   };
 
+const playingTeamName =
+  typeof playingTeamDetails?.name === "string" ? playingTeamDetails.name.trim() : "";
+
+const scrollingText = playingTeamName
+  ? `select replacement player ( ${playingTeamName} )`
+  : "";
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -230,7 +225,7 @@ const SelectReplacementPlayer = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select replacement player ( ${playingTeamDetails?.name} )`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -271,7 +266,7 @@ const SelectReplacementPlayer = ({
 
                 <View style={styles.other_player_info_wrapper}>
                   <Text style={styles.player_name}>
-                    {ellipsize(item?.name, 26)}
+                    {ellipsize(item?.name, 24)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -371,7 +366,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1

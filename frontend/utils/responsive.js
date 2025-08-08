@@ -30,11 +30,3 @@ export function normalizeVertical(size) {
     return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 1;
   }
 }
-
-export function isTab() {
-  if (SCREEN_WIDTH > 550) {
-    return true;
-  } else {
-    return false;
-  }
-}

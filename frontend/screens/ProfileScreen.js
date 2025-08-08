@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
     backgroundColor: "white"
   },
   profile_img_section: {
-    paddingTop: normalizeVertical(35),
+    paddingTop: normalizeVertical(30),
     alignItems: "center",
     justifyContent: "center",
     gap: normalizeVertical(18),
     width: "100%",
-    height: normalizeVertical(240),
+    height:"35%",
     position: "relative",
     backgroundColor: "#F3F3F3"
   },
@@ -183,10 +183,10 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   curve_background: {
-    height: normalizeVertical(100),
+    height: "50%",
     width: "100%",
     position: "absolute",
-    top: normalizeVertical(230)
+    top: normalizeVertical(235)
   },
   profile_img_wrapper: {
     backgroundColor: "white",
@@ -198,7 +198,8 @@ const styles = StyleSheet.create({
   profile_img: {
     height: "100%",
     width: "100%",
-    borderRadius: normalize(100)
+    borderRadius: normalize(100),
+    zIndex:2
   },
   profile_details_section: {
     alignItems: "center",
@@ -236,7 +237,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: normalize(8)
   },
-
   page_link_text: {
     fontSize: normalize(17),
     textTransform: "capitalize",

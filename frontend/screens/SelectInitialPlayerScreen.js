@@ -36,6 +36,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const SelectInitialPlayerScreen = ({
   navigation, route
 }) => {
@@ -49,7 +53,7 @@ const SelectInitialPlayerScreen = ({
     setIsLoading] = useState(true);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-
+useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
@@ -96,24 +100,6 @@ const SelectInitialPlayerScreen = ({
       [isScreenFocused])
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    },
-      [isScreenFocused])
-  );
 
   const availablePlayers = () => {
     if (route.params?.selectFor === "strike batsman") {
@@ -157,6 +143,14 @@ const SelectInitialPlayerScreen = ({
     }
   };
 
+  const selectFor = route.params?.selectFor?.trim();
+  const teamName =
+  selectFor === "strike batsman" || selectFor === "non strike batsman"
+  ? battingTeam?.name?.trim(): bowlingTeam?.name?.trim();
+
+  const headerText =
+  selectFor && teamName
+  ? `select ${selectFor} ( ${teamName} )`: "";
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -171,11 +165,7 @@ const SelectInitialPlayerScreen = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select ${route.params?.selectFor} ( ${
-          route.params?.selectFor === "strike batsman" ||
-          route.params?.selectFor === "non strike batsman"
-          ? battingTeam?.name: bowlingTeam?.name
-          } )`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -203,7 +193,7 @@ const SelectInitialPlayerScreen = ({
 
                 <View style={styles.other_player_info_wrapper}>
                   <Text style={styles.player_name}>
-                    {ellipsize(item?.name, 26)}
+                    {ellipsize(item?.name, 24)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -276,7 +266,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1

@@ -37,6 +37,9 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 const CreateMatchScreen = ({
   navigation, route
 }) => {
@@ -46,6 +49,7 @@ const CreateMatchScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+    useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
 
   const {
@@ -67,23 +71,6 @@ const CreateMatchScreen = ({
     setIsScreenFocused(true);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    }, [isScreenFocused])
-  );
 
   const handleCreateMatch = async () => {
     try {

@@ -34,6 +34,10 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
+
 const SelectFielder = ({
   navigation, route
 }) => {
@@ -49,7 +53,7 @@ const SelectFielder = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-
+useHideTabBar(navigation,isScreenFocused);
   const dispatch = useDispatch();
   const {
     accessToken
@@ -98,24 +102,6 @@ const SelectFielder = ({
     return unsubscribe;
   }, [navigation]);
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
-    },
-      [isScreenFocused])
-  );
 
   const availablePlayers = () => {
     return [
@@ -142,6 +128,13 @@ const SelectFielder = ({
     }
   };
 
+const bowlingTeamName = bowlingTeam?.name?.trim();
+
+const headerText =
+  bowlingTeamName && bowlingTeamName.length > 0
+    ? `select fielder ( ${bowlingTeamName} )`
+    : "";
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -156,7 +149,7 @@ const SelectFielder = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select fielder ( ${bowlingTeam?.name} )`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -281,7 +274,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1
@@ -308,7 +301,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0
+    right: 0,
   },
   confirm_btn: {
     backgroundColor: "#14B391",

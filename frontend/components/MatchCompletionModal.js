@@ -63,7 +63,7 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
                             (matchDetails.matchResult.status === "Win"
                                 ? `${ellipsize(
                                       matchDetails.matchResult.winningTeam,
-                                      26
+                                      24
                                   )} won by ${
                                       matchDetails.matchResult.winningMargin
                                   }`
@@ -73,7 +73,7 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
                                   "Super Over"
                                 ? `${ellipsize(
                                       matchDetails.matchResult.winningTeam,
-                                      26
+                                      24
                                   )} won the super over`
                                 : matchDetails.matchResult.status ===
                                   "Super Over Tie"

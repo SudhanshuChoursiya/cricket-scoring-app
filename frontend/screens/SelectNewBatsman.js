@@ -32,6 +32,9 @@ import {
   normalize,
   normalizeVertical
 } from "../utils/responsive.js";
+import {
+  useHideTabBar
+} from "../utils/useHideTabBar.js";
 
 const SelectNewBatsman = ({
   navigation, route
@@ -48,7 +51,7 @@ const SelectNewBatsman = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-
+useHideTabBar(navigation,isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
@@ -85,25 +88,6 @@ const SelectNewBatsman = ({
         }
       };
       getMatchDetails();
-    },
-      [isScreenFocused])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: {
-          display: "none"
-        }
-      });
-
-      return () => {
-        navigation.getParent()?.setOptions({
-          tabBarStyle: {
-            display: "flex"
-          }
-        });
-      };
     },
       [isScreenFocused])
   );
@@ -201,6 +185,12 @@ const SelectNewBatsman = ({
     return unsubscribe;
   }, [navigation]);
 
+const battingTeamName = battingTeam?.name?.trim();
+
+const headerText = battingTeamName
+  ? `select new batsman  ( ${battingTeamName} )`
+  : "";
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -215,7 +205,7 @@ const SelectNewBatsman = ({
             />
         </TouchableOpacity>
         <ScrollingText
-          text={`select new batsman  ( ${battingTeam?.name} )`}
+          text={headerText}
           style={styles.label}
           fitWidth="85%"
           />
@@ -243,7 +233,7 @@ const SelectNewBatsman = ({
 
                 <View style={styles.other_player_info_wrapper}>
                   <Text style={styles.player_name}>
-                    {ellipsize(item?.name, 26)}
+                    {ellipsize(item?.name, 24)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -330,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f75454",
     height: normalize(60),
     width: normalize(61),
-    borderRadius: normalize(61/2),
+    borderRadius: normalize(62/2),
     justifyContent: "center",
     alignItems: "center",
     elevation: 1
