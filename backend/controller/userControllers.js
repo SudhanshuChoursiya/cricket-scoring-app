@@ -464,6 +464,9 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
   match.matchStatus = "toss happend";
   match.toss.tossWinner = tossWinner;
   match.toss.tossDecision = tossDecision;
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
 
   res.status(200).json(
@@ -554,6 +557,9 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     }
   }
 
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
 
   res.status(200).json(
@@ -822,7 +828,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.currentInning === 2 &&
             match.inning2.totalScore !== match.targetScore
           ) {
-            match.isSelectNewBatsmanPending = true;
+            match.iSelectNewBatsmanPending = true;
             io.emit("wicketFallen");
           } else {
             match.isSelectNewBatsmanPending = true;
@@ -1028,7 +1034,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
         if (!match.isSuperOver) {
           if (match.currentInning === 2) {
             if (match.inning2.totalScore !== match.targetScore) {
-              match.isOverChangePending = true;
+              match.isOveChangePending = true;
               io.emit("overCompleted");
             }
           } else {
@@ -1465,7 +1471,9 @@ const replacePlayerController = asyncHandler(async (req, res) => {
   replacePlayerInBowler(match.inning2);
 
   // Save changes
-  io.emit("scoreUpdated", { match });
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
   res.status(200).json(
     new ApiResponse(200, match, "player replaced successfully")
@@ -2020,7 +2028,9 @@ const startSuperOverController = asyncHandler(async (req, res) => {
       currentInning: 1
     };
   }
-io.emit("scoreUpdated", { match });
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
   res.status(200).json(new ApiResponse(200, match));
 });
@@ -2046,7 +2056,9 @@ const endInningController = asyncHandler(async (req, res) => {
   }
   match.isInningChangePending = true;
   match.matchStatus = "inning break";
-  io.emit("scoreUpdated", { match });
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
   res.status(200).json(new ApiResponse(200, match));
 });
@@ -2109,7 +2121,9 @@ const endMatchController = asyncHandler(async (req, res) => {
   if (match.isInningChangePending === true) {
     match.isInningChangePending = false;
   }
-  io.emit("scoreUpdated", { match });
+  io.emit("scoreUpdated", {
+    match
+  });
   await match.save();
   res.status(200).json(new ApiResponse(200, match));
 });

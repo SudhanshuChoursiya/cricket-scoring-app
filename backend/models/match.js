@@ -72,6 +72,7 @@ const InningSchema = new mongoose.Schema({
     currentBowler: {
         type: PlayerSchema,
         default: null
+
     },
     currentOverBalls: {
         type: Number,
