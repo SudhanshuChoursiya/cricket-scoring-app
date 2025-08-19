@@ -1988,8 +1988,6 @@ const startSuperOverController = asyncHandler(async (req, res) => {
     match.isSecondInningStarted = false;
   }
 
-  match.matchStatus = "super over";
-
   if (!match.isSuperOver) {
     match.isSuperOver = true;
     match.superOver = {

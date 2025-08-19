@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   current_batsman_wrapper: {
-    height:"10%",
+    height: "10%",
     backgroundColor: "#EE5860",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
@@ -1103,7 +1103,7 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   bowling_team_name_wrapper: {
-    height:"9%",
+    height: "9%",
     backgroundColor: "#E21F",
 
     paddingHorizontal: normalize(20),
@@ -1124,7 +1124,7 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   current_bowler_wrapper: {
-    height:"5%",
+    height: "5%",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1150,7 +1150,7 @@ const styles = StyleSheet.create({
     color: "#f6d67c"
   },
   over_timeline: {
-    height:"15%",
+    height: "15%",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
