@@ -1821,7 +1821,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     ) {
       match.superOver.currentInning = 1;
       match.isInningChangePending = false;
-      match.isSuperOverInProgress=true;
+      match.isSuperOverInProgress = true;
       match.superOver.targetScore = null;
       match.matchStatus = "super over";
     }
@@ -1831,7 +1831,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
       match.superOver.currentInning === 2
     ) {
       match.matchStatus = "super over";
-      match.isSuperOverInProgress=true;
+      match.isSuperOverInProgress = true;
       match.matchResult = {
         status: null,
         winningTeam: null,
