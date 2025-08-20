@@ -23,7 +23,8 @@ import {
 import {
   setTotalOvers,
   setCity,
-  setGround
+  setGround,
+  setStartTime
 } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
@@ -56,7 +57,8 @@ const CreateMatchScreen = ({
     teamA,
     teamB,
     totalOvers,
-    matchPlace
+    matchPlace,
+    startTime
   } = useSelector(
     state => state.match
   );
@@ -111,7 +113,8 @@ const CreateMatchScreen = ({
             teamA,
             teamB,
             totalOvers,
-            matchPlace
+            matchPlace,
+            startTime
           })
         }
       );
@@ -130,6 +133,7 @@ const CreateMatchScreen = ({
         dispatch(setTotalOvers(null));
         dispatch(setCity(null));
         dispatch(setGround(null));
+        dispatch(setStartTime(null));
       }
     } catch (error) {
       console.log(error);
@@ -149,6 +153,7 @@ const CreateMatchScreen = ({
       dispatch(setTotalOvers(null));
       dispatch(setCity(null));
       dispatch(setGround(null));
+      dispatch(setStartTime(null));
       setIsLoading(true);
     });
     return unsubscribe;
@@ -223,6 +228,14 @@ const CreateMatchScreen = ({
               style={styles.text_input}
               value={matchPlace.ground}
               onChangeText={text => dispatch(setGround(text))}
+              />
+          </View>
+          <View style={styles.text_input_wrapper}>
+            <Text style={styles.text_input_label}>Start Time (optional)</Text>
+            <TextInput
+              style={styles.text_input}
+              value={startTime}
+              onChangeText={text => dispatch(setStartTime(text))}
               />
           </View>
         </View>

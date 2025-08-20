@@ -288,7 +288,8 @@ const createMatchController = asyncHandler(async (req, res) => {
     teamA,
     teamB,
     totalOvers,
-    matchPlace
+    matchPlace,
+    startTime
   } = req.body;
 
   const user = req.user;
@@ -304,7 +305,7 @@ const createMatchController = asyncHandler(async (req, res) => {
     teamB.captain.captainId,
     totalOvers,
     matchPlace.city,
-    matchPlace.ground
+    matchPlace.ground,
   ].some(field => {
       if (Array.isArray(field)) {
         return field.length !== 11;
@@ -354,6 +355,7 @@ const createMatchController = asyncHandler(async (req, res) => {
       captain: teamB.captain
     },
     matchPlace,
+    startTime,
     createdBy: user._id
   });
 

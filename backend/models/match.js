@@ -149,6 +149,9 @@ const InningSchema = new mongoose.Schema({
         type: String
       }
     },
+    startTime:{
+      type:String,
+    },
     matchResult: {
       status: {
         type: String,
