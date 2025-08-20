@@ -548,10 +548,12 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     }
   } else {
     if (match.superOver.currentInning === 1) {
-      match.matchStatus = "super over";
+      match.isSuperOverInProgress = true;
+
     }
     if (match.superOver.currentInning === 2) {
       match.matchStatus = "super over";
+      match.isSuperOverInProgress = true;
       match.isInningChangePending = false;
       match.isSecondInningStarted = true;
     }
@@ -683,7 +685,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
           match.superOver.inning1.totalOvers
         ) {
           match.matchStatus = "inning break";
-
+          match.isSuperOverInProgress = false;
           match.superOver.currentInning = 2;
 
           match.superOver.targetScore =
@@ -698,7 +700,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
           match.superOver.targetScore
         ) {
           match.matchStatus = "completed";
-
+          match.isSuperOverInProgress = false;
           match.matchResult = {
             status: "Super Over",
             winningTeam: `${match.superOver.inning2.battingTeam.name}`,
@@ -716,7 +718,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.superOver.targetScore - 1
           ) {
             match.matchStatus = "completed";
-
+            match.isSuperOverInProgress = false;
             match.matchResult = {
               status: "Super Over Tie",
               winningTeam: null,
@@ -726,6 +728,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             io.emit("superOverTied");
           } else {
             match.matchStatus = "completed";
+            match.isSuperOverInProgress = false;
             match.matchResult = {
               status: "Super Over",
               winningTeam: `${match.superOver.inning2.bowlingTeam.name}`,
@@ -1818,6 +1821,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     ) {
       match.superOver.currentInning = 1;
       match.isInningChangePending = false;
+      match.isSuperOverInProgress=true;
       match.superOver.targetScore = null;
       match.matchStatus = "super over";
     }
@@ -1827,6 +1831,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
       match.superOver.currentInning === 2
     ) {
       match.matchStatus = "super over";
+      match.isSuperOverInProgress=true;
       match.matchResult = {
         status: null,
         winningTeam: null,
@@ -1984,11 +1989,13 @@ const startSuperOverController = asyncHandler(async (req, res) => {
     runsConceded: 0
   };
 
+
   if (match.isSecondInningStarted) {
     match.isSecondInningStarted = false;
   }
 
   if (!match.isSuperOver) {
+    match.matchStatus = "super over";
     match.isSuperOver = true;
     match.superOver = {
       inning1: createInning(

@@ -144,21 +144,7 @@ const ManageScoreBoardScreen = ({
         setMatchDetails(data.data);
 
         let currentInning = getCurrentInning(data.data);
-        if (!data.data.isSuperOver) {
-          if (
-            !data.data.isSecondInningStarted &&
-            data.data.currentInning === 2
-          ) {
-            currentInning = data.data.inning1;
-          }
-        } else {
-          if (
-            !data.data.isSecondInningStarted &&
-            data.data.superOver.currentInning === 2
-          ) {
-            currentInning = data.data.superOver.inning1;
-          }
-        }
+
         setCurrentInningDetails(currentInning);
       }
     } catch (error) {
