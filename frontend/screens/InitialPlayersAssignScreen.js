@@ -56,6 +56,8 @@ const InitialPlayersAssignScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+  const [hasLoadedOnce,
+    setHasLoadedOnce] = useState(false);
   useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
   const {
@@ -75,38 +77,15 @@ const InitialPlayersAssignScreen = ({
     return () => setIsScreenFocused(false);
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      if (!hasLoadedOnce) {
+        getMatchDetails();
+      }
+    });
 
-  useFocusEffect(
-    useCallback(() => {
-      const getMatchDetails = async () => {
-        try {
-          const response = await fetch(
-            `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`
-              }
-            }
-          );
-
-          const data = await response.json();
-
-          if (response.status === 200) {
-            setMatchDetails(data.data);
-
-            const currentInning = getCurrentInning(data.data);
-            setCurrentInningDetails(currentInning);
-          }
-        } catch (error) {
-          console.log(error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      getMatchDetails();
-    },
-      [isScreenFocused])
-  );
+    return unsubscribe;
+  }, [navigation, hasLoadedOnce]);
 
   const handleBackPress = useCallback(() => {
     if (matchDetails?.matchStatus === "toss happend") {
@@ -126,6 +105,33 @@ const InitialPlayersAssignScreen = ({
       return () => backHandler.remove();
     }, [handleBackPress])
   );
+
+  const getMatchDetails = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setMatchDetails(data.data);
+        const currentInning = getCurrentInning(data.data);
+        setCurrentInningDetails(currentInning);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+      setHasLoadedOnce(true);
+    }
+  };
 
   const handleUpdateInitialPlayers = async () => {
     try {
@@ -219,7 +225,7 @@ const InitialPlayersAssignScreen = ({
         </Text>
       </View>
 
-      {!isLoading ? (
+      {!isLoading? (
         <>
           <View style={styles.select_striker_and_nonstriker_wrapper}>
             <Text style={styles.heading}>

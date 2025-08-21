@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@animatereactnative/marquee": "^0.5.2",
+    "@expo/vector-icons": "^14.0.3",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-google-signin/google-signin": "^11.0.1",
     "@react-native-masked-view/masked-view": "0.3.1",
@@ -44,11 +45,10 @@
     "react-native-toast-message": "^2.3.3",
     "react-native-vector-icons": "^10.3.0",
     "react-redux": "^9.2.0",
-    "socket.io-client": "^4.8.1",
-    "@expo/vector-icons": "^14.0.3"
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0"
+    "@babel/core": "^7.28.3"
   },
   "private": true
 }
