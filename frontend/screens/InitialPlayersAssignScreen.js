@@ -183,6 +183,24 @@ const InitialPlayersAssignScreen = ({
     }
   };
 
+  const getLabelText = () => {
+    if (!matchDetails) return "";
+
+    if (matchDetails.isSuperOver) {
+      return "Start Super Over";
+    }
+
+    if (matchDetails.currentInning === 1) {
+      return "Start 1st innings";
+    }
+
+    if (matchDetails.currentInning === 2) {
+      return "Start 2nd innings";
+    }
+
+    return "";
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -197,14 +215,7 @@ const InitialPlayersAssignScreen = ({
             />
         </TouchableOpacity>
         <Text style={styles.label}>
-          {!matchDetails?.isSuperOver &&
-          matchDetails?.currentInning === 1 &&
-          "Start 1st innings"}
-          {!matchDetails?.isSuperOver &&
-          matchDetails?.currentInning === 2 &&
-          "Start 2nd innings"}
-
-          {matchDetails?.isSuperOver && "Start Super Over"}
+          {getLabelText()}
         </Text>
       </View>
 
@@ -213,7 +224,7 @@ const InitialPlayersAssignScreen = ({
           <View style={styles.select_striker_and_nonstriker_wrapper}>
             <Text style={styles.heading}>
               {ellipsize(
-                `Batting - ${currentInningDetails?.battingTeam.name}`,
+                `Batting - ${currentInningDetails?.battingTeam?.name}`,
                 35
               )}
             </Text>
@@ -345,7 +356,7 @@ const InitialPlayersAssignScreen = ({
           <View style={styles.select_current_bowler_wrapper}>
             <Text style={styles.heading}>
               {ellipsize(
-                `Bowling - ${currentInningDetails?.bowlingTeam.name}`,
+                `Bowling - ${currentInningDetails?.bowlingTeam?.name}`,
                 35
               )}
             </Text>

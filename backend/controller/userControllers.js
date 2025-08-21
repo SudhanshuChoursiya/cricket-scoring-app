@@ -551,7 +551,6 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
   } else {
     if (match.superOver.currentInning === 1) {
       match.isSuperOverInProgress = true;
-
     }
     if (match.superOver.currentInning === 2) {
       match.matchStatus = "super over";
@@ -1991,13 +1990,13 @@ const startSuperOverController = asyncHandler(async (req, res) => {
     runsConceded: 0
   };
 
+  match.matchStatus = "super over";
 
   if (match.isSecondInningStarted) {
     match.isSecondInningStarted = false;
   }
 
   if (!match.isSuperOver) {
-    match.matchStatus = "super over";
     match.isSuperOver = true;
     match.superOver = {
       inning1: createInning(

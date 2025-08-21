@@ -133,8 +133,8 @@ const ManageScoreBoardScreen = ({
         `${process.env.EXPO_PUBLIC_BASE_URL}/get-match-details/${route.params?.matchId}`,
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
 
@@ -143,12 +143,36 @@ const ManageScoreBoardScreen = ({
       if (response.status === 200) {
         setMatchDetails(data.data);
 
-        let currentInning = getCurrentInning(data.data);
+        const {
+          isSuperOver,
+          isSecondInningStarted,
+          currentInning,
+          inning1,
+          superOver,
+        } = data.data;
 
-        setCurrentInningDetails(currentInning);
+        let currentInningDetails;
+
+        if (!isSuperOver) {
+          // Normal match
+          if (!isSecondInningStarted && currentInning === 2) {
+            currentInningDetails = inning1;
+          } else {
+            currentInningDetails = getCurrentInning(data.data);
+          }
+        } else {
+          // Super over
+          if (!isSecondInningStarted && superOver.currentInning === 2) {
+            currentInningDetails = superOver.inning1;
+          } else {
+            currentInningDetails = getCurrentInning(data.data);
+          }
+        }
+
+        setCurrentInningDetails(currentInningDetails);
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching match details:", error);
     } finally {
       setIsLoading(false);
     }
@@ -190,25 +214,39 @@ const ManageScoreBoardScreen = ({
 
   useEffect(() => {
     const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
+
     socket.on("scoreUpdated", ({
       match
     }) => {
       setMatchDetails(match);
 
-      let currentInning = getCurrentInning(match);
-      if (!match.isSuperOver) {
-        if (!match.isSecondInningStarted && match.currentInning === 2) {
-          currentInning = match.inning1;
+      const {
+        isSuperOver,
+        isSecondInningStarted,
+        currentInning,
+        inning1,
+        superOver,
+      } = match;
+
+      let currentInningDetails;
+
+      if (!isSuperOver) {
+        // Normal match
+        if (!isSecondInningStarted && currentInning === 2) {
+          currentInningDetails = inning1;
+        } else {
+          currentInningDetails = getCurrentInning(match);
         }
       } else {
-        if (
-          !match.isSecondInningStarted &&
-          match.superOver.currentInning === 2
-        ) {
-          currentInning = match.superOver.inning1;
+        // Super over
+        if (!isSecondInningStarted && superOver.currentInning === 2) {
+          currentInningDetails = superOver.inning1;
+        } else {
+          currentInningDetails = getCurrentInning(match);
         }
       }
-      setCurrentInningDetails(currentInning);
+
+      setCurrentInningDetails(currentInningDetails);
     });
 
     socket.on("wicketFallen",
@@ -236,12 +274,14 @@ const ManageScoreBoardScreen = ({
           isShow: true
         }));
       });
+
     socket.on("superOverTied",
       () => {
         dispatch(setSuperOverModal({
           isShow: true
         }));
       });
+
     socket.on("matchCompleted",
       () => {
         dispatch(setMatchCompleteModal({

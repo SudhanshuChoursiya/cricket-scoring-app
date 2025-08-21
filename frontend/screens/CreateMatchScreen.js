@@ -50,7 +50,7 @@ const CreateMatchScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-    useHideTabBar(navigation,isScreenFocused)
+  useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
 
   const {
@@ -231,7 +231,7 @@ const CreateMatchScreen = ({
               />
           </View>
           <View style={styles.text_input_wrapper}>
-            <Text style={styles.text_input_label}>Start Time (optional)</Text>
+            <Text style={styles.text_input_label}>Starting Time ( optional )</Text>
             <TextInput
               style={styles.text_input}
               value={startTime}
