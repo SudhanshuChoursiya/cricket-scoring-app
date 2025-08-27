@@ -49,12 +49,13 @@ export const shouldShowSummary = (matchDetails, currentInningDetails)=> {
   // don't show if inning completed
   if (currentInningDetails.currentOvers === currentInningDetails.totalOvers) return false;
 
-  const totalOvers = currentInningDetails.totalOvers; // total overs of the match
-  const currentOvers = currentInningDetails.currentOvers; // current completed overs
+  const totalOvers = currentInningDetails.totalOvers;
+  const currentOvers = currentInningDetails.currentOvers;
+  const currentOverBalls = currentInningDetails.currentOverBalls;
   const interval = getSummaryInterval(totalOvers);
 
   // show only when overs completed is a multiple of interval
-  return currentOvers > 0 && currentOvers % interval === 0;
+  return currentOvers > 0 && currentOverBalls === 0 && currentOvers % interval === 0;
 }
 
 const getSummaryInterval = (totalOvers)=> {
