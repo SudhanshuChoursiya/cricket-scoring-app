@@ -1079,7 +1079,6 @@ updateExtras();
 switchStrike();
 endOver();
 checkGameProgress();
-showSummary()
 io.emit("scoreUpdated", {
 match
 });
