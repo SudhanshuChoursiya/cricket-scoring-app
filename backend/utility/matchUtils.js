@@ -37,3 +37,30 @@ export const createInning = (
     totalOvers: totalOvers,
   };
 };
+
+
+export const shouldShowSummary = (matchDetails, currentInningDetails)=> {
+  if (!matchDetails || !currentInningDetails) return false;
+
+  // don't show if match completed
+  if (matchDetails.matchStatus === "completed") return false;
+
+
+  // don't show if inning completed
+  if (currentInningDetails.currentOvers === currentInningDetails.totalOvers) return false;
+
+  const totalOvers = currentInningDetails.totalOvers; // total overs of the match
+  const currentOvers = currentInningDetails.currentOvers; // current completed overs
+  const interval = getSummaryInterval(totalOvers);
+
+  // show only when overs completed is a multiple of interval
+  return currentOvers > 0 && currentOvers % interval === 0;
+}
+
+const getSummaryInterval = (totalOvers)=> {
+  if (totalOvers <= 6) return Math.floor(totalOvers / 2);
+  if (totalOvers <= 12) return 3;
+  if (totalOvers <= 20) return 5;
+  if (totalOvers <= 50) return 10;
+  return 15;
+}
