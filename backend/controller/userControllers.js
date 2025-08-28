@@ -1075,15 +1075,16 @@ const updateScoreController = asyncHandler(async (req, res) => {
   switchStrike();
   endOver();
   checkGameProgress();
+
+  io.emit("scoreUpdated", {
+    match
+  });
+
   if (shouldShowSummary(match, currentInning)) {
     io.emit("showSummary", {
       match
     })
   }
-  io.emit("scoreUpdated", {
-    match
-  });
-
   // Save match details
   await match.save();
 
