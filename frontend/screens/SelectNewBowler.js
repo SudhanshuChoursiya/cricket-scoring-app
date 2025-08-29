@@ -117,7 +117,7 @@ const SelectNewBowler = ({
 
   const availablePlayers = () => {
     return bowlingTeam?.playing11.filter(player => {
-      return player._id !== currentBowler._id;
+      return player?._id !== currentBowler?._id;
     });
   };
 

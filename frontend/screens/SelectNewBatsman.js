@@ -95,7 +95,7 @@ useHideTabBar(navigation,isScreenFocused)
   const availablePlayers = () => {
     const currentBatsmenIds = currentBatsmen?.map(batsman => batsman._id);
 
-    return battingTeam?.playing11.filter(player => {
+    return battingTeam?.playing11?.filter(player => {
       return !currentBatsmenIds?.includes(player._id) && !player.isOut;
     });
   };

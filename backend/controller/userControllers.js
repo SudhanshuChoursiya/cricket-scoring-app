@@ -1788,7 +1788,6 @@ const undoScoreController = asyncHandler(async (req, res) => {
     lastAction,
     previousOverTimeline
   } = req.body;
-
   const user = req.user;
 
   if (!lastAction) {
@@ -1804,11 +1803,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     throw new ApiError(404, "match not found");
   }
 
-  const currentInning = getCurrentInning(match);
 
-  if (shouldShowSummary(match, currentInning)) {
-    io.to(matchId).emit("hideSummary")
-  }
 
   if (!match.isSuperOver) {
     if (match.isInningChangePending && match.currentInning === 2) {
@@ -1853,6 +1848,8 @@ const undoScoreController = asyncHandler(async (req, res) => {
     }
   }
 
+  const currentInning = getCurrentInning(match);
+
   const strikeBatsman = currentInning.battingTeam.playing11.find(player =>
     player._id.equals(lastAction.strikeBatsmanId)
   );
@@ -1868,9 +1865,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
   // Update total score
   currentInning.totalScore -=
   lastAction.isWide ||
-  lastAction.isNoball ||
-  lastAction.isLegBye ||
-  lastAction.isBye
+  lastAction.isNoball
   ? 1 + lastAction.runs: lastAction.runs;
 
   //update batsman states
@@ -1938,7 +1933,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
 
   if (!lastAction.isWide && !lastAction.isNoball && !lastAction.isDeadBall) {
     currentBowler.ballsBowled -= 1;
-    if (currentInning.currentOverBalls <= 0) {
+    if (currentInning.currentOverBalls === 0) {
       currentInning.currentOvers -= 1;
       currentInning.currentOverBalls = 5;
       currentInning.currentOverTimeline = previousOverTimeline;
@@ -1965,6 +1960,9 @@ const undoScoreController = asyncHandler(async (req, res) => {
   io.to(matchId).emit("scoreUpdated", {
     match
   });
+  if (shouldShowSummary(match, currentInning)) {
+    io.to(matchId).emit("hideSummary")
+  }
   // Save the updated match
   await match.save();
 
@@ -1972,6 +1970,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     new ApiResponse(200, match, "last action undo successfully")
   );
 });
+
 
 const startSuperOverController = asyncHandler(async (req, res) => {
   const user = req.user;

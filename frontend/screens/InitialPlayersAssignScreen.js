@@ -90,6 +90,8 @@ const InitialPlayersAssignScreen = ({
   const handleBackPress = useCallback(() => {
     if (matchDetails?.matchStatus === "toss happend") {
       navigation.navigate("home-screen");
+    } else {
+      navigation.goBack()
     }
     return true;
   },

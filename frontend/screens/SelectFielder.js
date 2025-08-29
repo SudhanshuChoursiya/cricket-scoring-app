@@ -105,8 +105,8 @@ useHideTabBar(navigation,isScreenFocused);
 
   const availablePlayers = () => {
     return [
-      ...bowlingTeam?.playing11.filter(player => {
-        return player._id !== currentBowler._id;
+      ...bowlingTeam?.playing11?.filter(player => {
+        return player._id !== currentBowler?._id;
       }),
       ...bowlingTeam?.substitutes
     ];

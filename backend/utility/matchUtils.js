@@ -52,7 +52,7 @@ export const shouldShowSummary = (matchDetails, currentInningDetails)=> {
   const totalOvers = currentInningDetails.totalOvers;
   const currentOvers = currentInningDetails.currentOvers;
   const currentOverBalls = currentInningDetails.currentOverBalls;
-  console.log(currentOverBalls)
+
   const interval = getSummaryInterval(totalOvers);
 
   // show only when overs completed is a multiple of interval

@@ -40,7 +40,8 @@ import {
 import {
   setFielder,
   setUndoStack,
-  popUndoStack
+  popUndoStack,
+  clearUndoStack
 } from "../redux/matchSlice.js";
 import {
   primaryScoreButtons,
@@ -197,6 +198,8 @@ const ManageScoreBoardScreen = ({
       !matchDetails?.isOverChangePending
     ) {
       navigation.navigate("home-screen");
+    } else {
+      navigation.goBack()
     }
     return true;
   },
@@ -307,7 +310,9 @@ const ManageScoreBoardScreen = ({
         dispatch(setFielder({
           _id: null, name: null
         }));
+        dispatch(clearUndoStack());
       });
+
     return unsubscribe;
   }, [navigation]);
 
@@ -415,8 +420,8 @@ const ManageScoreBoardScreen = ({
 
   const handleUpdateScore = async (typeOfBall, payloadData) => {
     try {
+      setShowSpinner(true);
       let payload = payloadData;
-
       if (
         typeOfBall === "WD" ||
         typeOfBall === "NB" ||
@@ -480,6 +485,8 @@ const ManageScoreBoardScreen = ({
       }
     } catch (error) {
       console.log(error);
+    }finally {
+      setShowSpinner(false)
     }
   };
 
@@ -519,10 +526,15 @@ const ManageScoreBoardScreen = ({
     try {
       setShowSpinner(true);
       let previousOverTimeline;
-      if (currentInningDetails?.currentOverBalls === 0) {
-        previousOverTimeline = undoStack.slice(-6);
-      }
       const lastAction = undoStack[undoStack.length - 1];
+      if (currentInningDetails?.currentOverBalls === 0) {
+        const lastOverNumber = lastAction?.overNumber;
+
+        // get all balls from that over
+        previousOverTimeline = undoStack.filter(b => b.overNumber === lastOverNumber);
+      }
+
+
       dispatch(popUndoStack());
 
       const response = await fetch(
