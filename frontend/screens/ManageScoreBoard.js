@@ -127,6 +127,7 @@ const ManageScoreBoardScreen = ({
     accessToken
   } = useSelector(state => state.auth);
 
+
   const getMatchDetails = async () => {
     try {
       const response = await fetch(
@@ -212,87 +213,70 @@ const ManageScoreBoardScreen = ({
     }, [handleBackPress])
   );
 
+
   useEffect(() => {
     const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
 
+    // Join the match room
+    if (matchDetails?._id) {
+      socket.emit("joinMatch", matchDetails?._id);
+    }
+
+    // Listen for score updates
     socket.on("scoreUpdated", ({
       match
     }) => {
       setMatchDetails(match);
 
       const {
-        isSuperOver,
-        isSecondInningStarted,
-        currentInning,
-        inning1,
-        superOver,
+        isSuperOver, isSecondInningStarted, currentInning, inning1, superOver
       } = match;
 
       let currentInningDetails;
 
       if (!isSuperOver) {
         // Normal match
-        if (!isSecondInningStarted && currentInning === 2) {
-          currentInningDetails = inning1;
-        } else {
-          currentInningDetails = getCurrentInning(match);
-        }
+        currentInningDetails = (!isSecondInningStarted && currentInning === 2) ? inning1: getCurrentInning(match);
       } else {
         // Super over
-        if (!isSecondInningStarted && superOver.currentInning === 2) {
-          currentInningDetails = superOver.inning1;
-        } else {
-          currentInningDetails = getCurrentInning(match);
-        }
+        currentInningDetails = (!isSecondInningStarted && superOver.currentInning === 2) ? superOver.inning1: getCurrentInning(match);
       }
 
       setCurrentInningDetails(currentInningDetails);
     });
 
     socket.on("wicketFallen",
-      () => {
-        setIsWicketFallen(true);
-      });
-
+      () => setIsWicketFallen(true));
     socket.on("overCompleted",
-      () => {
-        dispatch(setOverCompleteModal({
-          isShow: true
-        }));
-      });
-
+      () => dispatch(setOverCompleteModal({
+        isShow: true
+      })));
     socket.on("inningCompleted",
-      () => {
-        dispatch(setInningCompleteModal({
-          isShow: true
-        }));
-      });
-
+      () => dispatch(setInningCompleteModal({
+        isShow: true
+      })));
     socket.on("matchTied",
-      () => {
-        dispatch(setSuperOverModal({
-          isShow: true
-        }));
-      });
-
+      () => dispatch(setSuperOverModal({
+        isShow: true
+      })));
     socket.on("superOverTied",
-      () => {
-        dispatch(setSuperOverModal({
-          isShow: true
-        }));
-      });
-
+      () => dispatch(setSuperOverModal({
+        isShow: true
+      })));
     socket.on("matchCompleted",
-      () => {
-        dispatch(setMatchCompleteModal({
-          isShow: true
-        }));
-      });
+      () => dispatch(setMatchCompleteModal({
+        isShow: true
+      })));
 
+    // Clean up on unmount or when matchId changes
     return () => {
+      if (matchDetails?._id) {
+        socket.emit("leaveMatch", matchDetails?._id);
+      }
       socket.disconnect();
     };
-  }, []);
+  },
+    [matchDetails?._id]); // re-run if matchId changes
 
   useEffect(() => {
     if (currentInningDetails?.currentOverTimeline.length > 0) {

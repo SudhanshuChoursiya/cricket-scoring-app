@@ -467,7 +467,7 @@ const updateTossDetailsController = asyncHandler(async (req, res) => {
   match.matchStatus = "toss happend";
   match.toss.tossWinner = tossWinner;
   match.toss.tossDecision = tossDecision;
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -561,7 +561,7 @@ const updateInitialPlayersController = asyncHandler(async (req, res) => {
     }
   }
 
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -636,7 +636,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
           match.isInningChangePending = true;
 
-          io.emit("inningCompleted");
+          io.to(matchId).emit("inningCompleted");
         }
       } else {
         if (match.inning2.totalScore >= match.targetScore) {
@@ -650,7 +650,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             } wickets`
           };
 
-          io.emit("matchCompleted");
+          io.to(matchId).emit("matchCompleted");
         } else if (
           match.inning2.currentOvers >= match.inning2.totalOvers ||
           match.inning2.wicketsFallen >= 10
@@ -664,7 +664,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
               winningMargin: null
             };
 
-            io.emit("matchTied");
+            io.to(matchId).emit("matchTied");
           } else {
             match.matchStatus = "completed";
 
@@ -675,7 +675,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
               match.targetScore - match.inning2.totalScore
               } runs`
             };
-            io.emit("matchCompleted");
+            io.to(matchId).emit("matchCompleted");
           }
         }
       }
@@ -694,7 +694,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
           match.superOver.inning1.totalScore + 1;
           match.isInningChangePending = true;
 
-          io.emit("inningCompleted");
+          io.to(matchId).emit("inningCompleted");
         }
       } else {
         if (
@@ -709,7 +709,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
             winningMargin: null
           };
 
-          io.emit("matchCompleted");
+          io.to(matchId).emit("matchCompleted");
         } else if (
           match.superOver.inning2.currentOvers >=
           match.superOver.inning2.totalOvers ||
@@ -727,7 +727,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
               winningMargin: null
             };
 
-            io.emit("superOverTied");
+            io.to(matchId).emit("superOverTied");
           } else {
             match.matchStatus = "completed";
             match.isSuperOverInProgress = false;
@@ -737,7 +737,7 @@ const updateScoreController = asyncHandler(async (req, res) => {
               winningMargin: null
             };
 
-            io.emit("matchCompleted");
+            io.to(matchId).emit("matchCompleted");
           }
         }
       }
@@ -834,10 +834,10 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.inning2.totalScore !== match.targetScore
           ) {
             match.iSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           } else {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           }
         } else {
           if (
@@ -846,10 +846,10 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.superOver.targetScore
           ) {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           } else {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           }
         }
       }
@@ -970,10 +970,10 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.inning2.totalScore !== match.targetScore
           ) {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           } else {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           }
         } else {
           if (
@@ -982,10 +982,10 @@ const updateScoreController = asyncHandler(async (req, res) => {
             match.superOver.targetScore
           ) {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           } else {
             match.isSelectNewBatsmanPending = true;
-            io.emit("wicketFallen");
+            io.to(matchId).emit("wicketFallen");
           }
         }
       }
@@ -1040,11 +1040,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
           if (match.currentInning === 2) {
             if (match.inning2.totalScore !== match.targetScore) {
               match.isOverChangePending = true;
-              io.emit("overCompleted");
+              io.to(matchId).emit("overCompleted");
             }
           } else {
             match.isOverChangePending = true;
-            io.emit("overCompleted");
+            io.to(matchId).emit("overCompleted");
           }
         } else {
           if (match.superOver.currentInning === 2) {
@@ -1053,11 +1053,11 @@ const updateScoreController = asyncHandler(async (req, res) => {
               match.superOver.targetScore
             ) {
               match.isOverChangePending = true;
-              io.emit("overCompleted");
+              io.to(matchId).emit("overCompleted");
             }
           } else {
             match.isOverChangePending = true;
-            io.emit("overCompleted");
+            io.to(matchId).emit("overCompleted");
           }
         }
       }
@@ -1076,14 +1076,12 @@ const updateScoreController = asyncHandler(async (req, res) => {
   endOver();
   checkGameProgress();
 
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
 
   if (shouldShowSummary(match, currentInning)) {
-    io.emit("showSummary", {
-      match
-    })
+    io.to(matchId).emit("showSummary")
   }
   // Save match details
   await match.save();
@@ -1130,7 +1128,7 @@ const changeBowlerController = asyncHandler(async (req, res) => {
   if (currentInning.currentOverBalls === 0) {
     currentInning.currentOverTimeline = [];
   }
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -1180,7 +1178,7 @@ const updateOutBatsmanController = asyncHandler(async (req, res) => {
   currentInning.currentBatsmen = updatedCurrentBatsmen;
 
   match.isSelectNewBatsmanPending = false;
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -1265,7 +1263,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
   });
 
   match.isSelectNewBatsmanPending = false;
-  io.emit("scoreUpdated",
+  io.to(matchId).emit("scoreUpdated",
     {
       match
     });
@@ -1296,7 +1294,7 @@ const changeStrikeController = asyncHandler(async (req, res) => {
       ...batsmen, onStrike: !batsmen.onStrike
     };
   });
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -1483,7 +1481,7 @@ const replacePlayerController = asyncHandler(async (req, res) => {
   replacePlayerInBowler(match.inning2);
 
   // Save changes
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -1572,7 +1570,7 @@ const changeCaptainController = asyncHandler(async (req, res) => {
   changeCaptainInInning(match.inning1);
   changeCaptainInInning(match.inning2);
 
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   // Save changes
@@ -1667,7 +1665,7 @@ const addSubstitutesController = asyncHandler(async (req, res) => {
   addSubstituteInInning(match.inning1);
   addSubstituteInInning(match.inning2);
 
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match, squadDetails: team
   });
   // Save changes
@@ -1768,7 +1766,7 @@ const removeSubstitutesController = asyncHandler(async (req, res) => {
   removeSubstituteInInning(match.inning1);
   removeSubstituteInInning(match.inning2);
 
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match, squadDetails: team
   });
   // Save changes
@@ -1804,6 +1802,12 @@ const undoScoreController = asyncHandler(async (req, res) => {
 
   if (!match) {
     throw new ApiError(404, "match not found");
+  }
+
+  const currentInning = getCurrentInning(match);
+
+  if (shouldShowSummary(match, currentInning)) {
+    io.to(matchId).emit("hideSummary")
   }
 
   if (!match.isSuperOver) {
@@ -1848,8 +1852,6 @@ const undoScoreController = asyncHandler(async (req, res) => {
       };
     }
   }
-
-  const currentInning = getCurrentInning(match);
 
   const strikeBatsman = currentInning.battingTeam.playing11.find(player =>
     player._id.equals(lastAction.strikeBatsmanId)
@@ -1960,7 +1962,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
   currentInning.currentBowler = currentBowler;
 
   currentInning.currentOverTimeline.pop();
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   // Save the updated match
@@ -2042,7 +2044,7 @@ const startSuperOverController = asyncHandler(async (req, res) => {
       currentInning: 1
     };
   }
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -2070,7 +2072,7 @@ const endInningController = asyncHandler(async (req, res) => {
   }
   match.isInningChangePending = true;
   match.matchStatus = "inning break";
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
@@ -2135,7 +2137,7 @@ const endMatchController = asyncHandler(async (req, res) => {
   if (match.isInningChangePending === true) {
     match.isInningChangePending = false;
   }
-  io.emit("scoreUpdated", {
+  io.to(matchId).emit("scoreUpdated", {
     match
   });
   await match.save();
