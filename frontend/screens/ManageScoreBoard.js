@@ -622,34 +622,34 @@ const ManageScoreBoardScreen = ({
         <View style={styles.wrapper}>
 
           <View style={styles.scoreboard_wrapper}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.back_btn}
-              onPress={handleBackPress}
-              >
-              <Icon
-                name="arrow-back"
-                size={normalize(26)}
-                color="white"
-                />
-            </TouchableOpacity>
-            <Text style={styles.label}>
-              {ellipsize(
-                currentInningDetails?.battingTeam.name,
-                24
-              )}
-            </Text>
-            <TouchableOpacity
-              style={styles.settings_btn}
-              onPress={() => setShowSidebar(!showSidebar)}
-              >
-              <Icon
-                name="settings"
-                size={normalize(26)}
-                color="white"
-                />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.back_btn}
+                onPress={handleBackPress}
+                >
+                <Icon
+                  name="arrow-back"
+                  size={normalize(26)}
+                  color="white"
+                  />
+              </TouchableOpacity>
+              <Text style={styles.label}>
+                {ellipsize(
+                  currentInningDetails?.battingTeam.name,
+                  24
+                )}
+              </Text>
+              <TouchableOpacity
+                style={styles.settings_btn}
+                onPress={() => setShowSidebar(!showSidebar)}
+                >
+                <Icon
+                  name="settings"
+                  size={normalize(26)}
+                  color="white"
+                  />
+              </TouchableOpacity>
+            </View>
             <View style={styles.scores_and_match_status_wrapper}>
               <View style={styles.score_and_over_wrapper}>
                 <View style={styles.score_wrapper}>
@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     position: "relative",
-    justifyContent:"space-between"
+    justifyContent: "space-between"
   },
   header: {
     paddingTop: normalizeVertical(38),
@@ -1110,7 +1110,7 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   scoreboard_wrapper: {
-    height:normalizeVertical(456)
+    height: normalizeVertical(456),
   },
   scores_and_match_status_wrapper: {
     height: "31%",
@@ -1220,10 +1220,10 @@ const styles = StyleSheet.create({
     color: "#f6d67c"
   },
   over_timeline: {
-    flex:1,
+    flex: 1,
     paddingHorizontal: normalize(20),
     flexDirection: "row",
-    marginTop:normalizeVertical(16),
+    marginTop: normalizeVertical(16),
     justifyContent: "center",
     gap: normalize(15)
   },
@@ -1242,36 +1242,43 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   score_button_wrapper: {
+    height: normalizeVertical(318),
     backgroundColor: "rgba(128,128,128,0.5)"
   },
   main_score_button_wrapper: {
-    flexDirection: "row"
+    flexDirection: "row",
+    height: "75%",
   },
   extras_score_button_wrapper: {
     flexDirection: "row",
+    height: "25%"
   },
   primary_main_score_button_wrapper: {
+    height: "100%",
     width: "75%",
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap"
   },
   secondary_main_score_button_wrapper: {
-    width: "25%"
+    width: "25%",
+    height: "100%"
   },
   primary_score_button: {
     justifyContent: "center",
     alignItems: "center",
     width: "33.333%",
-    height: normalizeVertical(120),
+    height: "50%",
+    // height: normalizeVertical(120),
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderColor: "#b7b6b6"
   },
   secondary_score_button: {
-    height: normalizeVertical(80),
-    flex: 1,
+    height: "33.33%",
+    // height: normalizeVertical(80),
+
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#EEEEEE",
@@ -1282,7 +1289,8 @@ const styles = StyleSheet.create({
   extra_score_button: {
     justifyContent: "center",
     alignItems: "center",
-    height: normalizeVertical(80),
+    height: "100%",
+    // height: normalizeVertical(80),
     width: "25%",
     backgroundColor: "#EEEEEE",
     borderTopWidth: 1,
