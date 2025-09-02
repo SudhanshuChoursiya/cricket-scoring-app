@@ -179,27 +179,32 @@ const HomeScreen = ({
     ) {
       if (match.matchStatus === "no toss") {
         navigation.navigate("toss-screen", {
-          matchId: match._id
+          matchId: match._id,
         });
       } else if (match.matchStatus === "toss happend") {
         navigation.navigate("initial-players-assign-screen", {
-          matchId: match._id
+          matchId: match._id,
+
         });
       } else if (match.isOverChangePending) {
         navigation.navigate("select-new-bowler", {
-          matchId: match._id
+          matchId: match._id,
+
         });
       } else if (match.isSelectNewBatsmanPending) {
         navigation.navigate("select-new-batsman", {
-          matchId: match._id
+          matchId: match._id,
+
         });
       } else if (match.isInningChangePending) {
         navigation.navigate("initial-players-assign-screen", {
-          matchId: match._id
+          matchId: match._id,
+
         });
       } else {
         navigation.navigate("manage-scoreboard", {
-          matchId: match._id
+          matchId: match._id,
+
         });
       }
     }

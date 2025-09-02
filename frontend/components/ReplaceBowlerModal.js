@@ -32,7 +32,7 @@ const ReplaceBowlerModal = ({ matchId }) => {
         dispatch(setReplaceBowlerModal({ isShow: false }));
     };
     const handleNavigate = () => {
-        navigation.navigate("select-new-bowler", {
+        navigation.push("select-new-bowler", {
             matchId
         });
         dispatch(setReplaceBowlerModal({ isShow: false }));

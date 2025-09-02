@@ -22,9 +22,7 @@ import {
   useDispatch,
   useSelector
 } from "react-redux";
-import {
-  throttle
-} from "lodash";
+
 import {
   setExtraRunsModal,
   setOverCompleteModal,
@@ -74,7 +72,9 @@ import {
   io
 } from "socket.io-client";
 import {
-  getCurrentInning
+  getCurrentInning,
+  checkAndNavigateToPendingAction,
+  hadModalOpen
 } from "../utils/matchUtils.js";
 import {
   ellipsize,
@@ -109,6 +109,8 @@ const ManageScoreBoardScreen = ({
     setIsScreenFocused] = useState(false);
   const [isWicketFallen,
     setIsWicketFallen] = useState(false);
+  const [isProcessing,
+    setIsProcessing] = useState(false);
   const overTimeLineScrollRef = useRef(null);
   useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
@@ -170,7 +172,6 @@ const ManageScoreBoardScreen = ({
             currentInningDetails = getCurrentInning(data.data);
           }
         }
-
         setCurrentInningDetails(currentInningDetails);
       }
     } catch (error) {
@@ -198,8 +199,6 @@ const ManageScoreBoardScreen = ({
       !matchDetails?.isOverChangePending
     ) {
       navigation.navigate("home-screen");
-    } else {
-      navigation.goBack()
     }
     return true;
   },
@@ -279,7 +278,14 @@ const ManageScoreBoardScreen = ({
       socket.disconnect();
     };
   },
-    [matchDetails?._id]); // re-run if matchId changes
+    [matchDetails?._id]);
+
+  useEffect(() => {
+    if (matchDetails?._id) {
+      dispatch(clearUndoStack());
+    }
+  },
+    [matchDetails?._id]);
 
   useEffect(() => {
     if (currentInningDetails?.currentOverTimeline.length > 0) {
@@ -295,8 +301,8 @@ const ManageScoreBoardScreen = ({
   useFocusEffect(
     useCallback(() => {
       if (isWicketFallen) {
-        navigation.navigate("select-new-batsman", {
-          matchId: route.params?.matchId
+        navigation.push("select-new-batsman", {
+          matchId: route.params?.matchId,
         });
         setIsWicketFallen(false);
       }
@@ -310,9 +316,7 @@ const ManageScoreBoardScreen = ({
         dispatch(setFielder({
           _id: null, name: null
         }));
-        dispatch(clearUndoStack());
       });
-
     return unsubscribe;
   }, [navigation]);
 
@@ -333,93 +337,127 @@ const ManageScoreBoardScreen = ({
 
 
   const handleOpenModal = (modalType, payload) => {
-    if (modalType === "WD") {
-      dispatch(
-        setExtraRunsModal({
-          title: "Wide Ball",
-          runsInput: {
-            isShow: true,
-            value: 0,
-            label: "WD"
-          },
-          payload: payload,
-          isShow: true
-        })
-      );
-    } else if (modalType === "NB") {
-      dispatch(
-        setExtraRunsModal({
-          title: "No Ball",
-          runsInput: {
-            isShow: true,
-            value: 0,
-            label: "NB"
-          },
-          payload: payload,
-          isShow: true
-        })
-      );
-    } else if (modalType === "BY") {
-      dispatch(
-        setExtraRunsModal({
-          title: "Bye",
-          runsInput: {
-            isShow: false,
-            value: 0,
-            label: "BY"
-          },
-          payload: payload,
-          isShow: true
-        })
-      );
-    } else if (modalType === "LB") {
-      dispatch(
-        setExtraRunsModal({
-          title: "Leg Bye",
-          runsInput: {
-            isShow: false,
-            value: 0,
-            label: "LB"
-          },
-          payload: payload,
-          isShow: true
-        })
-      );
-    } else if (modalType === "5,7") {
-      dispatch(
-        setCustomRunsModal({
-          runsInput: {
-            isShow: true,
-            value: 0,
-            label: "5,7"
-          },
-          payload: payload,
-          isShow: true
-        })
-      );
-    } else if (modalType === "UNDO") {
-      if (undoStack.length === 0) {
+    try {
+      if (checkAndNavigateToPendingAction(matchDetails, navigation, route.params?.matchId)) {
+        return
+      };
+      if (isProcessing) {
+        return
+      }
+      setIsProcessing(true)
+      if (modalType === "WD") {
         dispatch(
-          showToast( {
-            type: "error",
-            message: "no more undo operation"
+          setExtraRunsModal({
+            title: "Wide Ball",
+            runsInput: {
+              isShow: true,
+              value: 0,
+              label: "WD"
+            },
+            payload: payload,
+            isShow: true
           })
         );
-        return;
-      }
+      } else if (modalType === "NB") {
+        dispatch(
+          setExtraRunsModal({
+            title: "No Ball",
+            runsInput: {
+              isShow: true,
+              value: 0,
+              label: "NB"
+            },
+            payload: payload,
+            isShow: true
+          })
+        );
+      } else if (modalType === "BY") {
+        dispatch(
+          setExtraRunsModal({
+            title: "Bye",
+            runsInput: {
+              isShow: false,
+              value: 0,
+              label: "BY"
+            },
+            payload: payload,
+            isShow: true
+          })
+        );
+      } else if (modalType === "LB") {
+        dispatch(
+          setExtraRunsModal({
+            title: "Leg Bye",
+            runsInput: {
+              isShow: false,
+              value: 0,
+              label: "LB"
+            },
+            payload: payload,
+            isShow: true
+          })
+        );
+      } else if (modalType === "5,7") {
+        dispatch(
+          setCustomRunsModal({
+            runsInput: {
+              isShow: true,
+              value: 0,
+              label: "5,7"
+            },
+            payload: payload,
+            isShow: true
+          })
+        );
+      } else if (modalType === "UNDO") {
+        if (undoStack.length === 0) {
+          dispatch(
+            showToast( {
+              type: "error",
+              message: "no more undo operation"
+            })
+          );
+          return;
+        }
 
-      dispatch(setUndoModal({
-        isShow: true
-      }));
-    } else if (modalType === "OUT") {
-      dispatch(setOutMethodModal({
-        isShow: true
-      }));
+        dispatch(setUndoModal({
+          isShow: true
+        }));
+      } else if (modalType === "OUT") {
+        dispatch(setOutMethodModal({
+          isShow: true
+        }));
+
+      } else if (modalType === "CHANGE_STRIKER") {
+        dispatch(setChangeStrikeModal({
+          isShow: true
+        }));
+
+      } else if (modalType === "REPLACE_BOWLER") {
+        dispatch(
+          setReplaceBowlerModal({
+            isShow: true
+          })
+        )
+      }
+    }catch(error) {
+      console.log(error)
+    }finally {
+      setIsProcessing(false)
     }
   };
 
+
+
   const handleUpdateScore = async (typeOfBall, payloadData) => {
     try {
+      if (checkAndNavigateToPendingAction(matchDetails, navigation, route.params?.matchId)) {
+        return
+      };
+      if (isProcessing) {
+        return
+      }
+      setIsProcessing(true)
       setShowSpinner(true);
       let payload = payloadData;
       if (
@@ -487,11 +525,19 @@ const ManageScoreBoardScreen = ({
       console.log(error);
     }finally {
       setShowSpinner(false)
+      setIsProcessing(false)
     }
   };
 
   const handleChangeStrike = async () => {
     try {
+      if (checkAndNavigateToPendingAction(matchDetails, navigation, route.params?.matchId)) {
+        return
+      };
+      if (isProcessing) {
+        return
+      }
+      setIsProcessing(true)
       setShowSpinner(true);
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_BASE_URL}/change-strike/${route.params?.matchId}`,
@@ -519,17 +565,21 @@ const ManageScoreBoardScreen = ({
       console.log(error);
     } finally {
       setShowSpinner(false);
+      setIsProcessing(false)
     }
   };
 
   const handleUndoScore = async () => {
     try {
+      if (isProcessing) {
+        return
+      }
+      setIsProcessing(true)
       setShowSpinner(true);
       let previousOverTimeline;
       const lastAction = undoStack[undoStack.length - 1];
       if (currentInningDetails?.currentOverBalls === 0) {
         const lastOverNumber = lastAction?.overNumber;
-
         // get all balls from that over
         previousOverTimeline = undoStack.filter(b => b.overNumber === lastOverNumber);
       }
@@ -562,6 +612,7 @@ const ManageScoreBoardScreen = ({
       console.log(error);
     } finally {
       setShowSpinner(false);
+      setIsProcessing(false)
     }
   };
 
@@ -569,6 +620,8 @@ const ManageScoreBoardScreen = ({
     <>
       {!isLoading ? (
         <View style={styles.wrapper}>
+
+          <View style={styles.scoreboard_wrapper}>
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.back_btn}
@@ -597,8 +650,6 @@ const ManageScoreBoardScreen = ({
                 />
             </TouchableOpacity>
           </View>
-          <View style={styles.scoreboard_wrapper}>
-
             <View style={styles.scores_and_match_status_wrapper}>
               <View style={styles.score_and_over_wrapper}>
                 <View style={styles.score_wrapper}>
@@ -735,11 +786,7 @@ const ManageScoreBoardScreen = ({
                       }]}
                     key={player._id}
                     onPress={() =>
-                    dispatch(
-                      setChangeStrikeModal({
-                        isShow: true
-                      })
-                    )
+                    handleOpenModal("CHANGE_STRIKER")
                     }
                     >
                     <View
@@ -791,9 +838,7 @@ const ManageScoreBoardScreen = ({
               <Pressable
                 style={styles.current_bowler}
                 onPress={() =>
-                dispatch(
-                  setReplaceBowlerModal({ isShow: true })
-                )
+                handleOpenModal("REPLACE_BOWLER")
                 }
                 >
                 <Icon
@@ -904,6 +949,7 @@ const ManageScoreBoardScreen = ({
                 {secondaryScoreButtons.map(
                   (button, index, arr) => (
                     <TouchableOpacity
+
                       style={styles.secondary_score_button}
                       onPress={() =>
                       handleOpenModal(
@@ -1032,7 +1078,8 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     backgroundColor: "#FFFFFF",
-    position: "relative"
+    position: "relative",
+    justifyContent:"space-between"
   },
   header: {
     paddingTop: normalizeVertical(38),
@@ -1063,10 +1110,10 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   scoreboard_wrapper: {
-    flex: 1,
+    height:normalizeVertical(456)
   },
   scores_and_match_status_wrapper: {
-    height: "20%",
+    height: "31%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
@@ -1098,7 +1145,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   current_batsman_wrapper: {
-    height: "10%",
+    height: "14%",
     backgroundColor: "#EE5860",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
@@ -1125,7 +1172,8 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   bowling_team_name_wrapper: {
-    height: "9%",
+
+    height: "13%",
     backgroundColor: "#E21F",
 
     paddingHorizontal: normalize(20),
@@ -1146,7 +1194,7 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   current_bowler_wrapper: {
-    height: "5%",
+    height: "7%",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1172,10 +1220,10 @@ const styles = StyleSheet.create({
     color: "#f6d67c"
   },
   over_timeline: {
-    height: "15%",
+    flex:1,
     paddingHorizontal: normalize(20),
     flexDirection: "row",
-    alignItems: "center",
+    marginTop:normalizeVertical(16),
     justifyContent: "center",
     gap: normalize(15)
   },
@@ -1194,10 +1242,6 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   score_button_wrapper: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: "rgba(128,128,128,0.5)"
   },
   main_score_button_wrapper: {

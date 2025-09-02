@@ -4,7 +4,8 @@ import {
   View,
   TouchableOpacity,
   StatusBar,
-  FlatList
+  FlatList,
+  BackHandler
 } from "react-native";
 import {
   useState,
@@ -51,13 +52,15 @@ const SelectNewBatsman = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
-useHideTabBar(navigation,isScreenFocused)
+  useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
   const {
     accessToken
   } = useSelector(state => state.auth);
+
   useEffect(() => {
     setIsScreenFocused(true);
+    return()=>setIsScreenFocused(false)
   }, []);
 
   useFocusEffect(
@@ -103,7 +106,6 @@ useHideTabBar(navigation,isScreenFocused)
   const handleChangeBatsman = async () => {
     try {
       setShowSpinner(true);
-
       if (!selectedPlayer) {
         throw new Error("plz select a batsman");
       }
@@ -142,7 +144,6 @@ useHideTabBar(navigation,isScreenFocused)
   const handleChangeOutBatsman = async () => {
     try {
       setShowSpinner(true);
-
       if (!selectedPlayer) {
         throw new Error("plz select a batsman");
       }
@@ -185,11 +186,10 @@ useHideTabBar(navigation,isScreenFocused)
     return unsubscribe;
   }, [navigation]);
 
-const battingTeamName = battingTeam?.name?.trim();
+  const battingTeamName = battingTeam?.name?.trim();
 
-const headerText = battingTeamName
-  ? `select new batsman  ( ${battingTeamName} )`
-  : "";
+  const headerText = battingTeamName
+  ? `select new batsman  ( ${battingTeamName} )`: "";
 
   return (
     <View style={styles.wrapper}>
@@ -332,13 +332,13 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   player_name: {
-    width:"100%",
+    width: "100%",
     fontSize: normalize(18),
     color: "#474646",
     textTransform: "capitalize",
     fontFamily: "ubuntuMedium"
   },
-confirm_btn_wrapper: {
+  confirm_btn_wrapper: {
     position: "absolute",
     bottom: 0,
     left: 0,

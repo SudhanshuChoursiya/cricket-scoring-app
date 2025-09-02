@@ -52,8 +52,10 @@ const SelectNewBowler = ({
   const {
     accessToken
   } = useSelector(state => state.auth);
+
   useEffect(() => {
     setIsScreenFocused(true);
+    return()=>setIsScreenFocused(false)
   }, []);
 
   useFocusEffect(
@@ -158,12 +160,11 @@ const SelectNewBowler = ({
       setShowSpinner(false);
     }
   };
-  
+
   const bowlingTeamName = bowlingTeam?.name?.trim();
 
-const headerText = bowlingTeamName
-  ? `select new bowler ( ${bowlingTeamName} )`
-  : "";
+  const headerText = bowlingTeamName
+  ? `select new bowler ( ${bowlingTeamName} )`: "";
 
   return (
     <View style={styles.wrapper}>

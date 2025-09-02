@@ -36,7 +36,7 @@ const OverCompletionModal = ({
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleNavigate = () => {
-        navigation.navigate("select-new-bowler", {
+        navigation.push("select-new-bowler", {
             matchId
         });
         dispatch(setOverCompleteModal({ isShow: false }));

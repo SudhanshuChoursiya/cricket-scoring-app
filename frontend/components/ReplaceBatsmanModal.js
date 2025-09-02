@@ -49,7 +49,7 @@ const ReplaceBatsmanModal = ({
     }));
   };
   const handleNavigate = replacedBatsmanId => {
-    navigation.navigate("select-new-batsman", {
+    navigation.push("select-new-batsman", {
       matchId,
       replacedBatsmanId
     });

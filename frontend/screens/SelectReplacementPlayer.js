@@ -207,7 +207,7 @@ const SelectReplacementPlayer = ({
 const playingTeamName =
   typeof playingTeamDetails?.name === "string" ? playingTeamDetails.name.trim() : "";
 
-const scrollingText = playingTeamName
+const headerText = playingTeamName
   ? `select replacement player ( ${playingTeamName} )`
   : "";
 
