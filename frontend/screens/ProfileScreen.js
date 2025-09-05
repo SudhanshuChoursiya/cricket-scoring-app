@@ -96,14 +96,17 @@ const ProfileScreen = ({
             style={styles.profile_img}
             />
         </View>
-
-        <Svg viewBox="0 0 1440 320" style={styles.curve_background}>
-          <Path
-            fill="#F3F3F3"
-            fill-opacity="1"
-            d="M0,128L60,117.3C120,107,240,85,360,96C480,107,600,149,720,149.3C840,149,960,107,1080,96C1200,85,1320,107,1380,117.3L1440,128L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"
-            ></Path>
-        </Svg>
+        <View style={styles.curve_background}>
+          <Svg
+            viewBox="0 0 1440 320"
+            preserveAspectRatio="none"
+            >
+            <Path
+              fill="#F3F3F3"
+              d="M0,128L60,117.3C120,107,240,85,360,96C480,107,600,149,720,149.3C840,149,960,107,1080,96C1200,85,1320,107,1380,117.3L1440,128L1440,0L0,0Z"
+              />
+          </Svg>
+        </View>
       </View>
       <View style={styles.profile_details_section}>
         <View style={styles.profile_detail}>
@@ -168,14 +171,13 @@ const styles = StyleSheet.create({
     backgroundColor: "white"
   },
   profile_img_section: {
-    paddingTop: normalizeVertical(30),
     alignItems: "center",
     justifyContent: "center",
     gap: normalizeVertical(18),
     width: "100%",
-    height:"35%",
+    height: "35%",
     position: "relative",
-    backgroundColor: "#F3F3F3"
+    backgroundColor: "#F3F3F3",
   },
   page_title: {
     fontSize: normalize(20),
@@ -183,27 +185,29 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   curve_background: {
-    height: "50%",
+    height: "30%",
     width: "100%",
     position: "absolute",
-    top: normalizeVertical(235)
+    backgroundColor: "white",
+    top: normalizeVertical(230)
   },
   profile_img_wrapper: {
     backgroundColor: "white",
     height: normalize(130),
     width: normalize(130),
     borderRadius: normalize(100),
-    padding: normalize(7)
+    padding: normalize(7),
+    zIndex: 1
   },
   profile_img: {
     height: "100%",
     width: "100%",
     borderRadius: normalize(100),
-    zIndex:2
+    zIndex: 2
   },
   profile_details_section: {
     alignItems: "center",
-    marginTop: normalizeVertical(50)
+    paddingTop: normalizeVertical(30)
   },
   profile_detail: {
     alignItems: "center",

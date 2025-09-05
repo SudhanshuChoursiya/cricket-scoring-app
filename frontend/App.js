@@ -5,9 +5,9 @@ import * as React from "react";
 import {
   Text,
   View,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
+  SafeAreaView,
   StyleSheet
 } from "react-native";
 import {

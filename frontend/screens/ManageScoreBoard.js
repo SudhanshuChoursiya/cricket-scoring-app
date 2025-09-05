@@ -834,169 +834,175 @@ const ManageScoreBoardScreen = ({
             </View>
 
 
-            <View style={styles.current_bowler_wrapper}>
-              <Pressable
-                style={styles.current_bowler}
-                onPress={() =>
-                handleOpenModal("REPLACE_BOWLER")
-                }
-                >
-                <Icon
-                  name="sports-baseball"
-                  size={normalize(26)}
-                  color="#474646"
-                  />
-                <Text style={styles.bowler_name}>
-                  {ellipsize(
-                    currentInningDetails?.currentBowler
-                    ?.name,
-                    20
-                  )}
-                </Text>
-              </Pressable>
-              <View style={styles.bowler_stats_wrapper}>
-                <Text style={styles.bowler_stats}>
-                  {
-                  currentInningDetails?.currentBowler
-                  ?.wickets
-                  }
-                  -
-                  {
-                  currentInningDetails?.currentBowler
-                  ?.runsConceded
-                  }{" "}
-                  (
-                  {formatOver(
-                    currentInningDetails?.currentBowler
-                    ?.ballsBowled
-                  )}
-                  )
-                </Text>
-              </View>
-            </View>
-
-
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              ref={overTimeLineScrollRef}
-              >
-              <View style={styles.over_timeline}>
-                {currentInningDetails?.currentOverTimeline.map(
-                  timeLine => (
-                    <View
-                      style={styles.timeline}
-                      key={timeLine._id}
-                      >
-                      <Text
-                        style={[
-                          styles.timeline_text,
-                          timeLine.isWicket &&
-                          styles.out_text,
-                          timeLine.isFour &&
-                          styles.four_text,
-                          timeLine.isSix &&
-                          styles.six_text
-                        ]}
-                        >
-                        {formatOverTimeline(timeLine)}
-                      </Text>
-                    </View>
-                  )
-                )}
-              </View>
-            </ScrollView>
-          </View>
-
-          <View style={styles.score_button_wrapper}>
-            <View style={styles.main_score_button_wrapper}>
-              <View
-                style={styles.primary_main_score_button_wrapper}
-                >
-                {primaryScoreButtons.map(
-                  (button, index, arr) => (
-                    <TouchableOpacity
-                      style={[
-                        styles.primary_score_button,
-                        index === 0 && {
-                          borderLeftWidth: 0
-                        },
-                        index === 3 && {
-                          borderLeftWidth: 0
-                        }]}
-                      onPress={() =>
-                      handleUpdateScore(
-                        button.label,
-                        button.payload
-                      )
-                      }
-                      key={index}
-                      >
-                      <Text
-                        style={styles.score_button_text}
-                        >
-                        {button.label}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-              <View
-                style={
-                styles.secondary_main_score_button_wrapper
-                }
-                >
-                {secondaryScoreButtons.map(
-                  (button, index, arr) => (
-                    <TouchableOpacity
-
-                      style={styles.secondary_score_button}
-                      onPress={() =>
-                      handleOpenModal(
-                        button.label,
-                        button.payload
-                      )
-                      }
-                      key={index}
-                      >
-                      <Text
-                        style={[
-                          styles.score_button_text,
-                          button.label === "OUT" &&
-                          styles.out_text
-                        ]}
-                        >
-                        {button.label}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-            </View>
-            <View style={styles.extras_score_button_wrapper}>
-              {extrasScoreButtons.map((button, index, arr) => (
-                <TouchableOpacity
-                  style={[
-                    styles.extra_score_button,
-                    index === 0 && { borderLeftWidth: 0 },
-                    index === arr.length - 1 && {
-                      borderRightWidth: 0
-                    }]}
+            <View style={styles.current_bowler_and_over_timeline_wrapper}>
+              <View style={styles.current_bowler_wrapper}>
+                <Pressable
+                  style={styles.current_bowler}
                   onPress={() =>
-                  handleOpenModal(
-                    button.label,
-                    button.payload
-                  )
+                  handleOpenModal("REPLACE_BOWLER")
                   }
-                  key={index}
                   >
-                  <Text style={styles.score_button_text}>
-                    {button.label}
+                  <Icon
+                    name="sports-baseball"
+                    size={normalize(26)}
+                    color="#474646"
+                    />
+                  <Text style={styles.bowler_name}>
+                    {ellipsize(
+                      currentInningDetails?.currentBowler
+                      ?.name,
+                      20
+                    )}
                   </Text>
-                </TouchableOpacity>
-              ))}
+                </Pressable>
+                <View style={styles.bowler_stats_wrapper}>
+                  <Text style={styles.bowler_stats}>
+                    {
+                    currentInningDetails?.currentBowler
+                    ?.wickets
+                    }
+                    -
+                    {
+                    currentInningDetails?.currentBowler
+                    ?.runsConceded
+                    }{" "}
+                    (
+                    {formatOver(
+                      currentInningDetails?.currentBowler
+                      ?.ballsBowled
+                    )}
+                    )
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.over_timeline_wrapper}>
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  ref={overTimeLineScrollRef}
+                  >
+                  <View style={styles.over_timeline}>
+                    {currentInningDetails?.currentOverTimeline.map(
+                      timeLine => (
+                        <View
+                          style={styles.timeline}
+                          key={timeLine._id}
+                          >
+                          <Text
+                            style={[
+                              styles.timeline_text,
+                              timeLine.isWicket &&
+                              styles.out_text,
+                              timeLine.isFour &&
+                              styles.four_text,
+                              timeLine.isSix &&
+                              styles.six_text
+                            ]}
+                            >
+                            {formatOverTimeline(timeLine)}
+                          </Text>
+                        </View>
+                      )
+                    )}
+                  </View>
+                </ScrollView>
+              </View>
             </View>
+
+            <View style={styles.score_button_wrapper}>
+              <View style={styles.main_score_button_wrapper}>
+                <View
+                  style={styles.primary_main_score_button_wrapper}
+                  >
+                  {primaryScoreButtons.map(
+                    (button, index, arr) => (
+                      <TouchableOpacity
+                        style={[
+                          styles.primary_score_button,
+                          index === 0 && {
+                            borderLeftWidth: 0
+                          },
+                          index === 3 && {
+                            borderLeftWidth: 0
+                          }]}
+                        onPress={() =>
+                        handleUpdateScore(
+                          button.label,
+                          button.payload
+                        )
+                        }
+                        key={index}
+                        >
+                        <Text
+                          style={styles.score_button_text}
+                          >
+                          {button.label}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  )}
+                </View>
+                <View
+                  style={
+                  styles.secondary_main_score_button_wrapper
+                  }
+                  >
+                  {secondaryScoreButtons.map(
+                    (button, index, arr) => (
+                      <TouchableOpacity
+
+                        style={styles.secondary_score_button}
+                        onPress={() =>
+                        handleOpenModal(
+                          button.label,
+                          button.payload
+                        )
+                        }
+                        key={index}
+                        >
+                        <Text
+                          style={[
+                            styles.score_button_text,
+                            button.label === "OUT" &&
+                            styles.out_text
+                          ]}
+                          >
+                          {button.label}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  )}
+                </View>
+              </View>
+              <View style={styles.extras_score_button_wrapper}>
+                {extrasScoreButtons.map((button, index, arr) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.extra_score_button,
+                      index === 0 && { borderLeftWidth: 0 },
+                      index === arr.length - 1 && {
+                        borderRightWidth: 0
+                      }]}
+                    onPress={() =>
+                    handleOpenModal(
+                      button.label,
+                      button.payload
+                    )
+                    }
+                    key={index}
+                    >
+                    <Text style={styles.score_button_text}>
+                      {button.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
           </View>
+
+
 
           {/*Sidebar */}
           <Sidebar
@@ -1078,28 +1084,15 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     backgroundColor: "#FFFFFF",
-    position: "relative",
-    justifyContent: "space-between"
   },
   header: {
-    paddingTop: normalizeVertical(38),
-    paddingBottom: normalizeVertical(20),
+    height: normalizeVertical(75),
+    paddingTop: normalizeVertical(25),
     backgroundColor: "#E21F",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingHorizontal: normalize(20),
-    position: "relative"
-  },
-  back_btn: {
-    position: "absolute",
-    left: normalize(20),
-    top: normalizeVertical(39)
-  },
-  settings_btn: {
-    position: "absolute",
-    right: normalize(20),
-    top: normalizeVertical(39)
   },
   label: {
     fontSize: normalize(20),
@@ -1110,10 +1103,10 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   scoreboard_wrapper: {
-    height: normalizeVertical(456),
+    flex: 1,
   },
   scores_and_match_status_wrapper: {
-    height: "31%",
+    minHeight: "22%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
@@ -1145,7 +1138,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   current_batsman_wrapper: {
-    height: "14%",
+    height: normalizeVertical(60),
     backgroundColor: "#EE5860",
     paddingHorizontal: normalize(20),
     flexDirection: "row",
@@ -1172,10 +1165,8 @@ const styles = StyleSheet.create({
     fontFamily: "latoBold"
   },
   bowling_team_name_wrapper: {
-
-    height: "13%",
+    height: normalizeVertical(55),
     backgroundColor: "#E21F",
-
     paddingHorizontal: normalize(20),
     gap: normalizeVertical(5),
     alignItems: "center",
@@ -1193,8 +1184,11 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
     fontFamily: "latoBold"
   },
+  current_bowler_and_over_timeline_wrapper: {
+    gap: normalizeVertical(2)
+  },
   current_bowler_wrapper: {
-    height: "7%",
+    height: normalizeVertical(35),
     paddingHorizontal: normalize(20),
     flexDirection: "row",
     alignItems: "center",
@@ -1219,13 +1213,14 @@ const styles = StyleSheet.create({
   on_strike: {
     color: "#f6d67c"
   },
+  over_timeline_wrapper: {
+    height: normalizeVertical(70),
+  },
   over_timeline: {
-    flex: 1,
     paddingHorizontal: normalize(20),
     flexDirection: "row",
-    marginTop: normalizeVertical(16),
-    justifyContent: "center",
-    gap: normalize(15)
+    gap: normalize(15),
+    alignItems: "center",
   },
   timeline: {
     height: normalize(40),
@@ -1242,8 +1237,9 @@ const styles = StyleSheet.create({
     fontFamily: "robotoMedium"
   },
   score_button_wrapper: {
-    height: normalizeVertical(318),
-    backgroundColor: "rgba(128,128,128,0.5)"
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(128,128,128,0.2)",
   },
   main_score_button_wrapper: {
     flexDirection: "row",
@@ -1254,8 +1250,8 @@ const styles = StyleSheet.create({
     height: "25%"
   },
   primary_main_score_button_wrapper: {
-    height: "100%",
     width: "75%",
+    height: "100%",
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap"
@@ -1269,7 +1265,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "33.333%",
     height: "50%",
-    // height: normalizeVertical(120),
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderLeftWidth: 1,
@@ -1277,8 +1272,6 @@ const styles = StyleSheet.create({
   },
   secondary_score_button: {
     height: "33.33%",
-    // height: normalizeVertical(80),
-
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#EEEEEE",
@@ -1289,8 +1282,7 @@ const styles = StyleSheet.create({
   extra_score_button: {
     justifyContent: "center",
     alignItems: "center",
-    height: "100%",
-    // height: normalizeVertical(80),
+    height: "33.33",
     width: "25%",
     backgroundColor: "#EEEEEE",
     borderTopWidth: 1,
