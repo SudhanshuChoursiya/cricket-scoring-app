@@ -11,25 +11,24 @@ export const formatOver = (ballsBowled)=> {
   return `${overs}.${remainingBalls}`;
 }
 
-export const formatOverTimeline = timeLine => {
+export const formatOverTimelineText = timeLine => {
   if (timeLine.isWicket) {
-    if (timeLine.outMethod === "retired hurt") {
-      return "REH";
-    }
-    return "W";
+    return timeLine.outMethod === "retired hurt" ? "REH": "W";
   } else if (timeLine.isFour) {
     return "4";
   } else if (timeLine.isSix) {
     return "6";
-  } else if (timeLine.isWide) {
-    return "WD" + (timeLine.runs > 0 ? timeLine.runs: "");
-  } else if (timeLine.isNoball) {
-    return "NB" + (timeLine.runs > 0 ? timeLine.runs: "");
-  } else if (timeLine.isLegBye) {
-    return "LB" + (timeLine.runs > 0 ? timeLine.runs: "");
-  } else if (timeLine.isBye) {
-    return "BY" + (timeLine.runs > 0 ? timeLine.runs: "");
+  } else if (timeLine.isWide || timeLine.isNoball) {
+    return String(timeLine.runs > 0 ? timeLine.runs+1: 1);
   } else {
-    return timeLine.runs;
+    return String(timeLine.runs);
   }
+};
+
+export const getOverTimelineExtrasLabel = timeLine => {
+  if (timeLine.isWide) return "WD";
+  if (timeLine.isNoball) return "NB";
+  if (timeLine.isLegBye) return "LB";
+  if (timeLine.isBye) return "BY";
+  return null;
 };

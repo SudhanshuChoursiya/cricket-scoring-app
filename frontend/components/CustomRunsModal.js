@@ -8,6 +8,11 @@ import {
   Platform,
   Keyboard,
 } from "react-native";
+import React, {
+  useState,
+  useEffect,
+  useRef
+} from "react";
 import Modal from "react-native-modal";
 import ExtraDimensions from "react-native-extra-dimensions-android";
 import {
@@ -30,7 +35,10 @@ import {
 const CustomRunsModal = ({
   showSpinner, handleUpdateScore
 }) => {
-  const customRunsModal = useSelector(state => state.modal.customRunsModal);
+  const [isKeyboardVisible,
+    setKeyboardVisible] = useState(false);
+
+  const customRunsModal = useSelector((state) => state.modal.customRunsModal);
   const dispatch = useDispatch();
 
   const deviceWidth = Dimensions.get("window").width;
@@ -39,27 +47,47 @@ const CustomRunsModal = ({
   Platform.OS === "ios"
   ? Dimensions.get("window").height: ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
+  const inputRef = useRef();
+
+  useEffect(() => {
+    let timer;
+    if (customRunsModal?.isShow) {
+      timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  },
+    [customRunsModal?.isShow]);
+
   const handleCloseModal = () => {
+    Keyboard.dismiss();
     dispatch(
       setCustomRunsModal({
-        runsInput: {
-          isShow: false,
-          value: null,
-          label: null
-        },
-        payload: null,
+        ...customRunsModal,
         isShow: false
       })
-    );
+    )
   };
 
   const handleConfirmModal = () => {
     if (customRunsModal.runsInput?.label === "5,7") {
+
+      if (!/^\d{1,2}$/.test(customRunsModal?.runsInput?.value)) {
+        dispatch(showToast( {
+          type: "error",
+          message: "Runs must be a number"
+        }));
+        return;
+      }
+
       if (customRunsModal.runsInput?.value <= 0) {
         dispatch(
           showToast( {
             type: "error",
-            message: "please enter runs"
+            message: "please enter runs",
           })
         );
         return;
@@ -76,9 +104,9 @@ const CustomRunsModal = ({
       isVisible={customRunsModal.isShow}
       deviceWidth={deviceWidth}
       deviceHeight={deviceHeight}
-      backdropOpacity={0.6}
-      animationInTiming={200}
-      animationOutTiming={200}
+      backdropOpacity={0.5}
+      animationInTiming={300}
+      animationOutTiming={300}
       onBackdropPress={handleCloseModal}
       onBackButtonPress={handleCloseModal}
       backdropTransitionOutTiming={0}
@@ -87,29 +115,34 @@ const CustomRunsModal = ({
       >
 
       <View style={styles.modal_container}>
-        <Text style={styles.modal_title}>Runs Scored by runnning</Text>
-
+        <Text style={styles.modal_title}>{customRunsModal?.title}</Text>
         <View style={styles.modal_content}>
-          <View style={styles.modal_input_wrapper}>
-            <TextInput
-              style={styles.modal_input}
-              value={customRunsModal.runsInput?.value}
-              onChangeText={text =>
-              dispatch(
-                setCustomRunsModal({
-                  ...customRunsModal,
-                  runsInput: {
-                    ...customRunsModal.runsInput,
-                    value: Number(text)
-                  }
-                })
-              )
-              }
-              keyboardType="numeric"
+          {customRunsModal?.runsInput?.isShow && (
+            <View style={styles.modal_input_wrapper}>
 
-              onSubmitEditing={() => Keyboard.dismiss()}
-              />
-          </View>
+              <TextInput
+                style={styles.modal_input}
+                keyboardType="number-pad"
+                onChangeText={(text) =>
+                dispatch(
+                  setCustomRunsModal({
+                    ...customRunsModal,
+                    runsInput: {
+                      ...customRunsModal.runsInput,
+
+                      value:
+                      Number(text),
+                    },
+                  })
+                )
+                }
+                value={customRunsModal?.runsInput?.value}
+                maxLength={2}
+                ref={inputRef}
+                />
+
+            </View>
+          )}
           <Text style={styles.modal_desc}>
             *4 and 6 will not be considered boundaries
           </Text>
@@ -140,14 +173,14 @@ const CustomRunsModal = ({
       </View>
 
     </Modal>
-  );
+  )
 };
 
 const styles = StyleSheet.create({
   modal_wrapper: {
     flex: 1,
     position: "relative",
-    margin: 0
+    margin: 0,
   },
   modal_container: {
     width: "100%",
@@ -161,19 +194,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    elevation: 1
+    elevation: 1,
   },
   modal_title: {
     paddingTop: normalizeVertical(24),
     fontSize: normalize(21),
-    fontFamily: "robotoBold"
+    fontFamily: "robotoBold",
   },
   modal_content: {
-    gap: normalizeVertical(10)
+    gap: normalizeVertical(10),
   },
   modal_input_wrapper: {
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   modal_input: {
     width: normalize(65),
@@ -183,16 +216,16 @@ const styles = StyleSheet.create({
     borderRadius: normalize(5),
     paddingHorizontal: normalize(10),
     fontSize: normalize(16),
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   modal_desc: {
     color: "#474646",
     fontSize: normalize(18),
-    fontFamily: "robotoMedium"
+    fontFamily: "robotoMedium",
   },
   modal_btn_wrapper: {
     flexDirection: "row",
-    alignContent: "center"
+    alignContent: "center",
   },
   cancel_button: {
     width: "50%",
@@ -201,8 +234,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F2F2F2",
-
-    marginTop: normalizeVertical(20)
+    marginTop: normalizeVertical(20),
   },
   ok_button: {
     width: "50%",
@@ -212,21 +244,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: normalize(10),
     backgroundColor: "#14B492",
-    marginTop: normalizeVertical(20)
+    marginTop: normalizeVertical(20),
   },
   cancel_button_text: {
     color: "black",
     fontSize: normalize(17),
     fontFamily: "robotoBold",
     textTransform: "uppercase",
-    textAlign: "center"
+    textAlign: "center",
   },
   ok_button_text: {
     color: "white",
     fontSize: normalize(17),
     fontFamily: "robotoBold",
     textTransform: "uppercase",
-    textAlign: "center"
-  }
+    textAlign: "center",
+  },
 });
+
 export default CustomRunsModal;
