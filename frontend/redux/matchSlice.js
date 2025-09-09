@@ -27,6 +27,7 @@ const initialState = {
     ground: null
   },
   startTime: null,
+  matchStage: null,
   tossWinner: null,
   tossDecision: null,
   strikeBatsman: {
@@ -88,6 +89,9 @@ const matchSlice = createSlice( {
     setStartTime: (state, action) => {
       state.startTime = action.payload;
     },
+    setMatchStage: (state, action) => {
+      state.matchStage = action.payload;
+    },
     setTossWinner: (state, action) => {
       state.tossWinner = action.payload;
     },
@@ -145,6 +149,7 @@ export const {
   setCity,
   setGround,
   setStartTime,
+  setMatchStage,
   setTossWinner,
   setTossDecision,
   setStrikeBatsman,

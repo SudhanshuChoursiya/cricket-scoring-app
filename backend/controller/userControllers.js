@@ -290,7 +290,8 @@ const createMatchController = asyncHandler(async (req, res) => {
     teamB,
     totalOvers,
     matchPlace,
-    startTime
+    startTime,
+    matchStage
   } = req.body;
 
   const user = req.user;
@@ -357,6 +358,7 @@ const createMatchController = asyncHandler(async (req, res) => {
     },
     matchPlace,
     startTime,
+    matchStage,
     createdBy: user._id
   });
 
