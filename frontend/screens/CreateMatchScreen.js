@@ -116,7 +116,8 @@ const CreateMatchScreen = ({
             teamB,
             totalOvers,
             matchPlace,
-            startTime
+            startTime,
+            matchStage
           })
         }
       );
@@ -136,6 +137,7 @@ const CreateMatchScreen = ({
         dispatch(setCity(null));
         dispatch(setGround(null));
         dispatch(setStartTime(null));
+        dispatch(setMatchStage(null));
       }
     } catch (error) {
       console.log(error);
@@ -156,6 +158,7 @@ const CreateMatchScreen = ({
       dispatch(setCity(null));
       dispatch(setGround(null));
       dispatch(setStartTime(null));
+      dispatch(setMatchStage(null));
       setIsLoading(true);
     });
     return unsubscribe;
