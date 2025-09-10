@@ -3,10 +3,11 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Pressable,
   TextInput,
   Keyboard,
   StatusBar,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import {
   useState,
@@ -29,6 +30,8 @@ import {
 } from "../redux/matchSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "../components/Spinner.js";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import moment from "moment";
 import {
   showToast
 } from "../redux/toastSlice.js";
@@ -51,6 +54,10 @@ const CreateMatchScreen = ({
     setShowSpinner] = useState(false);
   const [isScreenFocused,
     setIsScreenFocused] = useState(false);
+  const [iskeyboardVisible,
+    setIsKeyboardVisible] = useState(false);
+  const [showTimePicker,
+    setShowTimePicker] = useState(false);
   useHideTabBar(navigation, isScreenFocused)
   const dispatch = useDispatch();
 
@@ -75,11 +82,56 @@ const CreateMatchScreen = ({
     setIsScreenFocused(true);
   }, []);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () =>
+      setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
+      setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      dispatch(setTotalOvers(null));
+      dispatch(setCity(null));
+      dispatch(setGround(null));
+      dispatch(setStartTime(null));
+      dispatch(setMatchStage(null));
+      setIsLoading(true);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (event.type === "dismissed") {
+      return;
+    }
+
+    if (selectedTime) {
+      dispatch(setStartTime(selectedTime.toISOString()));
+    }
+  };
+
+  const handleOpenTimePicker = ()=> {
+    if (iskeyboardVisible) {
+      Keyboard.dismiss();
+    }
+    setShowTimePicker(true);
+  }
 
   const handleCreateMatch = async () => {
     try {
       setShowSpinner(true);
-      Keyboard.dismiss();
+      if (iskeyboardVisible) {
+        Keyboard.dismiss();
+      }
       if (
         !teamA.id ||
         !teamB.id ||
@@ -116,8 +168,8 @@ const CreateMatchScreen = ({
             teamB,
             totalOvers,
             matchPlace,
-            startTime,
-            matchStage
+            matchStage,
+            startTime
           })
         }
       );
@@ -152,19 +204,8 @@ const CreateMatchScreen = ({
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      dispatch(setTotalOvers(null));
-      dispatch(setCity(null));
-      dispatch(setGround(null));
-      dispatch(setStartTime(null));
-      dispatch(setMatchStage(null));
-      setIsLoading(true);
-    });
-    return unsubscribe;
-  }, [navigation]);
-
   return (
+
     <View style={styles.wrapper}>
       <View style={styles.header}>
         <TouchableOpacity
@@ -181,8 +222,8 @@ const CreateMatchScreen = ({
       </View>
       <ScrollView style={styles.scroll_view_wrapper}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         >
-
         <View style={styles.selected_team_wrapper}>
           <View style={styles.selected_team}>
             <View style={styles.selected_team_icon_wrapper}>
@@ -245,11 +286,27 @@ const CreateMatchScreen = ({
           </View>
           <View style={styles.text_input_wrapper}>
             <Text style={styles.text_input_label}>Starting Time ( optional )</Text>
-            <TextInput
-              style={styles.text_input}
-              value={startTime}
-              onChangeText={text => dispatch(setStartTime(text))}
-              />
+            <Pressable onPress={handleOpenTimePicker
+              } style={styles.input_and_close_button_wrapper}>
+              <TextInput
+                style={styles.text_input}
+                value={startTime ? moment(startTime).format("hh:mm A"): ""}
+                editable={false}
+                />
+              {startTime && (
+                <TouchableOpacity onPress={() => dispatch(setStartTime(null))} style={styles.close_button}>
+                  <Icon name="close" size={normalize(22)} color="#858080" />
+                </TouchableOpacity>
+              )}
+            </Pressable>
+            {showTimePicker && (
+              <DateTimePicker
+                value={startTime ? new Date(startTime): new Date()}
+                mode="time"
+                display="default"
+                onChange={handleTimeChange}
+                />
+            )}
           </View>
         </View>
       </ScrollView>
@@ -273,6 +330,7 @@ const CreateMatchScreen = ({
         </TouchableOpacity>
       </View>
     </View>
+
   );
 };
 
@@ -353,6 +411,14 @@ const styles = StyleSheet.create({
     gap: normalizeVertical(15),
     marginHorizontal: normalize(20),
   },
+  input_and_close_button_wrapper: {
+    position: "relative",
+  },
+  close_button: {
+    position: "absolute",
+    right: normalize(5),
+    top: normalizeVertical(16)
+  },
   text_input_wrapper: {
     justifyContent: "center"
   },
@@ -365,6 +431,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#858080",
     fontSize: normalize(17),
+    color: "#333333",
     fontFamily: "ubuntuRegular"
   },
   confirm_btn_wrapper: {
