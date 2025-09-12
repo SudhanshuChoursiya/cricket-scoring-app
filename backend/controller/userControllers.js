@@ -1085,6 +1085,12 @@ const updateScoreController = asyncHandler(async (req, res) => {
   if (shouldShowSummary(match, currentInning)) {
     io.to(matchId).emit("showSummary")
   }
+
+  if (shouldShowHighlightEvent(isFour, isSix, isWicket)) {
+    io.to(matchId).emit("showHighlightEvent", {
+      isFour, isSix, isWicket
+    })
+  }
   // Save match details
   await match.save();
 
@@ -1964,6 +1970,9 @@ const undoScoreController = asyncHandler(async (req, res) => {
   });
   if (shouldShowSummary(match, currentInning)) {
     io.to(matchId).emit("hideSummary")
+  }
+  if (shouldShowHighlightEvent(lastAction.isFour, lastAction.isSix, lastAction.isWicket)) {
+    io.to(matchId).emit("hideHighlightEvent")
   }
   // Save the updated match
   await match.save();

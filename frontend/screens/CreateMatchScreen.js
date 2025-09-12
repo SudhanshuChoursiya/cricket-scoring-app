@@ -205,7 +205,6 @@ const CreateMatchScreen = ({
   };
 
   return (
-
     <View style={styles.wrapper}>
       <View style={styles.header}>
         <TouchableOpacity
