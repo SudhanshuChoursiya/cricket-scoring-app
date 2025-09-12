@@ -69,7 +69,7 @@ const getSummaryInterval = (totalOvers)=> {
 
 export const
 shouldShowHighlightEvent = (isFour, isSix, isWicket)=> {
-  if (isFour || isSix || .isWicket) {
+  if (isFour || isSix || isWicket) {
     return true;
   }
   return false;

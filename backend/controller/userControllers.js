@@ -12,7 +12,8 @@ import {
 import {
   createInning,
   getCurrentInning,
-  shouldShowSummary
+  shouldShowSummary,
+  shouldShowHighlightEvent
 } from "../utility/matchUtils.js";
 import {
   SignupModel
