@@ -218,7 +218,12 @@ const ManageScoreBoardScreen = ({
 
 
   useEffect(() => {
-    const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`);
+    const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000
+    });
 
     // Join the match room
     if (matchDetails?._id) {
