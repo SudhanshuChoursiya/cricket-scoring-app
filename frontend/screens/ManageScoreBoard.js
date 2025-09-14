@@ -71,6 +71,7 @@ import SuperOverModal from "../components/SuperOverModal.js";
 import {
   io
 } from "socket.io-client";
+import socket from "../services/socket.js";
 import {
   getCurrentInning,
   checkAndNavigateToPendingAction,
@@ -218,17 +219,12 @@ const ManageScoreBoardScreen = ({
 
 
   useEffect(() => {
-    const socket = io(`${process.env.EXPO_PUBLIC_BASE_URL}`, {
-      autoConnect: false,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000
-    });
+    if (!matchDetails?._id) return;
+    
+    socket.connect();
 
     // Join the match room
-    if (matchDetails?._id) {
-      socket.emit("joinMatch", matchDetails?._id);
-    }
+    socket.emit("joinMatch", matchDetails?._id);
 
     // Listen for score updates
     socket.on("scoreUpdated", ({
