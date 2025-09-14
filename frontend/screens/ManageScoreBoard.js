@@ -221,70 +221,86 @@ const ManageScoreBoardScreen = ({
   useEffect(() => {
     if (!matchDetails?._id) return;
 
-    // Connect socket if not already
     if (!socket.connected) socket.connect();
 
-    // Helper: always rejoin match room
+    // Handlers
     const joinRoom = () => {
-      socket.emit("joinMatch", matchDetails?._id);
+      socket.emit("joinMatch", matchDetails._id);
     };
 
-    // Listen for connect + reconnect
-    socket.on("connect", joinRoom);
-    socket.on("reconnect", joinRoom);
-
-
-    // Listen for score updates
-    socket.on("scoreUpdated", ({
+    const handleScoreUpdated = ({
       match
     }) => {
       setMatchDetails(match);
 
       const {
-        isSuperOver, isSecondInningStarted, currentInning, inning1, superOver
+        isSuperOver,
+        isSecondInningStarted,
+        currentInning,
+        inning1,
+        superOver
       } = match;
 
       let currentInningDetails;
-
       if (!isSuperOver) {
         // Normal match
-        currentInningDetails = (!isSecondInningStarted && currentInning === 2) ? inning1: getCurrentInning(match);
+        currentInningDetails =
+        (!isSecondInningStarted && currentInning === 2)
+        ? inning1: getCurrentInning(match);
       } else {
         // Super over
-        currentInningDetails = (!isSecondInningStarted && superOver.currentInning === 2) ? superOver.inning1: getCurrentInning(match);
+        currentInningDetails =
+        (!isSecondInningStarted && superOver.currentInning === 2)
+        ? superOver.inning1: getCurrentInning(match);
       }
 
       setCurrentInningDetails(currentInningDetails);
-    });
+    };
 
-    socket.on("wicketFallen",
-      () => setIsWicketFallen(true));
-    socket.on("overCompleted",
-      () => dispatch(setOverCompleteModal({
-        isShow: true
-      })));
-    socket.on("inningCompleted",
-      () => dispatch(setInningCompleteModal({
-        isShow: true
-      })));
-    socket.on("matchTied",
-      () => dispatch(setSuperOverModal({
-        isShow: true
-      })));
-    socket.on("superOverTied",
-      () => dispatch(setSuperOverModal({
-        isShow: true
-      })));
-    socket.on("matchCompleted",
-      () => dispatch(setMatchCompleteModal({
-        isShow: true
-      })));
+    const handleWicketFallen = () => setIsWicketFallen(true);
+    const handleOverCompleted = () => dispatch(setOverCompleteModal({
+      isShow: true
+    }));
+    const handleInningCompleted = () => dispatch(setInningCompleteModal({
+      isShow: true
+    }));
+    const handleMatchTied = () => dispatch(setSuperOverModal({
+      isShow: true
+    }));
+    const handleSuperOverTied = () => dispatch(setSuperOverModal({
+      isShow: true
+    }));
+    const handleMatchCompleted = () => dispatch(setMatchCompleteModal({
+      isShow: true
+    }));
 
-    // Clean up on unmount or when matchId changes
+    // Register listeners
+    socket.on("connect", joinRoom);
+    socket.on("reconnect", joinRoom);
+    socket.on("scoreUpdated", handleScoreUpdated);
+    socket.on("wicketFallen", handleWicketFallen);
+    socket.on("overCompleted", handleOverCompleted);
+    socket.on("inningCompleted", handleInningCompleted);
+    socket.on("matchTied", handleMatchTied);
+    socket.on("superOverTied", handleSuperOverTied);
+    socket.on("matchCompleted", handleMatchCompleted);
+
+    // Cleanup
     return () => {
       if (matchDetails?._id) {
-        socket.emit("leaveMatch", matchDetails?._id);
+        socket.emit("leaveMatch", matchDetails._id);
       }
+      socket.off("connect", joinRoom);
+      socket.off("reconnect", joinRoom);
+      socket.off("scoreUpdated", handleScoreUpdated);
+      socket.off("wicketFallen", handleWicketFallen);
+      socket.off("overCompleted", handleOverCompleted);
+      socket.off("inningCompleted", handleInningCompleted);
+      socket.off("matchTied", handleMatchTied);
+      socket.off("superOverTied", handleSuperOverTied);
+      socket.off("matchCompleted", handleMatchCompleted);
+
+
       socket.disconnect();
     };
   },
