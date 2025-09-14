@@ -220,11 +220,19 @@ const ManageScoreBoardScreen = ({
 
   useEffect(() => {
     if (!matchDetails?._id) return;
-    
-    socket.connect();
 
-    // Join the match room
-    socket.emit("joinMatch", matchDetails?._id);
+    // Connect socket if not already
+    if (!socket.connected) socket.connect();
+
+    // Helper: always rejoin match room
+    const joinRoom = () => {
+      socket.emit("joinMatch", matchDetails?._id);
+    };
+
+    // Listen for connect + reconnect
+    socket.on("connect", joinRoom);
+    socket.on("reconnect", joinRoom);
+
 
     // Listen for score updates
     socket.on("scoreUpdated", ({
@@ -280,7 +288,8 @@ const ManageScoreBoardScreen = ({
       socket.disconnect();
     };
   },
-    [matchDetails?._id]);
+    [matchDetails?._id,
+      dispatch]);
 
   useEffect(() => {
     if (matchDetails?._id) {
