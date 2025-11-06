@@ -10,16 +10,6 @@ const ToastAlert = () => {
     const { type, message, visible } = useSelector(state => state.toast);
     const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-    const toastData = {
-        success: { name: "check-circle", color: "#14B492" },
-        error: { name: "error", color: "#E21F26" },
-        warning: { name: "warning", color: "#f48441" },
-        info: { name: "info", color: "#007AFF" }
-    };
-
-    const { name: iconName, color: backgroundColor } =
-        toastData[type] || toastData.info;
-
     useEffect(() => {
         let timeoutId;
         if (visible) {
@@ -41,6 +31,16 @@ const ToastAlert = () => {
         }
         return () => clearTimeout(timeoutId);
     }, [visible, fadeAnim, dispatch]);
+
+    const toastData = {
+        success: { name: "check-circle", color: "#14B492" },
+        error: { name: "error", color: "#E21F26" },
+        warning: { name: "warning", color: "#f48441" },
+        info: { name: "info", color: "#007AFF" }
+    };
+
+    const { name: iconName, color: backgroundColor } =
+        toastData[type] || toastData.info;
 
     if (!visible) return null;
 

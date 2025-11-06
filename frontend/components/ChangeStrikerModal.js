@@ -7,10 +7,10 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setChangeStrikeModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import Spinner from "./Spinner.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
@@ -19,9 +19,8 @@ const ChangeStrikerModal = ({
     showSpinner,
     handleChangeStrike
 }) => {
-    const changeStrikeModal = useSelector(
-        state => state.modal.changeStrikeModal
-    );
+    const { activeModal, payload } = useSelector(state => state.modal);
+
     const dispatch = useDispatch();
     const deviceWidth = Dimensions.get("window").width;
 
@@ -31,11 +30,16 @@ const ChangeStrikerModal = ({
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleCloseModal = () => {
-        dispatch(setChangeStrikeModal({ isShow: false }));
+        dispatch(closeModal());
     };
+
+    const handleConfirmModal = () => {
+        handleChangeStrike().then(() => handleCloseModal());
+    };
+
     return (
         <Modal
-            isVisible={changeStrikeModal.isShow}
+            isVisible={activeModal === "changeStriker"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}

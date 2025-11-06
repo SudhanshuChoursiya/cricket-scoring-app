@@ -11,42 +11,37 @@ import {
 import Modal from "react-native-modal";
 import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setChangeCaptainModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
 import { showToast } from "../redux/toastSlice.js";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
-import { useNavigation } from "@react-navigation/native";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+import { useChangeCaptainMutation } from "../services/matchApi.js";
 
-const ChangeCaptainModal = ({
-    matchId,
-    teamId,
-    player,
-    showSpinner,
-    setShowSpinner
-}) => {
+const ChangeCaptainModal = ({ matchId, teamId, player }) => {
+    const { activeModal, payload } = useSelector(state => state.modal);
+    
     const dispatch = useDispatch();
-    const navigation = useNavigation();
+    
+    const { accessToken } = useSelector(state => state.auth);
+
+    const [changeCaptain, { isLoading: isCaptainChanging }] =
+        useChangeCaptainMutation();
+
     const deviceWidth = Dimensions.get("window").width;
 
     const deviceHeight =
         Platform.OS === "ios"
             ? Dimensions.get("window").height
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
-    const changeCaptainModal = useSelector(
-        state => state.modal.changeCaptainModal
-    );
-    const { accessToken } = useSelector(state => state.auth);
 
     const handleCloseModal = () => {
-        dispatch(setChangeCaptainModal({ isShow: false, player: null }));
-        setShowSpinner(false);
+        dispatch(closeModal());
     };
 
     const handleConfirmModal = async () => {
         try {
-            setShowSpinner(true);
             if (!matchId || !teamId || !player) {
                 dispatch(
                     showToast({
@@ -56,35 +51,26 @@ const ChangeCaptainModal = ({
                 );
                 return;
             }
+            await changeCaptain({
+                matchId,
+                teamId,
+                captainId: player.playerId
+            }).unwrap();
 
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/change-captain/${matchId}`,
-
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ teamId, captainId: player.playerId })
-                }
-            );
-
-            const data = await response.json();
-            if (response.status !== 200) {
-                dispatch(showToast(data.message));
-            } else {
-                dispatch(setChangeCaptainModal({ isShow: false }));
-            }
+            handleCloseModal();
         } catch (error) {
             console.log(error);
-        } finally {
-            setShowSpinner(false);
+            dispatch(
+                showToast({
+                    type: "error",
+                    message: error?.data?.message || error.message
+                })
+            );
         }
     };
     return (
         <Modal
-            isVisible={changeCaptainModal.isShow}
+            isVisible={activeModal === "changeCaptain"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
@@ -132,9 +118,9 @@ const ChangeCaptainModal = ({
                         onPress={handleConfirmModal}
                     >
                         <Text style={styles.ok_button_text}>yes sure</Text>
-                        {showSpinner && (
+                        {isCaptainChanging && (
                             <Spinner
-                                isLoading={showSpinner}
+                                isLoading={true}
                                 spinnerColor="white"
                                 spinnerSize={28}
                             />
@@ -205,7 +191,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f75454",
         height: normalize(60),
         width: normalize(61),
-        borderRadius: normalize(62/2),
+        borderRadius: normalize(62 / 2),
         justifyContent: "center",
         alignItems: "center",
         elevation: 1

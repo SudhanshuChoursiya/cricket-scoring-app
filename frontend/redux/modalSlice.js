@@ -1,3 +1,34 @@
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+    activeModal: null,
+    payload: null
+};
+
+const modalSlice = createSlice({
+    name: "modal",
+    initialState,
+    reducers: {
+        openModal: (state, action) => {
+            state.activeModal = action.payload.type;
+            state.payload = action.payload.payload || null;
+        },
+        closeModal: state => {
+            state.activeModal = null;
+            state.payload = null;
+        },
+        updateModalPayload: (state, action) => {
+            if (state.activeModal) {
+                state.payload = { ...state.payload, ...action.payload };
+            }
+        }
+    }
+});
+
+export const { openModal, closeModal, updateModalPayload } = modalSlice.actions;
+export default modalSlice.reducer;
+
+/*
 import {
   createSlice
 } from "@reduxjs/toolkit";
@@ -193,3 +224,4 @@ export const {
 } = modalSlice.actions;
 
 export default modalSlice.reducer;
+*/

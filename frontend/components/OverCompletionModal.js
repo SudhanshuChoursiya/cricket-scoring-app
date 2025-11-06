@@ -8,11 +8,11 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setOverCompleteModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
@@ -22,9 +22,8 @@ const OverCompletionModal = ({
     handleUndoScore,
     showSpinner
 }) => {
-    const overCompleteModal = useSelector(
-        state => state.modal.overCompleteModal
-    );
+    const { activeModal, payload } = useSelector(state => state.modal);
+    
     const dispatch = useDispatch();
     const navigation = useNavigation();
 
@@ -36,20 +35,20 @@ const OverCompletionModal = ({
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleNavigate = () => {
-        navigation.push("select-new-bowler", {
+        navigation.navigate("select-new-bowler", {
             matchId
         });
-        dispatch(setOverCompleteModal({ isShow: false }));
+        dispatch(closeModal());
     };
 
     const handleContinueOver = () => {
         handleUndoScore();
-        dispatch(setOverCompleteModal({ isShow: false }));
+        dispatch(closeModal());
     };
 
     return (
         <Modal
-            isVisible={overCompleteModal.isShow}
+            isVisible={activeModal==="overCompletion"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}

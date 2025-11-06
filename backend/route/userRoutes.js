@@ -7,6 +7,8 @@ import {
     addNewTeamController,
     addPlayersController,
     createMatchController,
+    createTournamentController,
+    updateTournamentController,
     updateTossDetailsController,
     updateInitialPlayersController,
     updateScoreController,
@@ -25,8 +27,11 @@ import {
     getAllTeamsController,
     getSingleTeamController,
     getAllMatchDetailsController,
+    getAllTournamentsController,
     getSingleMatchDetailsController,
-    getSearchedMatchController
+    getSingleTournamentController,
+    getSearchedMatchesController,
+    getSearchedTournamentsController
 } from "../controller/userControllers.js";
 import upload from "../middleware/multer.js";
 import verifyToken from "../middleware/auth.js";
@@ -47,6 +52,19 @@ router.post(
     rateLimiter,
     verifyToken,
     createMatchController
+);
+router.post(
+    "/create-new-tournament",
+    rateLimiter,
+    verifyToken,
+    createTournamentController
+);
+
+router.put(
+    "/update-tournament-details/:tournamentId",
+    rateLimiter,
+    verifyToken,
+    updateTournamentController
 );
 router.post(
     "/update-toss-details/:matchId",
@@ -144,7 +162,10 @@ router.get("/check-auth", verifyToken, checkAuthController);
 router.get("/get-all-teams", verifyToken, getAllTeamsController);
 router.get("/get-single-team/:teamId", verifyToken, getSingleTeamController);
 router.get("/get-all-matches", getAllMatchDetailsController);
+router.get("/get-all-tournaments", getAllTournamentsController);
 router.get("/get-match-details/:matchId", getSingleMatchDetailsController);
-router.get("/search-match", verifyToken, getSearchedMatchController);
+router.get("/get-tournament-details/:tournamentId", getSingleTournamentController);
+router.get("/search-matches", verifyToken, getSearchedMatchesController);
+router.get("/search-tournaments", verifyToken, getSearchedTournamentsController);
 
 export default router;

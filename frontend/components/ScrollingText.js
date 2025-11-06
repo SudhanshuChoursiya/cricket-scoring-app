@@ -12,7 +12,7 @@ const ScrollingText = ({ text, style, fitWidth }) => (
                 overflow: "hidden"
             }}
         >
-            {text.length <= 27 ? (
+            {text?.length <= 27 ? (
                 <Text style={style}>{text}</Text>
             ) : (
                 <Marquee spacing={25} speed={0.6}>

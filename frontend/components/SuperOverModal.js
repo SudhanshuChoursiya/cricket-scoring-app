@@ -8,72 +8,64 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    setSuperOverModal,
-    setMatchCompleteModal
-} from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
+import { useNavigation } from "@react-navigation/native";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
-import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+import { useStartSuperOverMutation } from "../services/matchApi.js";
 
-const SuperOverModal = ({ matchId, showSpinner, setShowSpinner }) => {
+const SuperOverModal = ({ matchId }) => {
+    const { activeModal, payload } = useSelector(state => state.modal);
+
+    const superOverModal = useSelector(state => state.modal.superOverModal);
+
+    const { accessToken } = useSelector(state => state.auth);
+
     const dispatch = useDispatch();
+
     const navigation = useNavigation();
+
+    const [startSuperOver, { isLoading: isSuperOverStarting }] =
+        useStartSuperOverMutation();
+
     const deviceWidth = Dimensions.get("window").width;
 
     const deviceHeight =
         Platform.OS === "ios"
             ? Dimensions.get("window").height
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
-    const superOverModal = useSelector(state => state.modal.superOverModal);
-    const { accessToken } = useSelector(state => state.auth);
 
     const handleCloseModal = () => {
-        dispatch(setSuperOverModal({ isShow: false }));
-        dispatch(setMatchCompleteModal({ isShow: true }));
+        dispatch(closeModal);
     };
 
     const handleConfirmModal = async () => {
         try {
-            setShowSpinner(true);
             if (!matchId) {
                 throw new Error("plz provide all the required field");
             }
 
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/start-super-over/${matchId}`,
+            await startSuperOver({ matchId }).unwrap();
 
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
+            navigation.replace("initial-players-assign-screen", {
+                matchId
+            });
 
-            const data = await response.json();
-            if (response.status !== 200) {
-                throw new Error(data.message);
-            } else {
-                navigation.navigate("initial-players-assign-screen", {
-                    matchId
-                });
-                dispatch(setSuperOverModal({ isShow: false }));
-            }
+            handleCloseModal();
         } catch (error) {
-            console.log(error);
-        } finally {
-            setShowSpinner(false);
+            console.log(
+                "Super over error:",
+                error?.data?.message || error.message
+            );
         }
     };
     return (
         <Modal
-            isVisible={superOverModal.isShow}
+            isVisible={activeModal === "superOver"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
@@ -86,7 +78,7 @@ const SuperOverModal = ({ matchId, showSpinner, setShowSpinner }) => {
             <View style={styles.modal_container}>
                 <View style={styles.modal_content}>
                     <View style={styles.icon_wrapper}>
-                        {!showSpinner ? (
+                        {!isSuperOverStarting ? (
                             <Icon
                                 name="error-outline"
                                 size={normalize(45)}
@@ -94,7 +86,7 @@ const SuperOverModal = ({ matchId, showSpinner, setShowSpinner }) => {
                             />
                         ) : (
                             <Spinner
-                                isLoading={showSpinner}
+                                isLoading={true}
                                 spinnerColor="#F99F0D"
                                 spinnerSize={45}
                             />

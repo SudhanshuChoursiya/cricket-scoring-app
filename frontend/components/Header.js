@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import {
     StyleSheet,
     Text,
@@ -8,15 +9,17 @@ import {
     StatusBar,
     Keyboard
 } from "react-native";
-import { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { openModal } from "../redux/modalSlice.js";
+import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import appLogo from "../assets/icon.png";
-import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
-const Header = ({ searchQuery, setSearchQuery }) => {
-    const navigation = useNavigation();
-    const searchInputRef = useRef(null);
 
+const Header = ({activeTab}) => {
+    const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const searchInputRef = useRef(null);
     useEffect(() => {
         const keyboardDidHideListener = Keyboard.addListener(
             "keyboardDidHide",
@@ -34,6 +37,11 @@ const Header = ({ searchQuery, setSearchQuery }) => {
             keyboardDidHideListener.remove();
         };
     }, []);
+
+    const handleSearchPress = () => {
+        navigation.navigate("search-screen", { activeTab });
+    };
+
     return (
         <View style={styles.wrapper}>
             <View style={styles.top_container}>
@@ -45,17 +53,17 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                     />
                     <Text style={styles.app_logo_title}>CricPro</Text>
                 </View>
-                <View style={styles.notification_icon_wrapper}>
-                    <TouchableOpacity style={styles.bell_icon_wrepper}>
-                        <Icon name="notifications" size={23} color="#f7f7f7" />
 
-                        <View style={styles.notification_indicator}></View>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.search_icon_wrapper}
+                    onPress={handleSearchPress}
+                >
+                    <Icon name="search" size={23} color="#f7f7f7" />
+                </TouchableOpacity>
             </View>
 
-            <View style={styles.searchbar_wrapper}>
-                <View style={styles.searchbar}>
+            {/* <View style={styles.searchbar_wrapper}>
+                <View style={styles.bar}>
                     <TextInput
                         style={styles.search_input}
                         placeholder="Search a match"
@@ -68,22 +76,21 @@ const Header = ({ searchQuery, setSearchQuery }) => {
                         <Icon name="search" size={20} color="white" />
                     </View>
                 </View>
-            </View>
+            </View>*/}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     wrapper: {
+        paddingTop: StatusBar.currentHeight,
         backgroundColor: "#E21F26",
         justifyContent: "center",
         paddingHorizontal: normalize(10),
-
-        height: normalizeVertical(124),
-        position: "relative",
-        zIndex: 2000
+        borderBottomWidth: 1,
+        borderBottomColor: "#E21F26",
+        position: "relative"
     },
-
     top_container: {
         flexDirection: "row",
         alignItems: "center",
@@ -105,96 +112,23 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         marginTop: normalizeVertical(10)
     },
-    searchbar_wrapper: {
-        position: "absolute",
-        bottom: normalizeVertical(-35),
-        left: normalize(20)
-    },
-    searchbar: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: normalizeVertical(17),
-        position: "relative"
-    },
-    search_input: {
-        height: normalizeVertical(47),
-        width: "95%",
-        fontSize: normalize(17),
-        backgroundColor: "white",
-        color: "black",
-        borderRadius: normalize(8),
-        paddingHorizontal: normalize(11),
-        fontFamily: "ubuntuMedium",
-        elevation: 3
-    },
     search_button: {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#E21F26",
-
         borderRadius: normalize(8),
         height: normalizeVertical(38),
         width: normalize(38),
-
         position: "absolute",
         right: normalize(15)
     },
-
-    suggestions_box: {
-        backgroundColor: "whitesmoke",
-        width: "95%",
-        position: "absolute",
-        top: normalizeVertical(64),
-        left: normalizeVertical(10),
-        zIndex: 2,
-        borderRadius: normalize(8),
-        elevation: 1
-    },
-    suggestion: {
-        fontSize: normalize(16),
-        color: "#878383",
-        paddingHorizontal: normalize(11),
-        paddingVertical: normalizeVertical(8),
-        fontFamily: "ubuntuMedium"
-    },
-    notification_icon_wrapper: {},
-    bell_icon_wrepper: {
+    search_icon_wrapper: {
         position: "relative",
         marginRight: normalize(7),
         backgroundColor: "rgba(250,250,250,0.2)",
         borderRadius: normalize(7),
-        paddingHorizontal: normalize(6),
-
+        paddingHorizontal: normalize(8),
         paddingVertical: normalizeVertical(6)
-    },
-    cart_icon_wrepper: {
-        position: "relative",
-        marginRight: normalize(7),
-        backgroundColor: "rgba(250,250,250,0.2)",
-        borderRadius: normalize(7),
-        paddingHorizontal: normalize(6),
-
-        paddingVertical: normalizeVertical(6)
-    },
-    notification_indicator: {
-        backgroundColor: "#1A4DA1",
-        borderRadius: normalize(100),
-        height: normalizeVertical(8),
-        width: normalize(8),
-        position: "absolute",
-        top: normalizeVertical(8),
-        right: normalize(9)
-    },
-    cart_indicator: {
-        backgroundColor: "#d31515",
-        borderRadius: normalize(100),
-        height: normalizeVertical(8),
-        width: normalize(8),
-        position: "absolute",
-        top: normalizeVertical(8),
-        right: normalize(6)
     }
 });
 

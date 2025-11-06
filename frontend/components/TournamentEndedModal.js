@@ -4,9 +4,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    StatusBar,
     Dimensions,
-    Platform
+    Platform,
+    StatusBar
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { closeModal } from "../redux/modalSlice.js";
@@ -16,12 +16,11 @@ import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const ReplaceBowlerModal = ({ matchId }) => {
+const TournamentEndedModal = () => {
     const { activeModal, payload } = useSelector(state => state.modal);
 
     const dispatch = useDispatch();
     const navigation = useNavigation();
-
     const deviceWidth = Dimensions.get("window").width;
 
     const deviceHeight =
@@ -33,16 +32,18 @@ const ReplaceBowlerModal = ({ matchId }) => {
         dispatch(closeModal());
     };
 
-    const handleNavigate = () => {
-        navigation.navigate("select-new-bowler", {
-            matchId
-        });
-
+    const handleConfirmModal = () => {
         handleCloseModal();
+        if (payload?.tournamentDetails?._id) {
+            navigation.navigate("create-tournament", {
+                tournamentDetails: payload?.tournamentDetails
+            });
+        }
     };
+
     return (
         <Modal
-            isVisible={activeModal === "replaceBowler"}
+            isVisible={activeModal === "tournamentEnded"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
@@ -60,27 +61,21 @@ const ReplaceBowlerModal = ({ matchId }) => {
                         <Icon
                             name="error-outline"
                             size={normalize(45)}
-                            color="#F99F0D"
+                            color="#2A363E"
                         />
                     </View>
-                    <Text style={styles.modal_title}>Replace bowler?</Text>
+                    <Text style={styles.modal_title}>Tournament is over?</Text>
                     <Text style={styles.modal_desc}>
-                        Are u sure to replace current bowler?
+                        It seems the tournament is already over. If it has
+                        extended,please change the End Date.
                     </Text>
                     <TouchableOpacity
                         style={styles.confirm_btn}
-                        onPress={handleNavigate}
+                        onPress={handleConfirmModal}
                     >
                         <Text style={styles.confirm_btn_text}>
-                            yes, i’m sure
+                            Change End Date
                         </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.close_btn}
-                        onPress={handleCloseModal}
-                    >
-                        <Text style={styles.close_btn_text}>cancel</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -91,11 +86,11 @@ const ReplaceBowlerModal = ({ matchId }) => {
 const styles = StyleSheet.create({
     modal_wrapper: {
         flex: 1,
+        position: "relative",
         justifyContent: "center",
         alignItems: "center",
-        position: "relative",
-        margin: 0,
-        paddingTop: StatusBar.currentHeight
+        paddingTop: StatusBar.currentHeight,
+        margin: 0
     },
     modal_container: {
         width: normalize(300),
@@ -111,7 +106,6 @@ const styles = StyleSheet.create({
         fontFamily: "ubuntuMedium",
         color: "#AF2B1C"
     },
-
     modal_content: {
         justifyContent: "center",
         alignItems: "center",
@@ -122,10 +116,10 @@ const styles = StyleSheet.create({
     icon_wrapper: {
         height: normalize(85),
         width: normalize(85),
-        borderRadius: normalize(85 / 2),
+        borderRadius: normalize(100),
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#FFE8C6"
+        backgroundColor: "#CBCFD2"
     },
     modal_title: {
         fontSize: normalize(22),
@@ -138,10 +132,9 @@ const styles = StyleSheet.create({
         color: "#A8ACAF",
         textAlign: "center"
     },
-
     confirm_btn: {
-        backgroundColor: "#F99F0D",
-        paddingVertical: normalizeVertical(12),
+        backgroundColor: "#72797F",
+        paddingVertical: normalizeVertical(10),
         paddingHorizontal: normalize(25),
         borderRadius: normalize(8),
         elevation: 1
@@ -162,7 +155,6 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8),
         elevation: 1
     },
-
     close_btn_text: {
         color: "#AF2B1C",
         fontSize: normalize(16),
@@ -171,4 +163,4 @@ const styles = StyleSheet.create({
         textAlign: "center"
     }
 });
-export default ReplaceBowlerModal;
+export default TournamentEndedModal;

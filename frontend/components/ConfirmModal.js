@@ -7,17 +7,17 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setConfirmModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
-
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const ConfirmModal = ({ showSpinner, player, handleConfirm }) => {
-    const confirmModal = useSelector(state => state.modal.confirmModal);
+    const { activeModal, payload } = useSelector(state => state.modal);
+    
     const dispatch = useDispatch();
 
     const deviceWidth = Dimensions.get("window").width;
@@ -29,12 +29,7 @@ const ConfirmModal = ({ showSpinner, player, handleConfirm }) => {
 
     const handleCloseModal = () => {
         dispatch(
-            setConfirmModal({
-                isShow: false,
-                actionType: null,
-                title: null,
-                description: null
-            })
+            closeModal()
         );
     };
 
@@ -44,7 +39,7 @@ const ConfirmModal = ({ showSpinner, player, handleConfirm }) => {
 
     return (
         <Modal
-            isVisible={confirmModal.isShow}
+            isVisible={activeModal==="confirm"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
@@ -57,11 +52,11 @@ const ConfirmModal = ({ showSpinner, player, handleConfirm }) => {
             style={styles.modal_wrapper}
         >
             <View style={styles.modal_container}>
-                <Text style={styles.modal_title}>{confirmModal?.title}</Text>
+                <Text style={styles.modal_title}>{payload?.title}</Text>
 
                 <View style={styles.modal_content}>
                     <Text style={styles.modal_info}>
-                        {confirmModal?.description}
+                        {payload?.description}
                     </Text>
                 </View>
 

@@ -8,18 +8,17 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setInningCompleteModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
-    const inningCompleteModal = useSelector(
-        state => state.modal.inningCompleteModal
-    );
+    const { activeModal, payload } = useSelector(state => state.modal);
+
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const deviceWidth = Dimensions.get("window").width;
@@ -28,21 +27,22 @@ const InningCompletionModal = ({ matchDetails, handleUndoScore }) => {
         Platform.OS === "ios"
             ? Dimensions.get("window").height
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+
     const handleNavigate = () => {
-        navigation.navigate("initial-players-assign-screen", {
+        navigation.replace("initial-players-assign-screen", {
             matchId: matchDetails?._id
         });
-        dispatch(setInningCompleteModal({ isShow: false }));
+        dispatch(closeModal());
     };
 
     const handleContinueOver = () => {
         handleUndoScore();
-        dispatch(setInningCompleteModal({ isShow: false }));
+        dispatch(closeModal());
     };
 
     return (
         <Modal
-            isVisible={inningCompleteModal.isShow}
+            isVisible={activeModal === "inningCompletion"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}

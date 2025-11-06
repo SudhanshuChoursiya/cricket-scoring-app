@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View, StatusBar } from "react-native";
-
 import Spinner from "./Spinner.js";
-
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const LoadingSpinner = ({ isLoading, spinnerColor, spinnerSize }) => {

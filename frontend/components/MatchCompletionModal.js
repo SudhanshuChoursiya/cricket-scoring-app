@@ -8,18 +8,17 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setMatchCompleteModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import { ellipsize } from "../utils/textUtils.js";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
 const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
-    const matchCompleteModal = useSelector(
-        state => state.modal.matchCompleteModal
-    );
+    const { activeModal, payload } = useSelector(state => state.modal);
+
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const deviceWidth = Dimensions.get("window").width;
@@ -30,21 +29,37 @@ const MatchCompletionModal = ({ matchDetails, handleUndoScore }) => {
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleNavigate = () => {
-        navigation.navigate("home-screen", {
-            matchId: matchDetails?._id
-        });
-        dispatch(setMatchCompleteModal({ isShow: false }));
+        if (matchDetails?.tournamentId) {
+            navigation.reset({
+                index: 0,
+                routes: [
+                    {
+                        name: "tournament-matches",
+                        params: {
+                            tournamentId: matchDetails.tournamentId,
+                            tournamentName: matchDetails?.tournamentName
+                        }
+                    }
+                ]
+            });
+        } else {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "home-screen" }]
+            });
+        }
+        dispatch(closeModal());
     };
 
     const handleContinueOver = () => {
         handleUndoScore();
 
-        dispatch(setMatchCompleteModal({ isShow: false }));
+        dispatch(closeModal());
     };
 
     return (
         <Modal
-            isVisible={matchCompleteModal.isShow}
+            isVisible={activeModal === "matchCompletion"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}

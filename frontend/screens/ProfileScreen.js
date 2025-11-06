@@ -1,261 +1,237 @@
+import { useState, useCallback, useEffect } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  StatusBar
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    TouchableOpacity,
+    StatusBar
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import {
-  useState,
-  useCallback,
-  useEffect
-} from "react";
-import {
-  useFocusEffect
-} from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAuth } from "../redux/authSlice.js";
+import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  GoogleSignin
-} from "@react-native-google-signin/google-signin";
-import {
-  useDispatch,
-  useSelector
-} from "react-redux";
-import {
-  fetchAuth
-} from "../redux/authSlice.js";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { normalize, normalizeVertical } from "../utils/responsive.js";
+import Svg, { Path } from "react-native-svg";
 
-import {
-  normalize,
-  normalizeVertical
-} from "../utils/responsive.js";
-import Svg, {
-  Path
-} from "react-native-svg";
-const ProfileScreen = ({
-  navigation
-}) => {
-  const [isScreenFocused,
-    setIsScreenFocused] = useState(false);
-  const dispatch = useDispatch();
-  const {
-    isLoading,
-    isLoggedin,
-    user
-  } = useSelector(state => state.auth);
+const ProfileScreen = ({ navigation }) => {
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+    const dispatch = useDispatch();
+    const { isLoading, isLoggedin, user } = useSelector(state => state.auth);
 
-  useEffect(() => {
-    setIsScreenFocused(true);
-  }, []);
+    useEffect(() => {
+        setIsScreenFocused(true);
+        return () => setIsScreenFocused(false);
+    }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      StatusBar.setBarStyle("dark-content");
-      return () => {
-        StatusBar.setBarStyle("default");
-      };
-    }, [isScreenFocused])
-  );
-  const logoutUser = async () => {
-    await AsyncStorage.removeItem("accessToken");
-    await AsyncStorage.removeItem("refreshToken");
+    useFocusEffect(
+        useCallback(() => {
+            StatusBar.setBarStyle("dark-content");
+            return () => {
+                StatusBar.setBarStyle("default");
+            };
+        }, [isScreenFocused])
+    );
 
-    await GoogleSignin.signOut();
-    dispatch(fetchAuth());
-  };
+    useEffect(() => {
+        const configureSignIn = () => {
+            GoogleSignin.configure({
+                webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
 
-  useEffect(() => {
-    const configureSignIn = () => {
-      GoogleSignin.configure({
-        webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+                iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
+                androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+                offlineAccess: true
+            });
+        };
+        configureSignIn();
+    }, []);
 
-        iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
-        androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
-        offlineAccess: true
-      });
+    const logoutUser = async () => {
+        await AsyncStorage.removeItem("accessToken");
+        await AsyncStorage.removeItem("refreshToken");
+
+        await GoogleSignin.signOut();
+        dispatch(fetchAuth());
     };
-    configureSignIn();
-  }, []);
 
-  const menuList = [{
-    menuName: "logout",
-    menuIconName: "exit-to-app",
-    action: logoutUser
-  }];
+    const menuList = [
+        {
+            menuName: "logout",
+            menuIconName: "exit-to-app",
+            action: logoutUser
+        }
+    ];
 
-  return (
-    <View style={styles.wrapper}>
-      <View style={styles.profile_img_section}>
-        <Text style={styles.page_title}>profile</Text>
+    return (
+        <View style={styles.wrapper}>
+            <View style={styles.profile_img_section}>
+                <Text style={styles.page_title}>profile</Text>
 
-        <View style={styles.profile_img_wrapper}>
-          <Image
-            source={ { uri: user.picture }}
-            style={styles.profile_img}
-            />
-        </View>
-        <View style={styles.curve_background}>
-          <Svg
-            viewBox="0 0 1440 320"
-            preserveAspectRatio="none"
-            >
-            <Path
-              fill="#F3F3F3"
-              d="M0,128L60,117.3C120,107,240,85,360,96C480,107,600,149,720,149.3C840,149,960,107,1080,96C1200,85,1320,107,1380,117.3L1440,128L1440,0L0,0Z"
-              />
-          </Svg>
-        </View>
-      </View>
-      <View style={styles.profile_details_section}>
-        <View style={styles.profile_detail}>
-          <Text style={styles.username}>{user.name}</Text>
-
-
-
-          <Text style={styles.email}>{user.email}</Text>
-        </View>
-      </View>
-
-      <View style={styles.others_page_link_section}>
-        {menuList.map((menu, index) => (
-          <TouchableOpacity
-            style={styles.page_link}
-            onPress={menu.action}
-            key={index}
-            >
-            <View style={styles.page_link_first_half}>
-              <Icon
-                name={menu.menuIconName}
-                size={23}
-                style={
-                menu.menuName === "logout"
-                ? [
-                  styles.page_link_icon,
-                  styles.icon_red
-                ]: styles.page_link_icon
-                }
-                />
-              <Text
-                style={
-                menu.menuName === "logout"
-                ? [
-                  styles.page_link_text,
-                  styles.text_red
-                ]: styles.page_link_text
-                }
-                >
-                {menu.menuName}
-              </Text>
+                <View style={styles.profile_img_wrapper}>
+                    <Image
+                        source={{ uri: user.picture }}
+                        style={styles.profile_img}
+                    />
+                </View>
+                <View style={styles.curve_background}>
+                    <Svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+                        <Path
+                            fill="#F3F3F3"
+                            d="M0,128L60,117.3C120,107,240,85,360,96C480,107,600,149,720,149.3C840,149,960,107,1080,96C1200,85,1320,107,1380,117.3L1440,128L1440,0L0,0Z"
+                        />
+                    </Svg>
+                </View>
             </View>
-            {menu.menuName !== "logout" && (
-              <View style={styles.page_link_second_half}>
-                <Icon
-                  name="chevron-right"
-                  size={23}
-                  style={styles.page_link_icon}
-                  />
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+            <View style={styles.profile_details_section}>
+                <View style={styles.profile_detail}>
+                    <Text style={styles.username}>{user.name}</Text>
+
+                    <Text style={styles.email}>{user.email}</Text>
+                </View>
+            </View>
+
+            <View style={styles.others_page_link_section}>
+                {menuList.map((menu, index) => (
+                    <TouchableOpacity
+                        style={styles.page_link}
+                        onPress={menu.action}
+                        key={index}
+                    >
+                        <View style={styles.page_link_first_half}>
+                            <Icon
+                                name={menu.menuIconName}
+                                size={23}
+                                style={
+                                    menu.menuName === "logout"
+                                        ? [
+                                              styles.page_link_icon,
+                                              styles.icon_red
+                                          ]
+                                        : styles.page_link_icon
+                                }
+                            />
+                            <Text
+                                style={
+                                    menu.menuName === "logout"
+                                        ? [
+                                              styles.page_link_text,
+                                              styles.text_red
+                                          ]
+                                        : styles.page_link_text
+                                }
+                            >
+                                {menu.menuName}
+                            </Text>
+                        </View>
+                        {menu.menuName !== "logout" && (
+                            <View style={styles.page_link_second_half}>
+                                <Icon
+                                    name="chevron-right"
+                                    size={23}
+                                    style={styles.page_link_icon}
+                                />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: "white"
-  },
-  profile_img_section: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: normalizeVertical(18),
-    width: "100%",
-    height: "35%",
-    position: "relative",
-    backgroundColor: "#F3F3F3",
-  },
-  page_title: {
-    fontSize: normalize(20),
-    fontFamily: "robotoBold",
-    textTransform: "capitalize"
-  },
-  curve_background: {
-    height: "30%",
-    width: "100%",
-    position: "absolute",
-    backgroundColor: "white",
-    top: normalizeVertical(230)
-  },
-  profile_img_wrapper: {
-    backgroundColor: "white",
-    height: normalize(130),
-    width: normalize(130),
-    borderRadius: normalize(100),
-    padding: normalize(7),
-    zIndex: 1
-  },
-  profile_img: {
-    height: "100%",
-    width: "100%",
-    borderRadius: normalize(100),
-    zIndex: 2
-  },
-  profile_details_section: {
-    alignItems: "center",
-    paddingTop: normalizeVertical(30)
-  },
-  profile_detail: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: normalizeVertical(15)
-  },
-  username: {
-    fontSize: normalize(23),
-    fontFamily: "robotoBold"
-  },
-  email: {
-    fontSize: normalize(17),
-    fontFamily: "ubuntuRegular"
-  },
-  others_page_link_section: {
-    marginVertical: normalizeVertical(30)
-  },
-  page_link: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F3F3F3",
-    borderRadius: normalize(15),
-    paddingHorizontal: normalize(15),
-    paddingVertical: normalizeVertical(10),
-    marginHorizontal: normalize(18),
-    marginBottom: normalizeVertical(25),
-    elevation: 1
-  },
-  page_link_first_half: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: normalize(8)
-  },
-  page_link_text: {
-    fontSize: normalize(17),
-    textTransform: "capitalize",
-    fontFamily: "robotoBold",
-    color: "grey"
-  },
-  page_link_icon: {
-    color: "grey"
-  },
-  text_red: {
-    color: "#ee4848"
-  },
-  icon_red: {
-    color: "#ee4848"
-  }
+    wrapper: {
+        flex: 1,
+        backgroundColor: "white"
+    },
+    profile_img_section: {
+        alignItems: "center",
+        justifyContent: "center",
+        gap: normalizeVertical(18),
+        width: "100%",
+        height: "35%",
+        position: "relative",
+        backgroundColor: "#F3F3F3"
+    },
+    page_title: {
+        fontSize: normalize(20),
+        fontFamily: "robotoBold",
+        textTransform: "capitalize"
+    },
+    curve_background: {
+        height: "30%",
+        width: "100%",
+        position: "absolute",
+        backgroundColor: "white",
+        top: normalizeVertical(230)
+    },
+    profile_img_wrapper: {
+        backgroundColor: "white",
+        height: normalize(130),
+        width: normalize(130),
+        borderRadius: normalize(100),
+        padding: normalize(7),
+        zIndex: 1
+    },
+    profile_img: {
+        height: "100%",
+        width: "100%",
+        borderRadius: normalize(100),
+        zIndex: 2
+    },
+    profile_details_section: {
+        alignItems: "center",
+        paddingTop: normalizeVertical(30)
+    },
+    profile_detail: {
+        alignItems: "center",
+        justifyContent: "center",
+        gap: normalizeVertical(15)
+    },
+    username: {
+        fontSize: normalize(23),
+        fontFamily: "robotoBold"
+    },
+    email: {
+        fontSize: normalize(17),
+        fontFamily: "ubuntuRegular"
+    },
+    others_page_link_section: {
+        marginVertical: normalizeVertical(30)
+    },
+    page_link: {
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "#F3F3F3",
+        borderRadius: normalize(15),
+        paddingHorizontal: normalize(15),
+        paddingVertical: normalizeVertical(10),
+        marginHorizontal: normalize(18),
+        marginBottom: normalizeVertical(25),
+        elevation: 1
+    },
+    page_link_first_half: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: normalize(8)
+    },
+    page_link_text: {
+        fontSize: normalize(17),
+        textTransform: "capitalize",
+        fontFamily: "robotoBold",
+        color: "grey"
+    },
+    page_link_icon: {
+        color: "grey"
+    },
+    text_red: {
+        color: "#ee4848"
+    },
+    icon_red: {
+        color: "#ee4848"
+    }
 });
 
 export default ProfileScreen;

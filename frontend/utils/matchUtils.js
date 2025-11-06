@@ -11,17 +11,18 @@ export const getCurrentInning = match => {
 
 export const checkAndNavigateToPendingAction = (matchDetails, navigation, matchId) => {
   if (matchDetails?.isSelectNewBatsmanPending) {
-    navigation.push("select-new-batsman", {
+    navigation.navigate("select-new-batsman", {
       matchId
     });
     return true;
   }
 
   if (matchDetails?.isOverChangePending) {
-    navigation.push("select-new-bowler", {
+    navigation.navigate("select-new-bowler", {
       matchId
     });
     return true;
   }
   return false;
 };
+

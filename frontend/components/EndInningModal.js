@@ -3,74 +3,56 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    TextInput,
     StatusBar,
     Dimensions,
     Platform
 } from "react-native";
-import Modal from "react-native-modal";
-import ExtraDimensions from "react-native-extra-dimensions-android";
 import { useDispatch, useSelector } from "react-redux";
-import { setEndInningModal } from "../redux/modalSlice.js";
+import { closeModal } from "../redux/modalSlice.js";
+import { useNavigation } from "@react-navigation/native";
+import ExtraDimensions from "react-native-extra-dimensions-android";
+import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Spinner from "./Spinner.js";
-import { useNavigation } from "@react-navigation/native";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
+import { useEndInningMutation } from "../services/matchApi.js";
 
-const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
+const EndInningModal = ({ matchId }) => {
+  const { activeModal, payload } = useSelector(state => state.modal);
+  
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const deviceWidth = Dimensions.get("window").width;
 
+    const [endInning, { isLoading: isInningEnding }] = useEndInningMutation();
+
+    const deviceWidth = Dimensions.get("window").width;
     const deviceHeight =
         Platform.OS === "ios"
             ? Dimensions.get("window").height
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
-    const endInningModal = useSelector(state => state.modal.endInningModal);
-    const { accessToken } = useSelector(state => state.auth);
 
     const handleCloseModal = () => {
-        dispatch(setEndInningModal({ isShow: false }));
-        setShowSpinner(false);
+        dispatch(closeModal());
     };
 
     const handleConfirmModal = async () => {
         try {
-            setShowSpinner(true);
             if (!matchId) {
-                throw new Error("plz provide all the required field");
+                throw new Error("Please provide all the required fields");
             }
 
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URL}/end-inning/${matchId}`,
+            await endInning(matchId).unwrap();
 
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
-
-            const data = await response.json();
-            if (response.status !== 200) {
-                throw new Error(data.message);
-            } else {
-                navigation.navigate("initial-players-assign-screen", {
-                    matchId
-                });
-                dispatch(setEndInningModal({ isShow: false }));
-            }
+            navigation.replace("initial-players-assign-screen", { matchId });
+            handleCloseModal()
         } catch (error) {
-            console.log(error);
-        } finally {
-            setShowSpinner(false);
+            console.log("End inning error:", error);
         }
     };
+
     return (
         <Modal
-            isVisible={endInningModal.isShow}
+            isVisible={activeModal==="endInning"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}
@@ -85,7 +67,7 @@ const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
             <View style={styles.modal_container}>
                 <View style={styles.modal_content}>
                     <View style={styles.icon_wrapper}>
-                        {!showSpinner ? (
+                        {!isInningEnding ? (
                             <Icon
                                 name="error-outline"
                                 size={normalize(45)}
@@ -93,7 +75,7 @@ const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
                             />
                         ) : (
                             <Spinner
-                                isLoading={showSpinner}
+                                isLoading={true}
                                 spinnerColor="#F99F0D"
                                 spinnerSize={45}
                             />
@@ -106,17 +88,19 @@ const EndInningModal = ({ matchId, showSpinner, setShowSpinner }) => {
                     <TouchableOpacity
                         style={styles.confirm_btn}
                         onPress={handleConfirmModal}
+                        disabled={isInningEnding}
                     >
                         <Text style={styles.confirm_btn_text}>
-                            yes, i’m sure
+                            {isInningEnding ? "Processing..." : "Yes, I’m sure"}
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.close_btn}
                         onPress={handleCloseModal}
+                        disabled={isInningEnding}
                     >
-                        <Text style={styles.close_btn_text}>cancel</Text>
+                        <Text style={styles.close_btn_text}>Cancel</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -142,12 +126,6 @@ const styles = StyleSheet.create({
         paddingVertical: normalizeVertical(20),
         elevation: 1
     },
-    modal_title: {
-        fontSize: normalize(21),
-        fontFamily: "ubuntuMedium",
-        color: "#AF2B1C"
-    },
-
     modal_content: {
         justifyContent: "center",
         alignItems: "center",
@@ -174,7 +152,6 @@ const styles = StyleSheet.create({
         color: "#A8ACAF",
         textAlign: "center"
     },
-
     confirm_btn: {
         backgroundColor: "#F99F0D",
         paddingVertical: normalizeVertical(12),
@@ -185,12 +162,10 @@ const styles = StyleSheet.create({
     confirm_btn_text: {
         color: "white",
         fontSize: normalize(16),
-
         fontFamily: "robotoMedium",
         textTransform: "uppercase",
         textAlign: "center"
     },
-
     close_btn: {
         backgroundColor: "#f5f5f5",
         paddingVertical: normalizeVertical(10),
@@ -198,7 +173,6 @@ const styles = StyleSheet.create({
         borderRadius: normalize(8),
         elevation: 1
     },
-
     close_btn_text: {
         color: "#AF2B1C",
         fontSize: normalize(16),
