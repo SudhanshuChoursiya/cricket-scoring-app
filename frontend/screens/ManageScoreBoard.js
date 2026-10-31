@@ -84,7 +84,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     const overTimeLineScrollRef = useRef(null);
     useHideTabBar(navigation, isScreenFocused);
 
-    const { data, isLoading } = useGetMatchDetailsQuery(route.params?.matchId);
+    const { currentData, isLoading } = useGetMatchDetailsQuery(
+        route.params?.matchId
+    );
 
     const [updateScore, { isLoading: isUpdatingScore }] =
         useUpdateScoreMutation();
@@ -100,15 +102,15 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
     }, []);
 
     useEffect(() => {
-        if (data?.data) {
-            setMatchDetails(data.data);
+        if (currentData?.data) {
+            setMatchDetails(currentData.data);
             const {
                 isSuperOver,
                 isSecondInningStarted,
                 currentInning,
                 inning1,
                 superOver
-            } = data.data;
+            } = currentData.data;
 
             let currentInningDetails;
             if (!isSuperOver) {
@@ -116,18 +118,18 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 currentInningDetails =
                     !isSecondInningStarted && currentInning === 2
                         ? inning1
-                        : getCurrentInning(data.data);
+                        : getCurrentInning(currentData.data);
             } else {
                 // Super over
                 currentInningDetails =
                     !isSecondInningStarted && superOver.currentInning === 2
                         ? superOver.inning1
-                        : getCurrentInning(data.data);
+                        : getCurrentInning(currentData.data);
             }
 
             setCurrentInningDetails(currentInningDetails);
         }
-    }, [data, dispatch]);
+    }, [currentData?.data]);
 
     const handleBackPress = useCallback(() => {
         const protectedModals = new Set([
@@ -197,6 +199,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             }
 
             setCurrentInningDetails(currentInningDetails);
+
+            dispatch(setUndoStack(currentInningDetails?.currentOverTimeline));
         };
 
         // --- Modal Events ---
@@ -210,13 +214,13 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                 })
             );
 
-        const handleInningCompleted = () =>
+        const handleInningCompleted = () => {
             dispatch(
                 openModal({
                     type: "inningCompletion"
                 })
             );
-
+        };
         const handleMatchTied = () =>
             dispatch(
                 openModal({
@@ -269,19 +273,19 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         };
     }, [matchDetails?._id, dispatch]);
 
-    useEffect(() => {
-        if (matchDetails?._id) {
-            dispatch(clearUndoStack());
-        }
-    }, [matchDetails?._id]);
+    const activeInningDetails = getCurrentInning(matchDetails);
 
     useEffect(() => {
-        if (currentInningDetails?.currentOverTimeline.length > 0) {
+        if (activeInningDetails?.currentOverTimeline?.length > 0) {
+            dispatch(setUndoStack(activeInningDetails?.currentOverTimeline));
+        }
+    }, [matchDetails?._id, dispatch]);
+
+    useEffect(() => {
+        if (currentInningDetails?.currentOverTimeline?.length > 0) {
             overTimeLineScrollRef.current?.scrollToEnd({
                 animated: true
             });
-
-            dispatch(setUndoStack(currentInningDetails?.currentOverTimeline));
         }
     }, [currentInningDetails?.currentOverTimeline]);
 
@@ -321,8 +325,18 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
         }, [isScreenFocused, isLoading])
     );
 
+    const isMatchResultReady =
+        ["Win", "Tie", "Super Over", "Super Over Tie"].includes(
+            matchDetails?.matchResult?.status
+        ) && !matchDetails?.isSuperOverInProgress;
+
     const handleOpenModal = (modalType, payload = {}) => {
         try {
+            if (isMatchResultReady) {
+                dispatch(openModal({ type: "matchCompletion" }));
+                return;
+            }
+
             if (
                 checkAndNavigateToPendingAction(
                     matchDetails,
@@ -460,6 +474,11 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleUpdateScore = async (typeOfBall, payloadData) => {
         try {
+            if (isMatchResultReady) {
+                dispatch(openModal({ type: "matchCompletion" }));
+                return;
+            }
+
             if (
                 checkAndNavigateToPendingAction(
                     matchDetails,
@@ -525,25 +544,35 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleUndoScore = async () => {
         try {
-            let previousOverTimeline;
             const lastAction = undoStack[undoStack.length - 1];
+
+            if (!lastAction) {
+                dispatch(
+                    showToast({
+                        type: "error",
+                        message: "No more undo operation"
+                    })
+                );
+                return;
+            }
+
+            let previousOverTimeline;
+
             if (currentInningDetails?.currentOverBalls === 0) {
-                const lastOverNumber = lastAction?.overNumber;
-                // get all balls from that over
                 previousOverTimeline = undoStack.filter(
-                    b => b.overNumber === lastOverNumber
+                    b => b.overNumber === lastAction.overNumber
                 );
             }
 
-            dispatch(popUndoStack());
-
-            const response = await undoScore({
+            await undoScore({
                 matchId: route.params?.matchId,
                 lastAction,
                 previousOverTimeline
             }).unwrap();
+            dispatch(popUndoStack());
         } catch (error) {
             console.log(error);
+
             dispatch(
                 showToast({
                     type: "error",
@@ -557,17 +586,23 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const handleChangeStrike = async () => {
         try {
+            const matchId = route.params?.matchId;
+
+            if (!matchId) {
+                throw new Error("match id is missing");
+            }
+
             if (
                 checkAndNavigateToPendingAction(
                     matchDetails,
                     navigation,
-                    route.params?.matchId
+                    matchId
                 )
             ) {
                 return;
             }
 
-            const response = await changeStrike(route.params?.matchId).unwrap();
+            const response = await changeStrike({ matchId }).unwrap();
 
             dispatch(closeModal());
         } catch (error) {
@@ -585,7 +620,10 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     return (
         <>
-            {!isLoading && matchDetails && currentInningDetails ? (
+            {!isLoading &&
+            currentData?.data &&
+            matchDetails &&
+            currentInningDetails ? (
                 <View style={styles.wrapper}>
                     <View style={styles.scoreboard_wrapper}>
                         <View style={styles.header}>
@@ -646,15 +684,17 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                         </Text>
                                     </View>
                                 )}
-                            {matchDetails?.isSuperOver && (
-                                <View style={styles.match_status_wrapper}>
-                                    <Text style={styles.match_status}>
-                                        Super Over In Progress
-                                    </Text>
-                                </View>
-                            )}
+                            {matchDetails?.isSuperOver &&
+                                !isMatchResultReady && (
+                                    <View style={styles.match_status_wrapper}>
+                                        <Text style={styles.match_status}>
+                                            Super Over In Progress
+                                        </Text>
+                                    </View>
+                                )}
 
-                            {matchDetails?.matchStatus === "in progress" &&
+                            {!isMatchResultReady &&
+                                matchDetails?.matchStatus === "in progress" &&
                                 matchDetails?.isSecondInningStarted &&
                                 !matchDetails?.isSuperOver && (
                                     <View style={styles.match_status_wrapper}>
@@ -680,7 +720,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                         </Text>
                                     </View>
                                 )}
-                            {matchDetails?.matchStatus === "super over" &&
+                            {!isMatchResultReady &&
+                                matchDetails?.matchStatus === "super over" &&
                                 matchDetails?.isSecondInningStarted &&
                                 matchDetails?.isSuperOver && (
                                     <View style={styles.match_status_wrapper}>
@@ -710,8 +751,9 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                     </View>
                                 )}
 
-                            {matchDetails?.matchStatus === "completed" &&
-                                matchDetails?.matchResult && (
+                            {
+                                //matchDetails?.matchStatus === "completed" &&
+                                isMatchResultReady && (
                                     <View style={styles.match_status_wrapper}>
                                         <Text style={styles.match_status}>
                                             {matchDetails.matchResult.status ===
@@ -724,7 +766,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                       matchDetails.matchResult
                                                           .winningMargin
                                                   }`
-                                                : matchDetails.matchResult
+                                                : matchDetails?.matchResult
                                                       .status === "Tie"
                                                 ? "Match Tied"
                                                 : matchDetails.matchResult
@@ -742,7 +784,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                                                 : ""}
                                         </Text>
                                     </View>
-                                )}
+                                )
+                            }
                         </View>
 
                         <View style={styles.current_batsman_wrapper}>
@@ -1077,6 +1120,7 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
                     <MatchCompletionModal
                         matchDetails={matchDetails}
                         handleUndoScore={handleUndoScore}
+                        isMatchResultReady={isMatchResultReady}
                     />
                     <OutMethodModal
                         matchDetails={matchDetails}

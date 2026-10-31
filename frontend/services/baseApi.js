@@ -15,8 +15,8 @@ export const baseApi = createApi({
     tagTypes: [
         "Matches",
         "Match",
-        "Tournament",
         "Tournaments",
+        "Tournament",
         "Teams",
         "Team",
         "Auth"

@@ -10,6 +10,7 @@ import {
     SafeAreaView,
     StyleSheet
 } from "react-native";
+
 import { useFonts } from "expo-font";
 // Font imports
 import kittenBold from "./assets/KittenBold.ttf";
@@ -62,6 +63,7 @@ import SelectCaptain from "./screens/SelectCaptain.js";
 import ChangeSquad from "./screens/ChangeSquad.js";
 import SelectReplacementPlayer from "./screens/SelectReplacementPlayer.js";
 import SearchScreen from "./screens/SearchScreen.js";
+import NetworkStatusBanner from "./components/NetworkStatusBanner.js";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
 import { normalize, normalizeVertical } from "./utils/responsive.js";
@@ -324,6 +326,7 @@ export const Layout = () => {
                     <TabNavigator />
                 )}
             </NavigationContainer>
+            <NetworkStatusBanner />
         </SafeAreaView>
     );
 };

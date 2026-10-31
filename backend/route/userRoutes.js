@@ -26,9 +26,9 @@ import {
     endMatchController,
     getAllTeamsController,
     getSingleTeamController,
-    getAllMatchDetailsController,
-    getAllTournamentsController,
-    getSingleMatchDetailsController,
+    getAllMatchController,
+    getAllTournamentController,
+    getSingleMatchController,
     getSingleTournamentController,
     getSearchedMatchesController,
     getSearchedTournamentsController
@@ -161,9 +161,9 @@ router.post(
 router.get("/check-auth", verifyToken, checkAuthController);
 router.get("/get-all-teams", verifyToken, getAllTeamsController);
 router.get("/get-single-team/:teamId", verifyToken, getSingleTeamController);
-router.get("/get-all-matches", getAllMatchDetailsController);
-router.get("/get-all-tournaments", getAllTournamentsController);
-router.get("/get-match-details/:matchId", getSingleMatchDetailsController);
+router.get("/get-all-matches", getAllMatchController);
+router.get("/get-all-tournaments", getAllTournamentController);
+router.get("/get-match-details/:matchId", getSingleMatchController);
 router.get("/get-tournament-details/:tournamentId", getSingleTournamentController);
 router.get("/search-matches", verifyToken, getSearchedMatchesController);
 router.get("/search-tournaments", verifyToken, getSearchedTournamentsController);

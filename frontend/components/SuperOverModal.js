@@ -40,7 +40,7 @@ const SuperOverModal = ({ matchId }) => {
             : ExtraDimensions.get("REAL_WINDOW_HEIGHT");
 
     const handleCloseModal = () => {
-        dispatch(closeModal);
+        dispatch(closeModal());
     };
 
     const handleConfirmModal = async () => {

@@ -14,6 +14,7 @@ import { SignupModel } from "../models/signup.js";
 import { TeamModel } from "../models/team.js";
 import { MatchModel } from "../models/match.js";
 import { TournamentModel } from "../models/tournament.js";
+import { PlayerModel } from "../models/player.js";
 import {
     uploadToCloudinary,
     removeFromCloudinary
@@ -683,8 +684,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
                 }
             } else {
                 if (match.inning2.totalScore >= match.targetScore) {
-                    match.matchStatus = "completed";
-
                     match.matchResult = {
                         status: "Win",
                         winningTeam: `${match.inning2.battingTeam.name}`,
@@ -699,8 +698,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     match.inning2.wicketsFallen >= 10
                 ) {
                     if (match.inning2.totalScore === match.targetScore - 1) {
-                        match.matchStatus = "completed";
-
                         match.matchResult = {
                             status: "Tie",
                             winningTeam: null,
@@ -709,8 +706,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
                         io.to(matchId).emit("matchTied");
                     } else {
-                        match.matchStatus = "completed";
-
                         match.matchResult = {
                             status: "Win",
                             winningTeam: `${match.inning2.bowlingTeam.name}`,
@@ -744,7 +739,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
                     match.superOver.inning2.totalScore >=
                     match.superOver.targetScore
                 ) {
-                    match.matchStatus = "completed";
                     match.isSuperOverInProgress = false;
                     match.matchResult = {
                         status: "Super Over",
@@ -762,7 +756,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
                         match.superOver.inning2.totalScore ===
                         match.superOver.targetScore - 1
                     ) {
-                        match.matchStatus = "completed";
                         match.isSuperOverInProgress = false;
                         match.matchResult = {
                             status: "Super Over Tie",
@@ -772,7 +765,6 @@ const updateScoreController = asyncHandler(async (req, res) => {
 
                         io.to(matchId).emit("superOverTied");
                     } else {
-                        match.matchStatus = "completed";
                         match.isSuperOverInProgress = false;
                         match.matchResult = {
                             status: "Super Over",
@@ -1148,8 +1140,760 @@ const updateScoreController = asyncHandler(async (req, res) => {
     );
 });
 
+//chatgpt code
+/*const updateScoreController = asyncHandler(async (req, res) => {
+    const {
+        runs,
+        isFour,
+        isSix,
+        isWide,
+        isNoball,
+        isLegBye,
+        isBye,
+        isDeadBall,
+        isWicket,
+        outMethod,
+        fielderId,
+        outEnd
+    } = req.body;
+
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    // Prevent scoring after the match has been officially ended.
+    if (
+        match.matchStatus === "completed" ||
+        match.matchStatus === "abandoned"
+    ) {
+        throw new ApiError(400, "Match has already ended");
+    }
+
+    const currentInning = getCurrentInning(match);
+
+    const currentBatsmen = currentInning.currentBatsmen;
+    const currentBowler = currentInning.currentBowler;
+
+    const strikeBatsman = currentBatsmen.find(batsman => batsman.onStrike);
+
+    const nonStrikeBatsman = currentBatsmen.find(
+        batsman => batsman.onStrike === false
+    );
+
+    if (!strikeBatsman || !nonStrikeBatsman || !currentBowler) {
+        throw new ApiError(400, "Current batsmen or bowler not found");
+    }
+
+    const batter = currentInning.battingTeam.playing11.find(player =>
+        player._id.equals(strikeBatsman._id)
+    );
+
+    const bowler = currentInning.bowlingTeam.playing11.find(player =>
+        player._id.equals(currentBowler._id)
+    );
+
+    const currentFielder = currentInning.bowlingTeam.playing11.find(player =>
+        player._id.equals(fielderId)
+    );
+
+    // Check whether the current innings has reached its endpoint.
+    // IMPORTANT: This calculates the result but does NOT officially
+    // complete the match. The user must click End Match.
+    const checkGameProgress = () => {
+        if (!match.isSuperOver) {
+            if (match.currentInning === 1) {
+                if (
+                    match.inning1.wicketsFallen >= 10 ||
+                    match.inning1.currentOvers >= match.inning1.totalOvers
+                ) {
+                    match.matchStatus = "inning break";
+
+                    match.currentInning = 2;
+
+                    match.targetScore = match.inning1.totalScore + 1;
+
+                    match.isInningChangePending = true;
+
+                    io.to(matchId).emit("inningCompleted");
+                }
+            } else {
+                if (match.inning2.totalScore >= match.targetScore) {
+                    // Do not set matchStatus to completed here.
+                    match.matchResult = {
+                        status: "Win",
+                        winningTeam: match.inning2.battingTeam.name,
+                        winningMargin: `${
+                            10 - match.inning2.wicketsFallen
+                        } wickets`
+                    };
+
+                    io.to(matchId).emit("matchCompleted");
+                } else if (
+                    match.inning2.currentOvers >= match.inning2.totalOvers ||
+                    match.inning2.wicketsFallen >= 10
+                ) {
+                    if (match.inning2.totalScore === match.targetScore - 1) {
+                        // Do not set matchStatus to completed here.
+                        match.matchResult = {
+                            status: "Tie",
+                            winningTeam: null,
+                            winningMargin: null
+                        };
+
+                        io.to(matchId).emit("matchTied");
+                    } else {
+                        // Do not set matchStatus to completed here.
+                        match.matchResult = {
+                            status: "Win",
+                            winningTeam: match.inning2.bowlingTeam.name,
+                            winningMargin: `${
+                                match.targetScore - match.inning2.totalScore
+                            } runs`
+                        };
+
+                        io.to(matchId).emit("matchCompleted");
+                    }
+                }
+            }
+        } else {
+            if (match.superOver.currentInning === 1) {
+                if (
+                    match.superOver.inning1.wicketsFallen >= 2 ||
+                    match.superOver.inning1.currentOvers >=
+                        match.superOver.inning1.totalOvers
+                ) {
+                    match.matchStatus = "inning break";
+                    match.isSuperOverInProgress = false;
+
+                    match.superOver.currentInning = 2;
+
+                    match.superOver.targetScore =
+                        match.superOver.inning1.totalScore + 1;
+
+                    match.isInningChangePending = true;
+
+                    io.to(matchId).emit("inningCompleted");
+                }
+            } else {
+                if (
+                    match.superOver.inning2.totalScore >=
+                    match.superOver.targetScore
+                ) {
+                    // Do not set matchStatus to completed here.
+                    match.isSuperOverInProgress = false;
+
+                    match.matchResult = {
+                        status: "Super Over",
+                        winningTeam: match.superOver.inning2.battingTeam.name,
+                        winningMargin: null
+                    };
+
+                    io.to(matchId).emit("matchCompleted");
+                } else if (
+                    match.superOver.inning2.currentOvers >=
+                        match.superOver.inning2.totalOvers ||
+                    match.superOver.inning2.wicketsFallen >= 2
+                ) {
+                    if (
+                        match.superOver.inning2.totalScore ===
+                        match.superOver.targetScore - 1
+                    ) {
+                        // Do not set matchStatus to completed here.
+                        match.isSuperOverInProgress = false;
+
+                        match.matchResult = {
+                            status: "Super Over Tie",
+                            winningTeam: null,
+                            winningMargin: null
+                        };
+
+                        io.to(matchId).emit("superOverTied");
+                    } else {
+                        // Do not set matchStatus to completed here.
+                        match.isSuperOverInProgress = false;
+
+                        match.matchResult = {
+                            status: "Super Over",
+                            winningTeam:
+                                match.superOver.inning2.battingTeam.name,
+                            winningMargin: null
+                        };
+
+                        io.to(matchId).emit("matchCompleted");
+                    }
+                }
+            }
+        }
+    };
+
+    // Update regular deliveries.
+    const updateRegularBall = () => {
+        currentInning.totalScore += runs;
+        currentInning.currentOverBalls += 1;
+
+        strikeBatsman.runs += runs;
+        strikeBatsman.balls += 1;
+
+        batter.runs += runs;
+        batter.balls += 1;
+
+        if (isFour) {
+            strikeBatsman.fours += 1;
+            batter.fours += 1;
+        }
+
+        if (isSix) {
+            strikeBatsman.sixes += 1;
+            batter.sixes += 1;
+        }
+
+        currentBowler.ballsBowled += 1;
+        currentBowler.runsConceded += runs;
+
+        bowler.ballsBowled += 1;
+        bowler.runsConceded += runs;
+
+        if (isWicket) {
+            if (outMethod === "run out" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                strikeBatsman.caughtBy = currentFielder?.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "run out" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                nonStrikeBatsman.caughtBy = currentFielder?.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired hurt" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (
+                outMethod === "retired hurt" &&
+                outEnd === "nonStriker"
+            ) {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (outMethod === "retired out" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                batter.isOut = true;
+
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired out" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                batter.isOut = true;
+
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+
+                currentInning.wicketsFallen += 1;
+            } else {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                strikeBatsman.caughtBy = currentFielder?.name;
+                strikeBatsman.dismissBy = currentBowler.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+                batter.dismissBy = currentBowler.name;
+
+                currentInning.wicketsFallen += 1;
+
+                currentBowler.wickets += 1;
+                bowler.wickets += 1;
+            }
+
+            const isLastBall =
+                currentInning.currentOvers === currentInning.totalOvers - 1 &&
+                currentInning.currentOverBalls === 6;
+
+            if (!isLastBall && currentInning.wicketsFallen !== 10) {
+                if (!match.isSuperOver) {
+                    if (
+                        match.currentInning === 2 &&
+                        match.inning2.totalScore !== match.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.to(matchId).emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.to(matchId).emit("wicketFallen");
+                    }
+                } else {
+                    if (
+                        match.superOver.currentInning === 2 &&
+                        match.superOver.inning2.totalScore !==
+                            match.superOver.targetScore
+                    ) {
+                        match.isSelectNewBatsmanPending = true;
+                        io.to(matchId).emit("wicketFallen");
+                    } else {
+                        match.isSelectNewBatsmanPending = true;
+                        io.to(matchId).emit("wicketFallen");
+                    }
+                }
+            }
+        }
+
+        currentInning.currentOverTimeline.push({
+            overNumber: currentInning.currentOvers,
+            ballNumber: currentInning.currentOverBalls,
+            runs,
+            isFour,
+            isSix,
+            isWide,
+            isNoball,
+            isLegBye,
+            isBye,
+            isDeadBall,
+            isWicket,
+            outMethod,
+            currentBowlerId: currentBowler._id,
+            strikeBatsmanId: strikeBatsman._id,
+            nonStrikeBatsmanId: nonStrikeBatsman._id
+        });
+    };
+
+    // Update extras.
+    const updateExtras = () => {
+        if (isLegBye || isBye) {
+            currentInning.totalScore += runs;
+            currentInning.currentOverBalls += 1;
+
+            strikeBatsman.balls += 1;
+            batter.balls += 1;
+
+            currentBowler.ballsBowled += 1;
+            bowler.ballsBowled += 1;
+        } else if (isNoball) {
+            currentInning.totalScore += 1 + runs;
+
+            strikeBatsman.runs += runs;
+            batter.runs += runs;
+
+            if (isFour) {
+                strikeBatsman.fours += 1;
+                batter.fours += 1;
+            }
+
+            if (isSix) {
+                strikeBatsman.sixes += 1;
+                batter.sixes += 1;
+            }
+
+            currentBowler.runsConceded += 1 + runs;
+            bowler.runsConceded += 1 + runs;
+        } else if (isWide) {
+            currentInning.totalScore += 1 + runs;
+
+            currentBowler.runsConceded += 1 + runs;
+            bowler.runsConceded += 1 + runs;
+        }
+
+        if (isWicket) {
+            if (outMethod === "runout" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                strikeBatsman.caughtBy = currentFielder?.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "runout" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                nonStrikeBatsman.caughtBy = currentFielder?.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired hurt" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (
+                outMethod === "retired hurt" &&
+                outEnd === "nonStriker"
+            ) {
+                nonStrikeBatsman.isOut = true;
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+            } else if (outMethod === "retired out" && outEnd === "striker") {
+                strikeBatsman.isOut = true;
+                batter.isOut = true;
+
+                strikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+
+                currentInning.wicketsFallen += 1;
+            } else if (outMethod === "retired out" && outEnd === "nonStriker") {
+                nonStrikeBatsman.isOut = true;
+                batter.isOut = true;
+
+                nonStrikeBatsman.outMethod = outMethod;
+                batter.outMethod = outMethod;
+
+                currentInning.wicketsFallen += 1;
+            } else {
+                strikeBatsman.isOut = true;
+                strikeBatsman.outMethod = outMethod;
+                strikeBatsman.caughtBy = currentFielder?.name;
+                strikeBatsman.dismissBy = currentBowler.name;
+
+                batter.isOut = true;
+                batter.outMethod = outMethod;
+                batter.caughtBy = currentFielder?.name;
+                batter.dismissBy = currentBowler.name;
+
+                currentInning.wicketsFallen += 1;
+
+                // Preserve the existing extras logic.
+                currentBowler.wickets = +1;
+                bowler.wickets = +1;
+            }
+
+            const isLastBall =
+                currentInning.currentOvers === currentInning.totalOvers - 1 &&
+                currentInning.currentOverBalls === 6;
+
+            if (!isLastBall && currentInning.wicketsFallen !== 10) {
+                match.isSelectNewBatsmanPending = true;
+                io.to(matchId).emit("wicketFallen");
+            }
+        }
+
+        currentInning.currentOverTimeline.push({
+            overNumber: currentInning.currentOvers,
+            ballNumber: currentInning.currentOverBalls,
+            runs,
+            isFour,
+            isSix,
+            isWide,
+            isNoball,
+            isLegBye,
+            isBye,
+            isDeadBall,
+            isWicket,
+            outMethod,
+            currentBowlerId: currentBowler._id,
+            strikeBatsmanId: strikeBatsman._id,
+            nonStrikeBatsmanId: nonStrikeBatsman._id
+        });
+    };
+
+    // Switch strike after odd runs.
+    const switchStrike = () => {
+        if (runs % 2 !== 0) {
+            currentInning.currentBatsmen.forEach(batsman => {
+                batsman.onStrike = !batsman.onStrike;
+            });
+        }
+    };
+
+    // Handle over completion.
+    const endOver = () => {
+        if (currentInning.currentOverBalls === 6) {
+            currentInning.currentOvers += 1;
+            currentInning.currentOverBalls = 0;
+
+            if (runs % 2 === 0) {
+                currentInning.currentBatsmen.forEach(batsman => {
+                    batsman.onStrike = !batsman.onStrike;
+                });
+            }
+
+            if (
+                currentInning.currentOvers !== currentInning.totalOvers &&
+                currentInning.wicketsFallen !== 10
+            ) {
+                if (!match.isSuperOver) {
+                    if (match.currentInning === 2) {
+                        if (match.inning2.totalScore !== match.targetScore) {
+                            match.isOverChangePending = true;
+                            io.to(matchId).emit("overCompleted");
+                        }
+                    } else {
+                        match.isOverChangePending = true;
+                        io.to(matchId).emit("overCompleted");
+                    }
+                } else {
+                    if (match.superOver.currentInning === 2) {
+                        if (
+                            match.superOver.inning2.totalScore !==
+                            match.superOver.targetScore
+                        ) {
+                            match.isOverChangePending = true;
+                            io.to(matchId).emit("overCompleted");
+                        }
+                    } else {
+                        match.isOverChangePending = true;
+                        io.to(matchId).emit("overCompleted");
+                    }
+                }
+            }
+        }
+    };
+
+    // Apply the ball update.
+    if (!isWide && !isNoball && !isLegBye && !isBye && !isDeadBall) {
+        updateRegularBall();
+    } else {
+        updateExtras();
+    }
+
+    switchStrike();
+    endOver();
+    checkGameProgress();
+
+    io.to(matchId).emit("scoreUpdated", { match });
+
+    if (shouldShowSummary(match, currentInning)) {
+        io.to(matchId).emit("showSummary");
+    }
+
+    if (shouldShowHighlightEvent(isFour, isSix, isWicket)) {
+        io.to(matchId).emit("showHighlightEvent", {
+            isFour,
+            isSix,
+            isWicket
+        });
+    }
+
+    // Save match details.
+    await match.save();
+
+    const response = { match };
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, response, "match score updated successfully")
+        );
+});
+*/
+
 //change bowler controller
 const changeBowlerController = asyncHandler(async (req, res) => {
+    const { newBowlerId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!newBowlerId) {
+        throw new ApiError(400, "Please provide new bowler id");
+    }
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "Match not found");
+    }
+
+    const currentInning = getCurrentInning(match);
+
+    const newBowler = currentInning.bowlingTeam.playing11.find(
+        player => player._id.toString() === newBowlerId.toString()
+    );
+
+    if (!newBowler) {
+        throw new ApiError(404, "Bowler not found in the playing XI");
+    }
+
+    // Update the current bowler
+    currentInning.currentBowler = newBowler;
+    match.isOverChangePending = false;
+
+    if (currentInning.currentOverBalls === 0) {
+        currentInning.currentOverTimeline = [];
+    }
+
+    const bowlerPlayerId = newBowler?.playerId;
+
+    let shouldShowProfile = false;
+    let newBowlerProfile = null;
+
+    // Only track valid player IDs
+    if (bowlerPlayerId) {
+        const alreadyShown = match.shownBowlerProfileIds.some(id =>
+            id.equals(bowlerPlayerId)
+        );
+
+        if (!alreadyShown) {
+            // Look up the player's career profile
+            newBowlerProfile = await PlayerModel.findOne({
+                playerId: bowlerPlayerId
+            }).lean();
+
+            // If no career record exists, create a display-only fallback
+            if (!newBowlerProfile) {
+                newBowlerProfile = {
+                    playerId: bowlerPlayerId,
+                    name: newBowler.name,
+                    matches: "-",
+                    wickets: "-",
+                    ballsBowled: "-",
+                    runsConceded: "-",
+                    dismissals: "-"
+                };
+            }
+
+            // Record this player so their profile is not shown again
+            match.shownBowlerProfileIds.push(bowlerPlayerId);
+            shouldShowProfile = true;
+        }
+    }
+
+    // Save before emitting events
+    await match.save();
+
+    io.to(matchId).emit("scoreUpdated", {
+        match
+    });
+
+    if (shouldShowProfile && newBowlerProfile) {
+        io.to(matchId).emit("showBowlerProfile", {
+            newBowlerProfile
+        });
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, match, "Bowler changed successfully"));
+});
+
+//update out batsman controller
+const updateOutBatsmanController = asyncHandler(async (req, res) => {
+    const { newBatsmanId } = req.body;
+    const user = req.user;
+    const matchId = req.params.matchId;
+
+    if (!newBatsmanId) {
+        throw new ApiError(400, "Please provide new batsman id");
+    }
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+    if (!match) {
+        throw new ApiError(404, "Match not found");
+    }
+
+    const currentInning = getCurrentInning(match);
+    const battingTeam = currentInning.battingTeam;
+
+    const newBatsman = battingTeam.playing11.find(
+        player => player._id.toString() === newBatsmanId.toString()
+    );
+
+    if (!newBatsman) {
+        throw new ApiError(404, "Batsman not found in the playing XI");
+    }
+
+    const outBatsman = currentInning.currentBatsmen.find(
+        batsman => batsman.isOut
+    );
+
+    if (!outBatsman) {
+        throw new ApiError(400, "No dismissed batsman found");
+    }
+
+    // Replace the dismissed batsman while preserving strike position.
+    currentInning.currentBatsmen = currentInning.currentBatsmen.map(batsman =>
+        batsman.isOut
+            ? {
+                  ...newBatsman.toObject(),
+                  onStrike: outBatsman.onStrike
+              }
+            : batsman
+    );
+
+    match.isSelectNewBatsmanPending = false;
+
+    let shouldShowProfile = false;
+    let newBatsmanProfile = null;
+
+    const batsmanPlayerId = newBatsman.playerId;
+
+    if (batsmanPlayerId) {
+        if (!match.shownBatsmanProfileIds) {
+            match.shownBatsmanProfileIds = [];
+        }
+
+        const alreadyShown = match.shownBatsmanProfileIds.some(id =>
+            id.equals(batsmanPlayerId)
+        );
+
+        if (!alreadyShown) {
+            newBatsmanProfile = await PlayerModel.findOne({
+                playerId: batsmanPlayerId
+            }).lean();
+
+            if (!newBatsmanProfile) {
+                newBatsmanProfile = {
+                    playerId: batsmanPlayerId,
+                    name: newBatsman.name,
+                    matches: "-",
+                    runs: "-",
+                    ballsFaced: "-",
+                    fours: "-",
+                    sixes: "-",
+
+                    dismissals: "-"
+                };
+            }
+
+            match.shownBatsmanProfileIds.push(batsmanPlayerId);
+            shouldShowProfile = true;
+        }
+    }
+
+    await match.save();
+
+    io.to(matchId).emit("scoreUpdated", { match });
+
+    if (shouldShowProfile && newBatsmanProfile) {
+        io.to(matchId).emit("showBatsmanProfile", {
+            newBatsmanProfile
+        });
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, match, "Batsman changed successfully"));
+});
+
+/*const changeBowlerController = asyncHandler(async (req, res) => {
     const { newBowlerId } = req.body;
     const user = req.user;
     const matchId = req.params.matchId;
@@ -1177,17 +1921,33 @@ const changeBowlerController = asyncHandler(async (req, res) => {
     if (currentInning.currentOverBalls === 0) {
         currentInning.currentOverTimeline = [];
     }
+
+    let newBowlerProfile = null;
+    if (newBowler?.ballsBowled !== 0) {
+        newBowlerProfile = await PlayerModel.findOne({
+            playerId: newBowler?.playerId
+        });
+    }
+    
+    
+
     io.to(matchId).emit("scoreUpdated", {
         match
     });
+    if (newBowlerProfile) {
+        io.to(matchId).emit("showBowlerProfile", {
+            newBowlerProfile
+        });
+    }
     await match.save();
 
     res.status(200).json(
         new ApiResponse(200, match, "bowler changed successfully")
     );
 });
+*/
 
-const updateOutBatsmanController = asyncHandler(async (req, res) => {
+/*const updateOutBatsmanController = asyncHandler(async (req, res) => {
     const newBatsmanId = req.body.newBatsmanId;
     const user = req.user;
     const matchId = req.params.matchId;
@@ -1229,15 +1989,27 @@ const updateOutBatsmanController = asyncHandler(async (req, res) => {
     currentInning.currentBatsmen = updatedCurrentBatsmen;
 
     match.isSelectNewBatsmanPending = false;
+
+    const newBatsmanProfile = await PlayerModel.findOne({
+        playerId: newBatsman?.playerId
+    });
+
     io.to(matchId).emit("scoreUpdated", {
         match
     });
+
+    if (newBatsmanProfile) {
+        io.to(matchId).emit("showBatsmanProfile", {
+            newBatsmanProfile
+        });
+    }
+
     await match.save();
 
     res.status(200).json(
         new ApiResponse(200, match, "batsman changed successfully")
     );
-});
+});*/
 
 const changeBatsmanController = asyncHandler(async (req, res) => {
     const { replacedBatsmanId, newBatsmanId } = req.body;
@@ -1323,8 +2095,7 @@ const changeBatsmanController = asyncHandler(async (req, res) => {
 
 const changeStrikeController = asyncHandler(async (req, res) => {
     const user = req.user;
-    const matchId = req.params.matchId;
-
+    const matchId = req.params?.matchId;
     const match = await MatchModel.findOne({
         _id: matchId,
         createdBy: user._id
@@ -1348,7 +2119,7 @@ const changeStrikeController = asyncHandler(async (req, res) => {
     await match.save();
 
     res.status(200).json(
-        new ApiResponse(200, match, "bowler changed successfully")
+        new ApiResponse(200, match, "strike changed successfully")
     );
 });
 
@@ -1822,7 +2593,6 @@ const removeSubstitutesController = asyncHandler(async (req, res) => {
     );
 });
 
-//undo controller
 const undoScoreController = asyncHandler(async (req, res) => {
     const matchId = req.params.matchId;
     const { lastAction, previousOverTimeline } = req.body;
@@ -1841,6 +2611,19 @@ const undoScoreController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "match not found");
     }
 
+    // Officially finalized matches cannot be undone
+    if (
+        match.matchStatus === "completed" ||
+        match.matchStatus === "abandoned"
+    ) {
+        throw new ApiError(
+            400,
+            "Cannot undo score after the match has been finalized"
+        );
+    }
+
+    const resultStatuses = ["Win", "Tie", "Super Over", "Super Over Tie"];
+
     if (!match.isSuperOver) {
         if (match.isInningChangePending && match.currentInning === 2) {
             match.currentInning = 1;
@@ -1849,7 +2632,10 @@ const undoScoreController = asyncHandler(async (req, res) => {
             match.matchStatus = "in progress";
         }
 
-        if (match.matchStatus === "completed" && match.currentInning === 2) {
+        if (
+            resultStatuses.includes(match.matchResult?.status) &&
+            match.currentInning === 2
+        ) {
             match.matchStatus = "in progress";
 
             match.matchResult = {
@@ -1871,7 +2657,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
         }
 
         if (
-            match.matchStatus === "completed" &&
+            resultStatuses.includes(match.matchResult?.status) &&
             match.superOver.currentInning === 2
         ) {
             match.matchStatus = "super over";
@@ -2000,6 +2786,7 @@ const undoScoreController = asyncHandler(async (req, res) => {
     currentInning.currentBowler = currentBowler;
 
     currentInning.currentOverTimeline.pop();
+
     io.to(matchId).emit("scoreUpdated", {
         match
     });
@@ -2022,6 +2809,258 @@ const undoScoreController = asyncHandler(async (req, res) => {
         new ApiResponse(200, match, "last action undo successfully")
     );
 });
+
+//new chatgpt code
+/*const undoScoreController = asyncHandler(async (req, res) => {
+    const matchId = req.params.matchId;
+    const { lastAction, previousOverTimeline } = req.body;
+    const user = req.user;
+
+    if (!lastAction) {
+        throw new ApiError(400, "no action to undo");
+    }
+
+    const match = await MatchModel.findOne({
+        _id: matchId,
+        createdBy: user._id
+    });
+
+
+    if (!match) {
+        throw new ApiError(404, "match not found");
+    }
+
+    // Officially finalized matches cannot be undone
+    if (
+        match.matchStatus === "completed" ||
+        match.matchStatus === "abandoned"
+    ) {
+        throw new ApiError(
+            400,
+            "Cannot undo score after the match has been finalized"
+        );
+    }
+
+    const resultStatuses = [
+        "Win",
+        "Tie",
+        "Super Over",
+        "Super Over Tie"
+    ];
+
+    if (!match.isSuperOver) {
+        // Undo pending inning change
+        if (
+            match.isInningChangePending &&
+            match.currentInning === 2
+        ) {
+            match.currentInning = 1;
+            match.isInningChangePending = false;
+            match.targetScore = null;
+            match.matchStatus = "in progress";
+        }
+
+        // Clear a result that was decided but not finalized
+        if (
+            match.currentInning === 2 &&
+            resultStatuses.includes(match.matchResult?.status)
+        ) {
+            match.matchResult = {
+                status: null,
+                winningTeam: null,
+                winningMargin: null
+            };
+
+            match.matchStatus = "in progress";
+        }
+    } else {
+        // Undo pending Super Over inning change
+        if (
+            match.isInningChangePending &&
+            match.superOver.currentInning === 2
+        ) {
+            match.superOver.currentInning = 1;
+            match.isInningChangePending = false;
+            match.isSuperOverInProgress = true;
+            match.superOver.targetScore = null;
+            match.matchStatus = "super over";
+        }
+
+        // Clear a Super Over result that was not finalized
+        if (
+            match.superOver.currentInning === 2 &&
+            resultStatuses.includes(match.matchResult?.status)
+        ) {
+            match.matchResult = {
+                status: null,
+                winningTeam: null,
+                winningMargin: null
+            };
+
+            match.matchStatus = "super over";
+            match.isSuperOverInProgress = true;
+        }
+    }
+
+    const currentInning = getCurrentInning(match);
+
+    if (!currentInning) {
+        throw new ApiError(400, "current inning not found");
+    }
+
+    const strikeBatsman =
+        currentInning.battingTeam.playing11.find(player =>
+            player._id.equals(lastAction.strikeBatsmanId)
+        );
+
+    const nonStrikeBatsman =
+        currentInning.battingTeam.playing11.find(player =>
+            player._id.equals(lastAction.nonStrikeBatsmanId)
+        );
+
+    const currentBowler =
+        currentInning.bowlingTeam.playing11.find(player =>
+            player._id.equals(lastAction.currentBowlerId)
+        );
+
+    
+    // Update total score
+    currentInning.totalScore -=
+        lastAction.isWide || lastAction.isNoball
+            ? 1 + lastAction.runs
+            : lastAction.runs;
+
+    // Update striker stats
+    strikeBatsman.runs -=
+        lastAction.isWide ||
+        lastAction.isLegBye ||
+        lastAction.isBye ||
+        lastAction.isDeadBall
+            ? 0
+            : lastAction.runs;
+
+    strikeBatsman.balls -=
+        lastAction.isWide ||
+        lastAction.isNoball ||
+        lastAction.isDeadBall
+            ? 0
+            : 1;
+
+    if (lastAction.isFour) {
+        strikeBatsman.fours -= 1;
+    }
+
+    if (lastAction.isSix) {
+        strikeBatsman.sixes -= 1;
+    }
+
+    // Undo wicket
+    if (lastAction.isWicket) {
+        if (strikeBatsman.isOut) {
+            strikeBatsman.isOut = false;
+            strikeBatsman.outMethod = null;
+            strikeBatsman.caughtBy = null;
+            strikeBatsman.dismissBy = null;
+        }
+
+        if (nonStrikeBatsman.isOut) {
+            nonStrikeBatsman.isOut = false;
+            nonStrikeBatsman.outMethod = null;
+            nonStrikeBatsman.caughtBy = null;
+            nonStrikeBatsman.dismissBy = null;
+        }
+
+        if (lastAction.outMethod !== "retired hurt") {
+            currentInning.wicketsFallen -= 1;
+        }
+
+        if (match.isSelectNewBatsmanPending) {
+            match.isSelectNewBatsmanPending = false;
+        }
+    }
+
+    currentInning.currentBatsmen = [
+        {
+            ...strikeBatsman.toObject(),
+            onStrike: true
+        },
+        {
+            ...nonStrikeBatsman.toObject(),
+            onStrike: false
+        }
+    ];
+
+    // Update bowler stats
+    currentBowler.runsConceded -=
+        lastAction.isLegBye ||
+        lastAction.isBye ||
+        lastAction.isDeadBall
+            ? 0
+            : lastAction.isWide || lastAction.isNoball
+            ? 1 + lastAction.runs
+            : lastAction.runs;
+
+    if (
+        !lastAction.isWide &&
+        !lastAction.isNoball &&
+        !lastAction.isDeadBall
+    ) {
+        currentBowler.ballsBowled -= 1;
+
+        if (currentInning.currentOverBalls === 0) {
+            currentInning.currentOvers -= 1;
+            currentInning.currentOverBalls = 5;
+            currentInning.currentOverTimeline = previousOverTimeline || [];
+
+            if (match.isOverChangePending) {
+                match.isOverChangePending = false;
+            }
+        } else {
+            currentInning.currentOverBalls -= 1;
+        }
+    }
+
+    if (
+        lastAction.isWicket &&
+        !lastAction.isNoball &&
+        lastAction.outMethod !== "run out" &&
+        lastAction.outMethod !== "retired hurt" &&
+        lastAction.outMethod !== "retired out"
+    ) {
+        currentBowler.wickets -= 1;
+    }
+
+    currentInning.currentBowler = currentBowler;
+
+    // Remove the last delivery from the timeline
+    currentInning.currentOverTimeline.pop();
+
+    // Save first so clients receive the persisted state
+    await match.save();
+
+    io.to(matchId).emit("scoreUpdated", {
+        match
+    });
+
+    if (shouldShowSummary(match, currentInning)) {
+        io.to(matchId).emit("hideSummary");
+    }
+
+    if (
+        shouldShowHighlightEvent(
+            lastAction.isFour,
+            lastAction.isSix,
+            lastAction.isWicket
+        )
+    ) {
+        io.to(matchId).emit("hideHighlightEvent");
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, match, "last action undo successfully")
+    );
+});
+*/
 
 const startSuperOverController = asyncHandler(async (req, res) => {
     const user = req.user;
@@ -2129,252 +3168,12 @@ const endInningController = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, match));
 });
 
-/*const endMatchController = asyncHandler(async (req, res) => {
-  const { isMatchAbandoned, winningTeamId, tournamentId } = req.body;
-  console.log(req.body)
-  const user = req.user;
-  const matchId = req.params.matchId;
-
-  const match = await MatchModel.findOne({ _id: matchId, createdBy: user._id });
-  
-  if (!match) throw new ApiError(404, "Match not found");
-
-  const currentInning = getCurrentInning(match);
-
-  if (isMatchAbandoned) {
-    match.matchStatus = "abandoned";
-  } else {
-    match.matchStatus = "completed";
-
-    if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
-      match.matchResult = !match.isSuperOver
-        ? {
-            status: "Win",
-            winningTeam: currentInning.battingTeam.name,
-            winningMargin: `${10 - match.inning2.wicketsFallen} wickets`,
-          }
-        : {
-            status: "Super Over",
-            winningTeam: match.superOver?.inning2?.battingTeam?.name || "",
-            winningMargin: null,
-          };
-    } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
-      match.matchResult = !match.isSuperOver
-        ? {
-            status: "Win",
-            winningTeam: currentInning.bowlingTeam.name,
-            winningMargin: `${match.targetScore - match.inning2.totalScore} runs`,
-          }
-        : {
-            status: "Super Over",
-            winningTeam: match.superOver?.inning2?.bowlingTeam?.name || "",
-            winningMargin: null,
-          };
-    }
-  }
-
-  if (match.isInningChangePending) {
-    match.isInningChangePending = false;
-  }
-
-  const playersStats = new Map();
-  const innings = [match.inning1, match.inning2];
-
-  if (match.isSuperOver && match.superOver) {
-    innings.push(match.superOver.inning1, match.superOver.inning2);
-  }
-
-  for (const inning of innings) {
-    if (!inning) continue;
-
-    for (const player of inning.battingTeam.playing11 || []) {
-      if (!player?.playerId) continue;
-      const id = player.playerId.toString();
-
-      if (!playersStats.has(id)) {
-        playersStats.set(id, {
-          playerId: player.playerId,
-          runs: 0,
-          balls: 0,
-          fours: 0,
-          sixes: 0,
-          wickets: 0,
-          ballsBowled: 0,
-          runsConceded: 0,
-          matchPlayed: true,
-        });
-      }
-
-      const stats = playersStats.get(id);
-      stats.runs += player.runs || 0;
-      stats.balls += player.balls || 0;
-      stats.fours += player.fours || 0;
-      stats.sixes += player.sixes || 0;
-    }
-
-    for (const player of inning.bowlingTeam.playing11 || []) {
-      if (!player?.playerId) continue;
-      const id = player.playerId.toString();
-
-      if (!playersStats.has(id)) {
-        playersStats.set(id, {
-          playerId: player.playerId,
-          runs: 0,
-          balls: 0,
-          fours: 0,
-          sixes: 0,
-          wickets: 0,
-          ballsBowled: 0,
-          runsConceded: 0,
-          matchPlayed: true,
-        });
-      }
-
-      const stats = playersStats.get(id);
-      stats.wickets += player.wickets || 0;
-      stats.ballsBowled += (player.overs || 0) * 6 + (player.ballsBowled || 0);
-      stats.runsConceded += player.runsConceded || 0;
-    }
-  }
-
-  const finalStats = Array.from(playersStats.values());
-  if (finalStats.length > 0) {
-    await updatePlayerStats(finalStats, tournamentId);
-  }
-
-  io.to(matchId).emit("scoreUpdated", { match });
-  await match.save();
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, match, "Match ended successfully"));
-});*/
-
 const endMatchController = asyncHandler(async (req, res) => {
-    const { isMatchAbandoned, winningTeamId, tournamentId } = req.body;
+    const { isMatchAbandoned, winningTeamId } = req.body;
     const user = req.user;
     const matchId = req.params.matchId;
 
-    // --- Fetch match ---
-    const match = await MatchModel.findOne({
-        _id: matchId,
-        createdBy: user._id
-    });
-    if (!match) throw new ApiError(404, "Match not found");
-
-    const currentInning = getCurrentInning(match);
-
-    // --- Update Match Status ---
-    if (isMatchAbandoned) {
-        match.matchStatus = "abandoned";
-    } else {
-        match.matchStatus = "completed";
-
-        // Decide winner + margin
-        if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
-            match.matchResult = !match.isSuperOver
-                ? {
-                      status: "Win",
-                      winningTeam: currentInning.battingTeam.name,
-                      winningMargin: `${
-                          10 - match.inning2.wicketsFallen
-                      } wickets`
-                  }
-                : {
-                      status: "Super Over",
-                      winningTeam:
-                          match.superOver?.inning2?.battingTeam?.name || "",
-                      winningMargin: null
-                  };
-        } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
-            match.matchResult = !match.isSuperOver
-                ? {
-                      status: "Win",
-                      winningTeam: currentInning.bowlingTeam.name,
-                      winningMargin: `${
-                          match.targetScore - match.inning2.totalScore
-                      } runs`
-                  }
-                : {
-                      status: "Super Over",
-                      winningTeam:
-                          match.superOver?.inning2?.bowlingTeam?.name || "",
-                      winningMargin: null
-                  };
-        }
-    }
-
-    // Clear pending inning change
-    if (match.isInningChangePending) {
-        match.isInningChangePending = false;
-    }
-
-    // --- Collect Player Stats ---
-    const playersStats = [];
-    const innings = [match.inning1, match.inning2];
-
-    if (match.isSuperOver && match.superOver) {
-        innings.push(match.superOver.inning1, match.superOver.inning2);
-    }
-
-    for (const inning of innings) {
-        if (!inning) continue;
-
-        // Batting stats
-        for (const player of inning.battingTeam.playing11 || []) {
-            if (!player.playerId) continue;
-            playersStats.push({
-                playerId: player.playerId,
-                name: player.name,
-                runs: player.runs || 0,
-                balls: player.balls || 0,
-                fours: player.fours || 0,
-                sixes: player.sixes || 0,
-                wickets: 0,
-                ballsBowled: 0,
-                runsConceded: 0,
-                matchPlayed: true
-            });
-        }
-
-        // Bowling stats
-        for (const player of inning.bowlingTeam.playing11 || []) {
-            if (!player.playerId) continue;
-            playersStats.push({
-                playerId: player.playerId,
-                name: player.name,
-                runs: 0,
-                balls: 0,
-                fours: 0,
-                sixes: 0,
-                wickets: player.wickets || 0,
-                ballsBowled:
-                    (player.overs || 0) * 6 + (player.ballsBowled || 0),
-                runsConceded: player.runsConceded || 0,
-                matchPlayed: true
-            });
-        }
-    }
-
-    // --- Update All Players in Bulk ---
-    if (playersStats.length > 0) {
-        await updatePlayerStats(playersStats, tournamentId);
-    }
-
-    // --- Broadcast & Save ---
-    io.to(matchId).emit("scoreUpdated", { match });
-    await match.save();
-
-    res.status(200).json(
-        new ApiResponse(200, match, "Match ended successfully")
-    );
-});
-
-/*const endMatchController = asyncHandler(async (req, res) => {
-    const { isMatchAbandoned, winningTeamId, tournamentId } = req.body;
-    const user = req.user;
-    const matchId = req.params.matchId;
-
+    // 1. Fetch match
     const match = await MatchModel.findOne({
         _id: matchId,
         createdBy: user._id
@@ -2384,168 +3183,229 @@ const endMatchController = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Match not found");
     }
 
+    // Prevent processing a match that has already ended.
+    /*if (
+        match.matchStatus === "completed" ||
+        match.matchStatus === "abandoned"
+    ) {
+        throw new ApiError(400, "Match has already ended");
+    }*/
+
     const currentInning = getCurrentInning(match);
 
-    // --- Update Match Status ---
+    // 2. Update match status and result
     if (isMatchAbandoned) {
         match.matchStatus = "abandoned";
+        match.matchResult = {
+            status: "abandoned",
+            winningTeam: null,
+            winningMargin: null
+        };
     } else {
+        if (!winningTeamId) {
+            throw new ApiError(400, "Winning team is required");
+        }
+
+        if (!currentInning?.battingTeam || !currentInning?.bowlingTeam) {
+            throw new ApiError(400, "Current innings teams not found");
+        }
+
+        const battingTeamId = currentInning.battingTeam.teamId?.toString();
+
+        const bowlingTeamId = currentInning.bowlingTeam.teamId?.toString();
+
+        const winnerId = winningTeamId.toString();
+
+        const battingTeamWon = battingTeamId === winnerId;
+        const bowlingTeamWon = bowlingTeamId === winnerId;
+
+        if (!battingTeamWon && !bowlingTeamWon) {
+            throw new ApiError(
+                400,
+                "Winning team does not belong to this match"
+            );
+        }
+
         match.matchStatus = "completed";
 
-        // Decide winner + margin
-        if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
-            match.matchResult = !match.isSuperOver
-                ? {
-                      status: "Win",
-                      winningTeam: currentInning.battingTeam.name,
-                      winningMargin: `${
-                          10 - match.inning2.wicketsFallen
-                      } wickets`
-                  }
-                : {
-                      status: "Super Over",
-                      winningTeam:
-                          match.superOver?.inning2?.battingTeam?.name || "",
-                      winningMargin: null
-                  };
-        } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
-            match.matchResult = !match.isSuperOver
-                ? {
-                      status: "Win",
-                      winningTeam: currentInning.bowlingTeam.name,
-                      winningMargin: `${
-                          match.targetScore - match.inning2.totalScore
-                      } runs`
-                  }
-                : {
-                      status: "Super Over",
-                      winningTeam:
-                          match.superOver?.inning2?.bowlingTeam?.name || "",
-                      winningMargin: null
-                  };
+        if (match.isSuperOver) {
+            match.matchResult = {
+                status: "Super Over",
+                winningTeam: battingTeamWon
+                    ? currentInning.battingTeam.name
+                    : currentInning.bowlingTeam.name,
+                winningMargin: null
+            };
+        } else if (battingTeamWon) {
+            const wicketsRemaining = Math.max(
+                0,
+                10 - (match.inning2?.wicketsFallen || 0)
+            );
+
+            match.matchResult = {
+                status: "Win",
+                winningTeam: currentInning.battingTeam.name,
+                winningMargin: `${wicketsRemaining} wickets`
+            };
+        } else {
+            const runsRemaining =
+                (match.targetScore || 0) - (match.inning2?.totalScore || 0);
+
+            match.matchResult = {
+                status: "Win",
+                winningTeam: currentInning.bowlingTeam.name,
+                winningMargin: `${Math.max(0, runsRemaining)} runs`
+            };
         }
     }
 
-    if (match.isInningChangePending) {
-        match.isInningChangePending = false;
-    }
+    match.isInningChangePending = false;
 
-    // --- Update Player Stats ---
-    const innings = [match.inning1, match.inning2];
-    if (match.isSuperOver && match.superOver) {
-        innings.push(match.superOver.inning1, match.superOver.inning2);
-    }
+    // 3. Collect player contributions across all innings
+    const playersMap = new Map();
 
-    for (const inning of innings) {
-        if (!inning) continue;
+    const getPlayerStats = player => {
+        if (!player?.playerId) return null;
 
-        // Batting stats
-        for (const player of inning.battingTeam.playing11) {
-            if (!player.playerId) continue;
-            await updatePlayerStats({
+        const playerId = player.playerId.toString();
+
+        if (!playersMap.has(playerId)) {
+            playersMap.set(playerId, {
                 playerId: player.playerId,
-                runs: player.runs || 0,
-                balls: player.balls || 0,
-                fours: player.fours || 0,
-                sixes: player.sixes || 0,
-                wickets: 0,
-                ballsBowled: 0,
-                runsConceded: 0,
-                tournamentId
-            });
-        }
+                name: player.name || "",
+                matchPlayed: true,
 
-        // Bowling stats
-        for (const player of inning.bowlingTeam.playing11) {
-            if (!player.playerId) continue;
-            await updatePlayerStats({
-                playerId: player.playerId,
                 runs: 0,
                 balls: 0,
                 fours: 0,
                 sixes: 0,
-                wickets: player.wickets || 0,
-                ballsBowled:
-                    (player.overs || 0) * 6 + (player.ballsBowled || 0),
-                runsConceded: player.runsConceded || 0,
-                tournamentId
+                dismissals: 0,
+
+                wickets: 0,
+                ballsBowled: 0,
+                runsConceded: 0,
+
+                battingInnings: [],
+                bowlingInnings: []
+            });
+        }
+
+        return playersMap.get(playerId);
+    };
+
+    const getTeamPlayers = team => [
+        ...(team?.playing11 || []),
+        ...(team?.substitutes || [])
+    ];
+
+    // Regular innings and Super Over innings
+    const innings = [match.inning1, match.inning2];
+
+    for (const inning of innings) {
+        if (!inning) continue;
+
+        const battingPlayers = getTeamPlayers(inning.battingTeam);
+        const bowlingPlayers = getTeamPlayers(inning.bowlingTeam);
+
+        // 4. Register players even if they neither batted nor bowled.
+        for (const player of battingPlayers) {
+            getPlayerStats(player);
+        }
+
+        for (const player of bowlingPlayers) {
+            getPlayerStats(player);
+        }
+
+        // 5. Collect batting contributions
+        for (const player of battingPlayers) {
+            if (!player?.playerId) continue;
+
+            const stats = getPlayerStats(player);
+            if (!stats) continue;
+
+            const runs = Number(player.runs) || 0;
+            const balls = Number(player.ballsFaced ?? player.balls) || 0;
+            const fours = Number(player.fours) || 0;
+            const sixes = Number(player.sixes) || 0;
+
+            const actuallyBatted =
+                balls > 0 || runs > 0 || player.isOut === true;
+
+            if (!actuallyBatted) continue;
+
+            stats.runs += runs;
+            stats.balls += balls;
+            stats.fours += fours;
+            stats.sixes += sixes;
+            stats.dismissals += player.isOut === true ? 1 : 0;
+
+            stats.battingInnings.push({
+                batted: true,
+                runs,
+                ballsFaced: balls,
+                isOut: player.isOut === true
+            });
+        }
+
+        // 6. Collect bowling contributions
+        for (const player of bowlingPlayers) {
+            if (!player?.playerId) continue;
+
+            const stats = getPlayerStats(player);
+            if (!stats) continue;
+
+            const overs = Number(player.overs) || 0;
+            const ballsInOver = Number(player.ballsBowled) || 0;
+
+            // Assumes overs is completed overs and ballsBowled
+            // is the number of balls in the current over.
+            const totalBallsBowled = overs * 6 + ballsInOver;
+
+            const wickets = Number(player.wickets) || 0;
+            const runsConceded = Number(player.runsConceded) || 0;
+
+            if (totalBallsBowled <= 0) continue;
+
+            stats.wickets += wickets;
+            stats.ballsBowled += totalBallsBowled;
+            stats.runsConceded += runsConceded;
+
+            stats.bowlingInnings.push({
+                wickets,
+                runsConceded,
+                ballsBowled: totalBallsBowled
             });
         }
     }
 
-    // --- Broadcast and Save ---
+    // 7. Include every registered player once.
+    const playersStats = [...playersMap.values()];
+
+    // 8. Update career and tournament stats for completed matches.
+    if (
+        match.matchStatus === "completed" ||
+        (match.matchStatus === "abandoned" && playersStats.length > 0)
+    ) {
+        await updatePlayerStats(
+            playersStats,
+            match.tournamentId || null,
+            match._id
+        );
+    }
+
+    // 9. Save match
+    await match.save();
+
+    // 10. Emit updated score
     io.to(matchId).emit("scoreUpdated", { match });
-    await match.save();
 
-    res.status(200).json(
-        new ApiResponse(200, match, "Match ended successfully")
-    );
-});*/
+    // 11. Send response
+    return res
+        .status(200)
+        .json(new ApiResponse(200, match, "Match ended successfully"));
+});
 
-/*const endMatchController = asyncHandler(async (req, res) => {
-    const { isMatchAbandoned, winningTeamId } = req.body;
-    const user = req.user;
-    const matchId = req.params.matchId;
-    const match = await MatchModel.findOne({
-        _id: matchId,
-        createdBy: user._id
-    });
-
-    if (!match) {
-        throw new ApiError(404, "no match has been found");
-    }
-
-    const currentInning = getCurrentInning(match);
-
-    if (isMatchAbandoned) {
-        match.matchStatus = "abandoned";
-    } else {
-        if (currentInning.battingTeam.teamId.equals(winningTeamId)) {
-            match.matchStatus = "completed";
-            if (!match.isSuperOver) {
-                match.matchResult = {
-                    status: "Win",
-                    winningTeam: `${match.inning2.battingTeam.name}`,
-                    winningMargin: `${10 - match.inning2.wicketsFallen} wickets`
-                };
-            } else {
-                match.matchResult = {
-                    status: "Super Over",
-                    winningTeam: `${match.superOver.inning2.battingTeam.name}`,
-                    winningMargin: null
-                };
-            }
-        } else if (currentInning.bowlingTeam.teamId.equals(winningTeamId)) {
-            match.matchStatus = "completed";
-            if (!match.isSuperOver) {
-                match.matchResult = {
-                    status: "Win",
-                    winningTeam: `${match.inning2.bowlingTeam.name}`,
-                    winningMargin: `${
-                        match.targetScore - match.inning2.totalScore
-                    } runs`
-                };
-            } else {
-                match.matchResult = {
-                    status: "Super Over",
-                    winningTeam: `${match.superOver.inning2.bowlingTeam.name}`,
-                    winningMargin: null
-                };
-            }
-        }
-    }
-    if (match.isInningChangePending === true) {
-        match.isInningChangePending = false;
-    }
-
-    io.to(matchId).emit("scoreUpdated", {
-        match
-    });
-    await match.save();
-    res.status(200).json(new ApiResponse(200, match));
-});*/
-
-const getAllMatchDetailsController = asyncHandler(async (req, res) => {
+const getAllMatchController = asyncHandler(async (req, res) => {
     // const user = req.user;
     const matchDetails = await MatchModel.find();
 
@@ -2555,7 +3415,7 @@ const getAllMatchDetailsController = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, matchDetails));
 });
 
-const getAllTournamentsController = asyncHandler(async (req, res) => {
+const getAllTournamentController = asyncHandler(async (req, res) => {
     // const user = req.user;
     const tournaments = await TournamentModel.find();
 
@@ -2565,7 +3425,7 @@ const getAllTournamentsController = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, tournaments));
 });
 
-const getSingleMatchDetailsController = asyncHandler(async (req, res) => {
+const getSingleMatchController = asyncHandler(async (req, res) => {
     //const user = req.user;
     const matchId = req.params.matchId;
     const matchDetails = await MatchModel.findOne({
@@ -2698,9 +3558,9 @@ export {
     endMatchController,
     getAllTeamsController,
     getSingleTeamController,
-    getAllMatchDetailsController,
-    getAllTournamentsController,
-    getSingleMatchDetailsController,
+    getAllMatchController,
+    getAllTournamentController,
+    getSingleMatchController,
     getSingleTournamentController,
     getSearchedMatchesController,
     getSearchedTournamentsController

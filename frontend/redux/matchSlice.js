@@ -122,7 +122,7 @@ const matchSlice = createSlice({
         },
         setUndoStack: (state, action) => {
             const newTimeline = action.payload;
-            newTimeline.forEach(ball => {
+            newTimeline?.forEach(ball => {
                 const exist = state.undoStack.some(
                     exitstingBall => exitstingBall._id === ball._id
                 );

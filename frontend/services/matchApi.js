@@ -209,11 +209,7 @@ export const matchApi = baseApi.injectEndpoints({
                 body: payload
             }),
             invalidatesTags: (result, error, payload) => [
-                { type: "Match", id: payload.matchId },
-                { type: "Matches", id: "LIST" },
-                ...(payload.tournamentId
-                    ? [{ type: "Tournament", id: payload.tournamentId }]
-                    : [])
+                { type: "Match", id: payload.matchId }
             ]
         })
     }),

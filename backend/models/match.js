@@ -87,11 +87,11 @@ const InningSchema = new mongoose.Schema({
 const MatchSchema = new mongoose.Schema({
     tournamentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:"Tournament"
+        ref: "Tournament"
     },
     tournamentName: {
         type: String,
-        ref:"Tournament"
+        ref: "Tournament"
     },
     inning1: InningSchema,
     inning2: InningSchema,
@@ -137,8 +137,16 @@ const MatchSchema = new mongoose.Schema({
         winningTeam: { type: String, default: null },
         winningMargin: { type: String, default: null }
     },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "UserSignup" },
 
+    shownBatsmanProfileIds: {
+        type: [mongoose.Schema.Types.ObjectId],
+        default: []
+    },
+
+    shownBowlerProfileIds: {
+        type: [mongoose.Schema.Types.ObjectId],
+        default: []
+    },
     // flags
     isSelectNewBatsmanPending: { type: Boolean, default: false },
     isOverChangePending: { type: Boolean, default: false },
@@ -152,7 +160,8 @@ const MatchSchema = new mongoose.Schema({
         inning2: InningSchema,
         currentInning: { type: Number },
         targetScore: { type: Number }
-    }
+    },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "UserSignup" }
 });
 
 // Match Model

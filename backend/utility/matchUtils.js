@@ -1,4 +1,5 @@
 import { PlayerModel } from "../models/player.js";
+import mongoose from "mongoose";
 
 export const getCurrentInning = match => {
     if (!match) return null;
@@ -80,463 +81,371 @@ export const shouldShowHighlightEvent = (isFour, isSix, isWicket) => {
     return false;
 };
 
-export const updatePlayerStats = async (playersStats, tournamentId) => {
-    if (!Array.isArray(playersStats) || playersStats.length === 0) return null;
+export const updatePlayerStats = async (
+    playersStats,
+    tournamentId = null,
+    matchId = null
+) => {
+    if (!Array.isArray(playersStats) || playersStats.length === 0) {
+        return null;
+    }
 
-    const operations = playersStats
-        .filter(p => p.playerId) // Skip invalid players
-        .map(p => {
-            const baseStats = {
-                runs: p.runs || 0,
-                ballsFaced: p.balls || 0,
-                fours: p.fours || 0,
-                sixes: p.sixes || 0,
-                wickets: p.wickets || 0,
-                ballsBowled: p.ballsBowled || 0,
-                runsConceded: p.runsConceded || 0
-            };
+    if (
+        tournamentId &&
+        !mongoose.Types.ObjectId.isValid(tournamentId)
+    ) {
+        throw new Error("Invalid tournamentId");
+    }
 
-            const update = {
-                $set: {
-                    // Player basic details
-                    playerId: p.playerId,
-                    name: p.name
-                },
-                $inc: {}
-            };
+    if (matchId && !mongoose.Types.ObjectId.isValid(matchId)) {
+        throw new Error("Invalid matchId");
+    }
 
-            // Career stats
-            for (const [key, value] of Object.entries(baseStats)) {
-                update.$inc[`careerStats.${key}`] = value;
-            }
+    const tournamentObjectId = tournamentId
+        ? new mongoose.Types.ObjectId(tournamentId)
+        : null;
 
-            if (p.matchPlayed) update.$inc["careerStats.matches"] = 1;
+    const matchObjectId = matchId
+        ? new mongoose.Types.ObjectId(matchId)
+        : null;
 
-            // Tournament stats (only if tournamentId exists)
-            if (tournamentId) {
-                const tPath = `tournamentStats.${tournamentId}`;
+    const toNumber = value => {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : 0;
+    };
 
-                // Increment tournament-level stats
-                for (const [key, value] of Object.entries(baseStats)) {
-                    update.$inc[`${tPath}.${key}`] = value;
-                }
+    const playersMap = new Map();
 
-                if (p.matchPlayed) update.$inc[`${tPath}.matches`] = 1;
+    // 1. Aggregate contributions by player.
+    for (const p of playersStats) {
+        if (!p?.playerId) continue;
 
-                // Initialize tournament stats structure without affecting match count
-                update.$setOnInsert = {
-                    [tPath]: {
-                        playerId: p.playerId,
-                        name: p.name,
-                        runs: 0,
-                        ballsFaced: 0,
-                        fours: 0,
-                        sixes: 0,
-                        wickets: 0,
-                        ballsBowled: 0,
-                        runsConceded: 0
-                    }
-                };
-            }
-
-            return {
-                updateOne: {
-                    filter: { _id: p.playerId },
-                    update,
-                    upsert: true
-                }
-            };
-        });
-
-    if (operations.length === 0) return null;
-
-    return PlayerModel.bulkWrite(operations);
-};
-
-/*export const updatePlayerStats = async (playersStats, tournamentId) => {
-  if (!Array.isArray(playersStats) || playersStats.length === 0) return null;
-
-  const operations = playersStats
-    .filter(p => p.playerId) // skip invalid players
-    .map(p => {
-      const baseStats = {
-        runs: p.runs || 0,
-        ballsFaced: p.balls || 0,
-        fours: p.fours || 0,
-        sixes: p.sixes || 0,
-        wickets: p.wickets || 0,
-        ballsBowled: p.ballsBowled || 0,
-        runsConceded: p.runsConceded || 0,
-        dismissals: p.dismissals || 0
-      };
-
-      // --- Base update object ---
-      const update = {
-        $inc: {},
-        $set: { name: p.name } // ✅ ensure name is updated
-      };
-
-      // Career stats increment
-      for (const [k, v] of Object.entries(baseStats)) {
-        update.$inc[`careerStats.${k}`] = v;
-      }
-      if (p.matchPlayed) update.$inc["careerStats.matches"] = 1;
-
-      const bulkOps = [];
-
-      if (tournamentId) {
-        // Push new tournament stats if not exist
-        bulkOps.push({
-          updateOne: {
-            filter: { _id: p.playerId, "tournamentStats.tournamentId": { $ne: tournamentId } },
-            update: {
-              $push: {
-                tournamentStats: {
-                  tournamentId,
-                  matches: p.matchPlayed ? 1 : 0,
-                  ...baseStats
-                }
-              },
-              $set: { name: p.name }
-            }
-          }
-        });
-
-        // Update existing tournament stats
-        const tInc = {};
-        for (const [k, v] of Object.entries(baseStats)) {
-          tInc[`tournamentStats.$[t].${k}`] = v;
+        if (!mongoose.Types.ObjectId.isValid(p.playerId)) {
+            throw new Error(`Invalid playerId: ${p.playerId}`);
         }
-        if (p.matchPlayed) tInc[`tournamentStats.$[t].matches`] = 1;
 
-        bulkOps.push({
-          updateOne: {
-            filter: { _id: p.playerId },
-            update: { $inc: tInc, $set: { name: p.name } },
-            arrayFilters: [{ "t.tournamentId": tournamentId }]
-          }
-        });
-      } else {
-        // Only career stats
-        bulkOps.push({
-          updateOne: {
-            filter: { _id: p.playerId },
-            update
-          }
-        });
-      }
+        const playerId = new mongoose.Types.ObjectId(p.playerId);
+        const id = playerId.toString();
 
-      return bulkOps;
-    })
-    .flat(); // flatten nested arrays
+        if (!playersMap.has(id)) {
+            playersMap.set(id, {
+                playerId,
+                name: p.name || "",
+                matchPlayed: false,
 
-  if (operations.length === 0) return null;
-
-  return PlayerModel.bulkWrite(operations);
-};*/
-
-/*export const updatePlayerStats = async (playersStats, tournamentId) => {
-    if (!Array.isArray(playersStats) || playersStats.length === 0) return null;
-
-    const operations = playersStats
-        .filter(p => p.playerId) // skip invalid players
-        .map(p => {
-            const baseStats = {
-                runs: p.runs || 0,
-                ballsFaced: p.balls || 0,
-                fours: p.fours || 0,
-                sixes: p.sixes || 0,
-                wickets: p.wickets || 0,
-                ballsBowled: p.ballsBowled || 0,
-                runsConceded: p.runsConceded || 0
-            };
-
-            const update = { $inc: {} };
-
-            // career updates
-            for (const [k, v] of Object.entries(baseStats)) {
-                update.$inc[`careerStats.${k}`] = v;
-            }
-            if (p.matchPlayed) update.$inc["careerStats.matches"] = 1;
-
-            // tournament updates
-            if (tournamentId) {
-                const tPath = `tournamentStats.${tournamentId}`;
-                for (const [k, v] of Object.entries(baseStats)) {
-                    update.$inc[`${tPath}.${k}`] = v;
-                }
-                if (p.matchPlayed) update.$inc[`${tPath}.matches`] = 1;
-
-                // ensure default tournament stats on insert
-                update.$setOnInsert = {
-                    [tPath]: {
-                        matches: 0,
-                        runs: 0,
-                        ballsFaced: 0,
-                        fours: 0,
-                        sixes: 0,
-                        wickets: 0,
-                        ballsBowled: 0,
-                        runsConceded: 0
-                    }
-                };
-            }
-
-            return {
-                updateOne: {
-                    filter: { _id: p.playerId },
-                    update,
-                    upsert: true
-                }
-            };
-        });
-
-    if (operations.length === 0) return null;
-
-    return PlayerModel.bulkWrite(operations);
-};*/
-
-/*export const updatePlayerStats = async (playerStats, tournamentId) => {
-    if (!Array.isArray(playerStats) || playerStats.length === 0) return;
-
-    const bulkOps = [];
-
-    for (const player of playerStats) {
-        if (!player.playerId) continue;
-
-        // Player didn't bat or bowl at all — skip
-        const didPlay =
-            (player.runs && player.runs > 0) ||
-            (player.ballsFaced && player.ballsFaced > 0) ||
-            (player.wickets && player.wickets > 0) ||
-            (player.ballsBowled && player.ballsBowled > 0);
-
-        if (!didPlay) continue;
-
-        const stats = {
-            runs: player.runs || 0,
-            ballsFaced: player.ballsFaced || 0,
-            fours: player.fours || 0,
-            sixes: player.sixes || 0,
-            wickets: player.wickets || 0,
-            ballsBowled: player.ballsBowled || 0,
-            runsConceded: player.runsConceded || 0,
-        };
-
-        const update = { $inc: {}, $setOnInsert: {} };
-
-        // Career stats
-        for (const [key, value] of Object.entries(stats)) {
-            update.$inc[`careerStats.${key}`] = value;
-        }
-        update.$inc["careerStats.matches"] = 1;
-
-        // Tournament stats
-        if (tournamentId) {
-            const tPath = `tournamentStats.${tournamentId}`;
-
-            for (const [key, value] of Object.entries(stats)) {
-                update.$inc[`${tPath}.${key}`] = value;
-            }
-            update.$inc[`${tPath}.matches`] = 1;
-
-            // Initialize default tournament stats on first insert
-            update.$setOnInsert[tPath] = {
-                matches: 0,
                 runs: 0,
                 ballsFaced: 0,
                 fours: 0,
                 sixes: 0,
+                dismissals: 0,
+
                 wickets: 0,
                 ballsBowled: 0,
                 runsConceded: 0,
-            };
+
+                battingInnings: [],
+                bowlingInnings: []
+            });
         }
 
-        bulkOps.push({
-            updateOne: {
-                filter: { _id: player.playerId },
-                update,
-                upsert: true,
-            },
-        });
-    }
+        const stats = playersMap.get(id);
 
-    if (bulkOps.length > 0) {
-        await Player.bulkWrite(bulkOps);
-    }
-};*/
+        stats.name = p.name || stats.name;
+        stats.matchPlayed ||= p.matchPlayed === true;
 
-/*export const updatePlayerStats = async (match) => {
-    const allPlayersInMatch = [...match.teamA.playing11, ...match.teamB.playing11];
-    const tournamentId = match.tournamentId;
+        stats.runs += toNumber(p.runs);
+        stats.ballsFaced += toNumber(p.ballsFaced ?? p.balls);
+        stats.fours += toNumber(p.fours);
+        stats.sixes += toNumber(p.sixes);
+        stats.dismissals += toNumber(p.dismissals);
 
-    if (!tournamentId) {
-        console.warn("Match does not have a tournamentId. Skipping tournament stats update.");
-        return;
-    }
+        stats.wickets += toNumber(p.wickets);
+        stats.ballsBowled += toNumber(p.ballsBowled);
+        stats.runsConceded += toNumber(p.runsConceded);
 
-    const bulkOps = [];
+        if (Array.isArray(p.battingInnings)) {
+            stats.battingInnings.push(...p.battingInnings);
+        }
 
-    for (const playerMatchStats of allPlayersInMatch) {
-        if (!playerMatchStats.playerId) continue;
-
-        const {
-            playerId,
-            runs = 0,
-            balls = 0, // ballsFaced
-            fours = 0,
-            sixes = 0,
-            isOut = false,
-            wickets = 0,
-            ballsBowled = 0,
-            runsConceded = 0,
-        } = playerMatchStats;
-
-        // Shared career stats update logic
-        const careerStatsUpdate = {
-            "careerStats.matches": 1,
-            "careerStats.runs": runs,
-            "careerStats.ballsFaced": balls,
-            "careerStats.fours": fours,
-            "careerStats.sixes": sixes,
-            "careerStats.dismissals": isOut ? 1 : 0,
-            "careerStats.wickets": wickets,
-            "careerStats.ballsBowled": ballsBowled,
-            "careerStats.runsConceded": runsConceded,
-        };
-
-        // --- Operation 1: For players who HAVE played in this tournament before ---
-        const updateExistingOp = {
-            updateOne: {
-                filter: { _id: playerId, "tournamentStats.tournamentId": tournamentId },
-                update: {
-                    $inc: {
-                        ...careerStatsUpdate,
-                        "tournamentStats.$[t].matches": 1,
-                        "tournamentStats.$[t].runs": runs,
-                        "tournamentStats.$[t].ballsFaced": balls,
-                        "tournamentStats.$[t].fours": fours,
-                        "tournamentStats.$[t].sixes": sixes,
-                        "tournamentStats.$[t].dismissals": isOut ? 1 : 0,
-                        "tournamentStats.$[t].wickets": wickets,
-                        "tournamentStats.$[t].ballsBowled": ballsBowled,
-                        "tournamentStats.$[t].runsConceded": runsConceded,
-                    },
-                },
-                arrayFilters: [{ "t.tournamentId": tournamentId }],
-            },
-        };
-
-        // --- Operation 2: For players playing their FIRST match in this tournament ---
-        const addNewOp = {
-            updateOne: {
-                filter: { _id: playerId, "tournamentStats.tournamentId": { $ne: tournamentId } },
-                update: {
-                    $inc: careerStatsUpdate,
-                    $push: {
-                        tournamentStats: {
-                            tournamentId,
-                            matches: 1,
-                            runs,
-                            ballsFaced: balls,
-                            fours,
-                            sixes,
-                            dismissals: isOut ? 1 : 0,
-                            wickets,
-                            ballsBowled,
-                            runsConceded,
-                            highestScore: runs,
-                            // Initialize other stats from schema
-                            fifties: 0, hundreds: 0, catches: 0, stumpings: 0,
-                        },
-                    },
-                },
-            },
-        };
-
-        bulkOps.push(updateExistingOp, addNewOp);
-    }
-
-    if (bulkOps.length > 0) {
-        try {
-            console.log(`Executing bulkWrite for ${bulkOps.length / 2} players...`);
-            await PlayerModel.bulkWrite(bulkOps);
-            console.log("Player stats updated successfully.");
-        } catch (error) {
-            console.error("Error during player stats bulkWrite operation:", error);
+        if (Array.isArray(p.bowlingInnings)) {
+            stats.bowlingInnings.push(...p.bowlingInnings);
         }
     }
-};*/
 
-/*export const updatePlayerStats = async ({
-  playerId,
-  runs = 0,
-  balls = 0,
-  fours = 0,
-  sixes = 0,
-  wickets = 0,
-  ballsBowled = 0,
-  runsConceded = 0,
-  tournamentId,
-  matchPlayed = false // control when to increment matches
-}) => {
-  const careerInc = {
-    runs,
-    ballsFaced: balls,
-    fours,
-    sixes,
-    wickets,
-    ballsBowled,
-    runsConceded,
-  };
-
-  if (matchPlayed) {
-    careerInc.matches = 1;
-  }
-
-  const update = {
-    $inc: {
-      "careerStats.runs": careerInc.runs,
-      "careerStats.ballsFaced": careerInc.ballsFaced,
-      "careerStats.fours": careerInc.fours,
-      "careerStats.sixes": careerInc.sixes,
-      "careerStats.wickets": careerInc.wickets,
-      "careerStats.ballsBowled": careerInc.ballsBowled,
-      "careerStats.runsConceded": careerInc.runsConceded,
-      ...(matchPlayed ? { "careerStats.matches": 1 } : {}),
-    },
-  };
-
-  // Handle tournament stats if provided
-  if (tournamentId) {
-    const tPath = `tournamentStats.${tournamentId}`;
-    update.$inc = {
-      ...update.$inc,
-      [`${tPath}.runs`]: runs,
-      [`${tPath}.ballsFaced`]: balls,
-      [`${tPath}.fours`]: fours,
-      [`${tPath}.sixes`]: sixes,
-      [`${tPath}.wickets`]: wickets,
-      [`${tPath}.ballsBowled`]: ballsBowled,
-      [`${tPath}.runsConceded`]: runsConceded,
-      ...(matchPlayed ? { [`${tPath}.matches`]: 1 } : {}),
-    };
-
-    // Ensure tournament stats object exists
-    update.$setOnInsert = {
-      [tPath]: {
+    const defaultStats = {
         matches: 0,
+        inningsBatted: 0,
         runs: 0,
         ballsFaced: 0,
         fours: 0,
         sixes: 0,
+        highestRuns: 0,
+        battingAverage: null,
+        strikeRate: null,
+        fifties: 0,
+        hundreds: 0,
+        dismissals: 0,
         wickets: 0,
         ballsBowled: 0,
         runsConceded: 0,
-      },
+        inningsBowled: 0,
+        bestBowlingWickets: 0,
+        bestBowlingRuns: 0,
+        threeWicketHauls: 0,
+        fiveWicketHauls: 0,
+        economy: null,
+        bowlingAverage: null
     };
-  }
 
-  await PlayerModel.findByIdAndUpdate(playerId, update, { upsert: true, new: true });
-};*/
+    // 2. Calculate cumulative stats in JavaScript.
+    const calculateUpdatedStats = (oldStats, p) => {
+        const old = {};
+
+        for (const [key, defaultValue] of Object.entries(defaultStats)) {
+            const value = oldStats?.[key];
+
+            old[key] =
+                value === null && defaultValue === null
+                    ? null
+                    : Number.isFinite(Number(value)) && value !== null
+                      ? Number(value)
+                      : defaultValue;
+        }
+
+        const battingInnings = p.battingInnings.filter(
+            inn => inn?.batted === true
+        );
+
+        const bowlingInnings = p.bowlingInnings.filter(
+            inn => toNumber(inn?.ballsBowled) > 0
+        );
+
+        const inningsRuns = battingInnings.map(
+            inn => toNumber(inn.runs)
+        );
+
+        const highestRunsThisMatch = inningsRuns.length
+            ? Math.max(...inningsRuns)
+            : 0;
+
+        const fifties = inningsRuns.filter(
+            runs => runs >= 50 && runs < 100
+        ).length;
+
+        const hundreds = inningsRuns.filter(
+            runs => runs >= 100
+        ).length;
+
+        let bestWickets = 0;
+        let bestRuns = 0;
+        let threeWicketHauls = 0;
+        let fiveWicketHauls = 0;
+
+        for (const inn of bowlingInnings) {
+            const wickets = toNumber(inn.wickets);
+            const runsConceded = toNumber(inn.runsConceded);
+
+            if (
+                wickets > bestWickets ||
+                (
+                    wickets === bestWickets &&
+                    wickets > 0 &&
+                    (bestWickets === 0 || runsConceded < bestRuns)
+                )
+            ) {
+                bestWickets = wickets;
+                bestRuns = runsConceded;
+            }
+
+            if (wickets >= 3) threeWicketHauls++;
+            if (wickets >= 5) fiveWicketHauls++;
+        }
+
+        const totalRuns = old.runs + p.runs;
+        const totalBallsFaced = old.ballsFaced + p.ballsFaced;
+        const totalDismissals = old.dismissals + p.dismissals;
+
+        const totalWickets = old.wickets + p.wickets;
+        const totalBallsBowled = old.ballsBowled + p.ballsBowled;
+        const totalRunsConceded = old.runsConceded + p.runsConceded;
+
+        const newBestIsBetter =
+            bestWickets > old.bestBowlingWickets ||
+            (
+                bestWickets > 0 &&
+                bestWickets === old.bestBowlingWickets &&
+                (
+                    old.bestBowlingWickets === 0 ||
+                    bestRuns < old.bestBowlingRuns
+                )
+            );
+
+        return {
+            matches: old.matches + (p.matchPlayed ? 1 : 0),
+
+            inningsBatted: old.inningsBatted + battingInnings.length,
+            runs: totalRuns,
+            ballsFaced: totalBallsFaced,
+            fours: old.fours + p.fours,
+            sixes: old.sixes + p.sixes,
+
+            highestRuns: Math.max(
+                old.highestRuns,
+                highestRunsThisMatch
+            ),
+
+            battingAverage:
+                totalDismissals > 0
+                    ? totalRuns / totalDismissals
+                    : null,
+
+            strikeRate:
+                totalBallsFaced > 0
+                    ? Number(
+                          ((totalRuns / totalBallsFaced) * 100).toFixed(2)
+                      )
+                    : null,
+
+            fifties: old.fifties + fifties,
+            hundreds: old.hundreds + hundreds,
+            dismissals: totalDismissals,
+
+            wickets: totalWickets,
+            ballsBowled: totalBallsBowled,
+            runsConceded: totalRunsConceded,
+            inningsBowled: old.inningsBowled + bowlingInnings.length,
+
+            bestBowlingWickets: newBestIsBetter
+                ? bestWickets
+                : old.bestBowlingWickets,
+
+            bestBowlingRuns: newBestIsBetter
+                ? bestRuns
+                : old.bestBowlingRuns,
+
+            threeWicketHauls: old.threeWicketHauls + threeWicketHauls,
+            fiveWicketHauls: old.fiveWicketHauls + fiveWicketHauls,
+
+            economy:
+                totalBallsBowled > 0
+                    ? Number(
+                          (
+                              (totalRunsConceded * 6) /
+                              totalBallsBowled
+                          ).toFixed(2)
+                      )
+                    : null,
+
+            bowlingAverage:
+                totalWickets > 0
+                    ? totalRunsConceded / totalWickets
+                    : null
+        };
+    };
+
+    // 3. Read existing player documents.
+    const playerIds = [...playersMap.values()].map(p => p.playerId);
+
+    const existingPlayers = await PlayerModel.find({
+        playerId: { $in: playerIds }
+    }).lean();
+
+    const existingById = new Map(
+        existingPlayers.map(player => [
+            String(player.playerId),
+            player
+        ])
+    );
+
+    const operations = [];
+
+    for (const p of playersMap.values()) {
+        const existing = existingById.get(String(p.playerId));
+
+        // 4. Prevent duplicate processing when matchId is supplied.
+        if (
+            matchObjectId &&
+            existing?.processedMatchIds?.some(
+                id => String(id) === String(matchObjectId)
+            )
+        ) {
+            continue;
+        }
+
+        const careerStats = calculateUpdatedStats(
+            existing?.careerStats,
+            p
+        );
+
+        const update = {
+            $set: {
+                name: p.name,
+                careerStats
+            }
+        };
+
+        if (tournamentObjectId) {
+            const tournamentEntries = existing?.tournamentStats || [];
+
+            const existingTournament = tournamentEntries.find(
+                entry =>
+                    String(entry.tournamentId) ===
+                    String(tournamentObjectId)
+            );
+
+            const tournamentStats = calculateUpdatedStats(
+                existingTournament,
+                p
+            );
+
+            // Update existing tournament entry or append a new one.
+            if (existingTournament) {
+                update.$set["tournamentStats.$[t]"] = {
+                    ...existingTournament,
+                    ...tournamentStats
+                };
+            } else {
+                update.$push = {
+                    tournamentStats: {
+                        tournamentId: tournamentObjectId,
+                        ...defaultStats,
+                        ...tournamentStats
+                    }
+                };
+            }
+        }
+
+        if (matchObjectId) {
+            update.$addToSet = {
+                processedMatchIds: matchObjectId
+            };
+        }
+
+        operations.push({
+            updateOne: {
+                filter: { playerId: p.playerId },
+                update,
+                ...(update.$set?.["tournamentStats.$[t]"]
+                    ? {
+                          arrayFilters: [
+                              {
+                                  "t.tournamentId": tournamentObjectId
+                              }
+                          ]
+                      }
+                    : {}),
+                upsert: true
+            }
+        });
+    }
+
+    if (operations.length === 0) {
+        return null;
+    }
+
+    return PlayerModel.bulkWrite(operations, {
+        ordered: true
+    });
+};
+
+
