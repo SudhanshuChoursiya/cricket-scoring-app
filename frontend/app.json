@@ -20,9 +20,13 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sudhanshu777.frontend",
       "infoPlist": {
-        "CFBundleURLTypes": [{
-          "CFBundleURLSchemes": ["com.googleusercontent.apps.32144279681-668to6dk3beuicikf8bfgdpalrai2j32"]
-        }]
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.32144279681-668to6dk3beuicikf8bfgdpalrai2j32"
+            ]
+          }
+        ]
       }
     },
     "android": {
@@ -39,9 +43,10 @@
       "@react-native-google-signin/google-signin",
       "expo-font"
     ],
+    "owner": "sudhanshu77",
     "extra": {
       "eas": {
-        "projectId": "f8af1ac1-d955-430e-8efa-44527ebdefec"
+        "projectId": "648304cd-e70e-4192-8d97-fb5c2d8bcc62"
       }
     }
   }
