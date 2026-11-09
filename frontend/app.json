@@ -40,7 +40,15 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["@react-native-google-signin/google-signin", "expo-font"],
-    "owner": "sudhanshu77"
+    "plugins": [
+      "@react-native-google-signin/google-signin",
+      "expo-font"
+    ],
+    "owner": "sudhanshu77",
+    "extra": {
+      "eas": {
+        "projectId": "648304cd-e70e-4192-8d97-fb5c2d8bcc62"
+      }
+    }
   }
 }
