@@ -32,6 +32,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
         "backgroundColor": "#E21F26"
       },
       "package": "com.sudhanshu777.frontend"
@@ -39,15 +40,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "@react-native-google-signin/google-signin",
-      "expo-font"
-    ],
-    "owner": "sudhanshu77",
-    "extra": {
-      "eas": {
-        "projectId": "648304cd-e70e-4192-8d97-fb5c2d8bcc62"
-      }
-    }
+    "plugins": ["@react-native-google-signin/google-signin", "expo-font"],
+    "owner": "sudhanshu77"
   }
 }
