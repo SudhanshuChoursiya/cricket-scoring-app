@@ -78,14 +78,6 @@ const AddTeamScreen = ({ navigation, route }) => {
             setCaptainName(null);
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message:
-                        error?.data?.message ||
-                        "unexpected error occurred, please try again later"
-                })
-            );
         }
     };
 

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CricPro",
-    "slug": "frontend",
+    "name": "CricScore",
+    "slug": "cricscore",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,7 +27,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E21F26"
       },
       "package": "com.sudhanshu777.frontend"
     },

@@ -81,7 +81,7 @@ const InitialPlayersAssignScreen = ({ navigation, route }) => {
                 matchId: route.params?.matchId
             });
         } catch (error) {
-            console.error("Failed to assign players", error);
+            console.log(error);
         }
     };
 

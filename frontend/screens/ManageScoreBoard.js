@@ -80,6 +80,8 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
 
     const { accessToken } = useSelector(state => state.auth);
 
+    const { isOffline } = useSelector(state => state.network);
+
     const dispatch = useDispatch();
     const overTimeLineScrollRef = useRef(null);
     useHideTabBar(navigation, isScreenFocused);
@@ -533,12 +535,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             }).unwrap();
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: error?.data?.message || "Failed to update score"
-                })
-            );
         }
     };
 
@@ -572,15 +568,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             dispatch(popUndoStack());
         } catch (error) {
             console.log(error);
-
-            dispatch(
-                showToast({
-                    type: "error",
-                    message:
-                        error?.data?.message ||
-                        "Something went wrong while undoing score"
-                })
-            );
         }
     };
 
@@ -607,14 +594,6 @@ const ManageScoreBoardScreen = ({ navigation, route }) => {
             dispatch(closeModal());
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message:
-                        error?.data?.message ||
-                        "Something went wrong while changing strike"
-                })
-            );
         }
     };
 

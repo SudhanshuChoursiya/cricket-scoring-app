@@ -69,15 +69,7 @@ const SignInScreen = () => {
             // Refresh auth state
             dispatch(fetchAuth());
         } catch (error) {
-            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                // user cancelled login
-            } else if (error.code === statusCodes.IN_PROGRESS) {
-                // sign in already in progress
-            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                // play services not available
-            } else {
-                console.log("Login error:", error);
-            }
+            console.log(error);
         }
     };
 

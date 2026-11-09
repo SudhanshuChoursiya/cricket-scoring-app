@@ -101,7 +101,7 @@ const RetiredHurtAssign = ({ navigation, route }) => {
                 payload
             }).unwrap();
 
-            navigation.goBack()
+            navigation.goBack();
         } catch (error) {
             console.log(error);
         }

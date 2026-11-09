@@ -127,17 +127,7 @@ const MatchCompletionModal = ({
 
             handleNavigate();
         } catch (error) {
-            console.log("End match API error:", error?.data || error);
-
-            dispatch(
-                showToast({
-                    type: "error",
-                    message:
-                        error?.data?.message ||
-                        error?.error ||
-                        "Failed to end match. Please try again."
-                })
-            );
+            console.log(error);
         } finally {
             setIsEnding(false);
         }

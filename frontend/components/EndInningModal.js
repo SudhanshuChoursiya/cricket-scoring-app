@@ -18,8 +18,8 @@ import { normalize, normalizeVertical } from "../utils/responsive.js";
 import { useEndInningMutation } from "../services/matchApi.js";
 
 const EndInningModal = ({ matchId }) => {
-  const { activeModal, payload } = useSelector(state => state.modal);
-  
+    const { activeModal, payload } = useSelector(state => state.modal);
+
     const dispatch = useDispatch();
     const navigation = useNavigation();
 
@@ -44,15 +44,15 @@ const EndInningModal = ({ matchId }) => {
             await endInning(matchId).unwrap();
 
             navigation.replace("initial-players-assign-screen", { matchId });
-            handleCloseModal()
+            handleCloseModal();
         } catch (error) {
-            console.log("End inning error:", error);
+            console.log(error);
         }
     };
 
     return (
         <Modal
-            isVisible={activeModal==="endInning"}
+            isVisible={activeModal === "endInning"}
             deviceWidth={deviceWidth}
             deviceHeight={deviceHeight}
             backdropOpacity={0.6}

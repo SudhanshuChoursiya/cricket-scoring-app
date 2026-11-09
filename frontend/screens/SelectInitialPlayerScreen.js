@@ -49,13 +49,13 @@ const SelectInitialPlayerScreen = ({ navigation, route }) => {
 
     const availablePlayers = () => {
         if (route.params?.selectFor === "strike batsman") {
-            return battingTeam?.playing11.filter(
+            return battingTeam?.playing11?.filter(
                 player => player._id !== nonStrikeBatsman?.playerId
             );
         }
 
         if (route.params?.selectFor === "non strike batsman") {
-            return battingTeam?.playing11.filter(
+            return battingTeam?.playing11?.filter(
                 player => player._id !== strikeBatsman?.playerId
             );
         }

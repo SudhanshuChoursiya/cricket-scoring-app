@@ -8,7 +8,7 @@ import {
     Dimensions,
     Platform
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { openModal, closeModal } from "../redux/modalSlice.js";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ExtraDimensions from "react-native-extra-dimensions-android";
@@ -21,6 +21,7 @@ const Sidebar = ({ matchDetails, showSidebar, setShowSidebar }) => {
     const navigation = useNavigation();
     const route = useRoute();
     const dispatch = useDispatch();
+
     const deviceWidth = Dimensions.get("window").width;
 
     const deviceHeight =

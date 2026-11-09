@@ -57,10 +57,7 @@ const SuperOverModal = ({ matchId }) => {
 
             handleCloseModal();
         } catch (error) {
-            console.log(
-                "Super over error:",
-                error?.data?.message || error.message
-            );
+            console.log(error);
         }
     };
     return (

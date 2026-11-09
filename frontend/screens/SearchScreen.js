@@ -64,11 +64,11 @@ const SearchScreen = () => {
         return () => clearTimeout(timer);
     }, []);
 
-useEffect(() => {
-  if (query.trim() === "") {
-    setResults(null);
-  }
-}, [query]);
+    useEffect(() => {
+        if (query.trim() === "") {
+            setResults(null);
+        }
+    }, [query]);
 
     const handleSearch = async () => {
         const text = query.trim();
@@ -87,8 +87,9 @@ useEffect(() => {
                 const res = await triggerTournamentSearch(text).unwrap();
                 setResults(res?.data || []);
             }
-        } catch {
+        } catch (error) {
             setResults([]);
+            console.log(error);
         }
     };
 
@@ -200,7 +201,7 @@ useEffect(() => {
             >
                 {isLoading ? (
                     <Text style={styles.info_text}>Searching...</Text>
-                ) : results? (
+                ) : results ? (
                     results.map(item =>
                         activeTab === "matches" ? (
                             <TouchableOpacity
@@ -344,12 +345,10 @@ useEffect(() => {
                             </TouchableOpacity>
                         )
                     )
-                ) : results? (
+                ) : results ? (
                     <Text style={styles.info_text}>No results found</Text>
                 ) : (
-                    <Text style={styles.info_text}>
-                         Search {activeTab}
-                    </Text>
+                    <Text style={styles.info_text}>Search {activeTab}</Text>
                 )}
             </ScrollView>
         </View>

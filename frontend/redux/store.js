@@ -7,6 +7,7 @@ import toastReducer from "./toastSlice.js";
 import matchReducer from "./matchSlice.js";
 import tournamentReducer from "./tournamentSlice.js";
 import modalReducer from "./modalSlice.js";
+import networkReducer from "./networkSlice.js";
 
 // shared base API
 import { baseApi } from "../services/baseApi.js";
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     match: matchReducer,
     tournament: tournamentReducer,
     modal: modalReducer,
+    network: networkReducer,
     [baseApi.reducerPath]: baseApi.reducer
 });
 

@@ -168,12 +168,6 @@ const CreateMatchScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: error?.data?.message || "Unexpected error occurred"
-                })
-            );
         }
     };
 

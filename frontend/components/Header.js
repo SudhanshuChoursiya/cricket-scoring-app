@@ -13,10 +13,10 @@ import { useDispatch } from "react-redux";
 import { openModal } from "../redux/modalSlice.js";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import appLogo from "../assets/icon.png";
+import appLogo from "../assets/app_icon.png";
 import { normalize, normalizeVertical } from "../utils/responsive.js";
 
-const Header = ({activeTab}) => {
+const Header = ({ activeTab }) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const searchInputRef = useRef(null);
@@ -51,7 +51,7 @@ const Header = ({activeTab}) => {
                         resizeMode="cover"
                         source={appLogo}
                     />
-                    <Text style={styles.app_logo_title}>CricPro</Text>
+                    <Text style={styles.app_logo_title}>CricScore</Text>
                 </View>
 
                 <TouchableOpacity
@@ -61,22 +61,6 @@ const Header = ({activeTab}) => {
                     <Icon name="search" size={23} color="#f7f7f7" />
                 </TouchableOpacity>
             </View>
-
-            {/* <View style={styles.searchbar_wrapper}>
-                <View style={styles.bar}>
-                    <TextInput
-                        style={styles.search_input}
-                        placeholder="Search a match"
-                        value={searchQuery}
-                        onChangeText={text => setSearchQuery(text)}
-                        ref={searchInputRef}
-                    />
-
-                    <View style={styles.search_button}>
-                        <Icon name="search" size={20} color="white" />
-                    </View>
-                </View>
-            </View>*/}
         </View>
     );
 };
@@ -101,16 +85,17 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     app_logo: {
-        height: normalize(50),
-        width: normalize(50)
+        height: normalize(42),
+        width: normalize(42),
     },
     app_logo_title: {
         color: "#f1f1f1",
-        fontSize: normalize(24),
-        marginHorizontal: normalize(8),
-        fontFamily: "kittenBold",
+        fontSize: normalize(25),
+        marginHorizontal: normalize(5),
+        marginBottom:normalizeVertical(5),
+        fontFamily: "blinkerBold",
         letterSpacing: 1,
-        marginTop: normalizeVertical(10)
+        
     },
     search_button: {
         alignItems: "center",

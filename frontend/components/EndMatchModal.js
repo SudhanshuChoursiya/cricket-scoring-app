@@ -65,9 +65,9 @@ const EndMatchModal = ({ matchId, matchDetails }) => {
 
             if (!isMatchAbandoned && selectedTeam)
                 payload.winningTeamId = selectedTeam.teamId;
-            if (matchDetails?.tournamentId){
+            if (matchDetails?.tournamentId) {
                 payload.tournamentId = matchDetails.tournamentId;
-}
+            }
             await endMatch(payload).unwrap();
             dispatch(
                 showToast({
@@ -97,13 +97,7 @@ const EndMatchModal = ({ matchId, matchDetails }) => {
             }
             handleCloseModal();
         } catch (error) {
-          console.log(error)
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: error?.data?.message
-                })
-            );
+            console.log(error);
         }
     };
 

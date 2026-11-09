@@ -62,7 +62,7 @@ const CaughtOutFielderAssign = ({ navigation, route }) => {
                 matchId: route.params?.matchId,
                 payload
             }).unwrap();
-              navigation.goBack()
+            navigation.goBack();
             dispatch(
                 setFielder({
                     playerId: null,

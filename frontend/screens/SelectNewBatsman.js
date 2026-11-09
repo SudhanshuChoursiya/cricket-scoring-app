@@ -9,7 +9,7 @@ import {
     BackHandler
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import {showToast} from "../redux/toastSlice.js";
+import { showToast } from "../redux/toastSlice.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingSpinner from "../components/LoadingSpinner.js";
@@ -72,7 +72,6 @@ const SelectNewBatsman = ({ navigation, route }) => {
             navigation.goBack();
         } catch (error) {
             console.log(error);
-            dispatch(showToast({ type: "error", message: error.message }));
         }
     };
 
@@ -89,12 +88,6 @@ const SelectNewBatsman = ({ navigation, route }) => {
             navigation.goBack();
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: error?.data?.message || error.message
-                })
-            );
         }
     };
 

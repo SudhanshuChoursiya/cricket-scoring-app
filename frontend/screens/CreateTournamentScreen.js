@@ -156,7 +156,7 @@ const CreateTournamentScreen = ({ navigation, route }) => {
                     type: "error",
                     message:
                         error?.data?.message ||
-                        "unexpected error occured, try again later"
+                        "Something went wrong"
                 })
             );
         }

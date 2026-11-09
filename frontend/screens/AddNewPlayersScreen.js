@@ -96,14 +96,6 @@ const AddNewPlayersScreen = ({ navigation, route }) => {
             navigation.goBack();
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message:
-                        error?.data?.message ||
-                        "Unexpected error occurred, try again later"
-                })
-            );
         }
     };
 

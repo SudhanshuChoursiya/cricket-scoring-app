@@ -186,13 +186,8 @@ const ChangeSquadScreen = ({ navigation, route }) => {
                 playerId: player.playerId
             }).unwrap();
             dispatch(closeModal());
-        } catch (err) {
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: err?.data?.message || "Unexpected error occurred"
-                })
-            );
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -218,12 +213,7 @@ const ChangeSquadScreen = ({ navigation, route }) => {
             }).unwrap();
             dispatch(closeModal());
         } catch (err) {
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: err?.data?.message || "Unexpected error occurred"
-                })
-            );
+            console.log(error);
         }
     };
 

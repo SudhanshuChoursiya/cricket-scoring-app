@@ -22,6 +22,7 @@ import robotoMedium from "./assets/Roboto-Medium.ttf";
 import robotoBold from "./assets/Roboto-Bold.ttf";
 import poppinsBold from "./assets/Poppins-Bold.ttf";
 import latoBold from "./assets/Lato-Bold.ttf";
+import blinkerBold from "./assets/Blinker-Bold.ttf";
 
 import { NavigationContainer, useRoute } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -63,7 +64,8 @@ import SelectCaptain from "./screens/SelectCaptain.js";
 import ChangeSquad from "./screens/ChangeSquad.js";
 import SelectReplacementPlayer from "./screens/SelectReplacementPlayer.js";
 import SearchScreen from "./screens/SearchScreen.js";
-import NetworkStatusBanner from "./components/NetworkStatusBanner.js";
+import NetworkListener from "./components/NetworkListener.js";
+
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAuth } from "./redux/authSlice.js";
 import { normalize, normalizeVertical } from "./utils/responsive.js";
@@ -281,7 +283,8 @@ export const Layout = () => {
         robotoBold,
         kittenBold,
         poppinsBold,
-        latoBold
+        latoBold,
+        blinkerBold
     });
 
     const dispatch = useDispatch();
@@ -326,7 +329,6 @@ export const Layout = () => {
                     <TabNavigator />
                 )}
             </NavigationContainer>
-            <NetworkStatusBanner />
         </SafeAreaView>
     );
 };
@@ -335,6 +337,7 @@ export default function App() {
     return (
         <ReduxProvider>
             <ToastAlert />
+            <NetworkListener />
             <Layout />
         </ReduxProvider>
     );

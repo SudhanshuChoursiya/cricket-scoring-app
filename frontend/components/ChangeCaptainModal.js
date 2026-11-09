@@ -21,9 +21,9 @@ import { useChangeCaptainMutation } from "../services/matchApi.js";
 
 const ChangeCaptainModal = ({ matchId, teamId, player }) => {
     const { activeModal, payload } = useSelector(state => state.modal);
-    
+
     const dispatch = useDispatch();
-    
+
     const { accessToken } = useSelector(state => state.auth);
 
     const [changeCaptain, { isLoading: isCaptainChanging }] =
@@ -60,12 +60,6 @@ const ChangeCaptainModal = ({ matchId, teamId, player }) => {
             handleCloseModal();
         } catch (error) {
             console.log(error);
-            dispatch(
-                showToast({
-                    type: "error",
-                    message: error?.data?.message || error.message
-                })
-            );
         }
     };
     return (
