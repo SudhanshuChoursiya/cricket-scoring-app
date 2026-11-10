@@ -83,14 +83,14 @@ const SignInScreen = () => {
                 <View style={styles.welcome_paragraph_container}>
                     <Text style={styles.welcome_paragraph}>
                         Welcome to{" "}
-                        <Text style={styles.brown_text}>CricPro </Text>
+                        <Text style={styles.red_text}>CricScore </Text>
                         Your hub for live cricket scoring!
                     </Text>
                 </View>
 
                 <View style={styles.about_us_paragraph_container}>
                     <Text style={styles.about_us_paragraph}>
-                        CricPro is your ultimate app for live cricket scoring.
+                        CricScore is your ultimate app for live cricket scoring.
                         Update match scores in real-time and keep your audience
                         informed with every moment of the game.
                     </Text>
@@ -148,8 +148,8 @@ const styles = StyleSheet.create({
         fontSize: normalize(24),
         fontFamily: "poppinsBold"
     },
-    brown_text: {
-        color: "#864912"
+    red_text: {
+        color: "#E21F26"
     },
     about_us_paragraph_container: {
         width: "95%"

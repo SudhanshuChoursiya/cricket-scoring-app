@@ -18,7 +18,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sudhanshu777.frontend",
+      "bundleIdentifier": "com.sudhanshu777.cricscore",
       "infoPlist": {
         "CFBundleURLTypes": [
           {
@@ -35,7 +35,7 @@
         "monochromeImage": "./assets/adaptive-icon-monochrome.png",
         "backgroundColor": "#E21F26"
       },
-      "package": "com.sudhanshu777.frontend"
+      "package": "com.sudhanshu777.cricscore"
     },
     "web": {
       "favicon": "./assets/favicon.png"
